@@ -15,7 +15,7 @@ requests.packages.urllib3.disable_warnings()
 
 from public.models import *
 from position.models import *
-from position.spider.crawl_company import CrawlCompany
+from position.spider.company import CrawlCompany
 from public.tools import MyThread, ThreadLock
 
 class CrawlPosiion(object):
