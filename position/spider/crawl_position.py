@@ -7,16 +7,21 @@ import urllib
 from queue import Queue
 import datetime
 
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-sys.path.append(BASE_DIR)
+requests.packages.urllib3.disable_warnings()
+# BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+# print(BASE_DIR)
+# sys.path.append(BASE_DIR)
+# os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'pyroad.settings')
+# django.setup()
+
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'pyroad.settings')
 django.setup()
-requests.packages.urllib3.disable_warnings()
 
-from public.models import *
+from public.models import AdministrativeDiv, CityBusinessZone
 from position.models import *
-from position.spider.company import CrawlCompany
+from position.spider.crawl_company import CrawlCompany
 from public.tools import MyThread, ThreadLock
+
 
 class CrawlPosiion(object):
 
@@ -40,15 +45,18 @@ class CrawlPosiion(object):
             'Connection': 'keep-alive',
             'X-Anit-Forge-Token': 'None',
         }
-        self.foreignkey = {
+        self.foreign_fields = {
             "education": "PositionEducation",
             "experience": "PositionExperience",
             "position_nature": "PositionNature",
             "position_type": "PositionType",
         }
-        self.cache = self.__cache(self.foreignkey)
+        self.cache = self.__cache(self.foreign_fields)
 
     def __cache(self, foreign_fields):
+        '''
+        缓存字段数据
+        '''
         cache_data = {}
         for key in foreign_fields:
             field = foreign_fields[key]
@@ -58,7 +66,20 @@ class CrawlPosiion(object):
                 cache_data[field][i.name] = i
         return cache_data
 
+    def __progress(self, percent, width=50):
+        '''进度打印功能
+           每次的输入是已经完成总任务的百分之多少
+        '''
+        show_str = ('正在创建线程,请稍后...[%%-%ds]' % width) % (int(width * percent / 100) * "#")  # 字符串拼接的嵌套使用
+        if percent >= 100:
+            percent = 100
+            show_str = ('创建完成 [%%-%ds]' % width) % (int(width * percent / 100) * "#")
+        print('\r%s %d%%' % (show_str, percent), end='')
+
     def __detect_page(self) -> int:
+        '''
+        探测数据总页数
+        '''
         form_data = {
             'first': 'false',
             'pn': '1',
@@ -74,9 +95,27 @@ class CrawlPosiion(object):
         page = int(total) // int(page_size) + 1
         return int(page)
 
+    def __get_labels(self, data:str) -> list:
+        '''
+        分割标签
+        '''
+        split_str = ['.', ',', '，', '、', ' ', '；', ';', '：']
+        data = data.replace('。', '')
+        for i in split_str:
+            data = data.replace(i, '_')
+        return data.split('_')
+
+    def __get_task(self, data):
+        '''
+        队列任务迭代
+        '''
+        yield self.store(data)
+
     def __process_business_zones(self, city, district, zones:list) -> list:
+        '''
+        处理职位所在商圈
+        '''
         zone_ids = []
-        # 循环处理所在商圈
         for zone in zones:
             kwargs = {"name": zone}
             if isinstance(city, AdministrativeDiv):
@@ -94,23 +133,30 @@ class CrawlPosiion(object):
         return zone_ids
 
     def __process_many_to_many(self, obj:django.db.models.base.ModelBase, labels: list) -> list:
+        '''
+        处理ManyToMany字段
+        '''
         ids = []
-        ThreadLock.acquire()
         for label in labels:
             try:
                 is_exist = obj.objects.get(name=label)
             except models.ObjectDoesNotExist:
+                ThreadLock.acquire()
                 field_id = obj.objects.create(name=label, add_time=datetime.datetime.now()).id
+                ThreadLock.release()
             except:
+                ThreadLock.release()
                 print("Label '%s' Process Failed! "%label)
                 continue
             else:
                 field_id = is_exist.id
             ids.append(field_id)
-        ThreadLock.release()
         return ids
 
     def get_requests_data(self, form_data):
+        '''
+        请求数据
+        '''
         time.sleep(3)
         session_data = requests.session()
         session_data.headers.update(self.headers)
@@ -139,90 +185,117 @@ class CrawlPosiion(object):
                 data["salary_upper"] = int(item_data["salary"].lower().replace('-','').split('k')[1])
                 data["welfare"] = item_data["positionAdvantage"]
                 welfare = item_data.get("positionAdvantage", "")
-                data["welfare"] = [] if welfare == "" else '{},'.format(welfare).split(',')[:-1]
+                data["welfare"] = [] if welfare == "" else self.__get_labels(welfare)
                 data["labels"] = item_data["positionLables"]
                 data_list.append(data)
             return data_list
 
-    def __get_task(self, data):
-        yield self.store(data)
-
     def store(self, data:dict):
-        if data:
-            for key in self.foreignkey:
-                field = self.foreignkey[key]
-                key_obj = self.cache[field].get(data[key], None)
-                if not key_obj:
-                    ThreadLock.acquire()
-                    obj = eval(self.foreignkey[key])
+        '''
+        数据入库
+        '''
+        for key in self.foreign_fields:
+            field = self.foreign_fields[key]
+            ThreadLock.acquire()
+            key_obj = self.cache[field].get(data[key], None)
+            if not key_obj and data[key]:
+                try:
+                    obj = eval(field)
                     key_obj = obj.objects.create(name=data[key], add_time=datetime.datetime.now())
                     self.cache[field][key_obj.name] = key_obj
+                except:
                     ThreadLock.release()
-                data[key] = key_obj
-            # 处理公司外键
-            cid = data["company"]
-            try:
-                company = Company.objects.get(id=cid)
-            except:
-                company_spider = CrawlCompany()
-                # todo 处理公司爬虫的返回类型
-                store_company = company_spider.run(start_id=cid, count=1)
+                    print("\033[1;31m\t position %s field %s '%s' Process Failed!\033[0m"%(data["id"], field, data[key]))
+            ThreadLock.release()
+            data[key] = key_obj
+        # 处理公司外键
+        cid = data["company"]
+        try:
+            company = Company.objects.get(id=cid)
+        except models.ObjectDoesNotExist:
+            company_spider = CrawlCompany()
+            store_company = company_spider.run(start_id=cid, count=1)
+            if not store_company:
+                print("\033[1;31m\t company %s for position %s store false!\033[0m"%(cid, data["id"]))
+                del data["company"]
+            else:
                 company = Company.objects.get(id=cid) if store_company else None
+                data["company"] = company
+        except:
+            print("\033[1;31m\t company %s for position %s not exist!\033[0m"%(cid, data["id"]))
+            del data["company"]
+        else:
             data["company"] = company
-            # try:
-            position_city = data["position_city"]
-            # except KeyError:
-                # print("key 'position_city' not exists!")
-            # else:
-            if position_city != '':
-                city_ins = AdministrativeDiv.objects.filter(short_name=position_city)
-                if city_ins:
-                    city_obj = city_ins[0]
-                    data["position_city"] = city_obj
-            # try:
-            position_district = data["position_district"]
-            # except KeyError:
-            #     print("key 'position_district' not exists!")
-            # else:
-            if position_district != '':
-                city_ins = AdministrativeDiv.objects.filter(short_name=position_district)
-                if city_ins:
-                    city_obj = city_ins[0]
-                    data["position_district"] = city_obj
-            labels = data.get("label", None)
-            welfare = data.get("welfare", None)
-            position_business_zones = data.get("position_business_zones", None)
-            del data["labels"]
-            del data["welfare"]
-            del data["position_business_zones"]
-            data['warehouse_time'] = datetime.datetime.now()
-            try:
-                # create Position obj
-                position_obj = Position.objects.create(**data)
-                if labels:
-                    labels_id = self.__process_many_to_many(PositionLabels, labels)
-                    position_obj.label.set(labels_id)
-                if welfare:
-                    welfare_id = self.__process_many_to_many(PositionWelfares, welfare)
-                    position_obj.welfare.set(welfare_id)
-                # process business zones
-                if position_business_zones:
-                    zone_ids = self.__process_business_zones(data["position_city"], data["position_district"],
-                                                             position_business_zones)
-                    position_obj.position_business_zones.set(zone_ids)
-                print("store position id %s success!" % (data["id"]))
-            except Exception as e:
-                print("store position id %s failed! %s" % (data["id"], e))
+        # try:
+        position_city = data["position_city"]
+        # except KeyError:
+            # print("key 'position_city' not exists!")
+        # else:
+        if position_city != '':
+            city_ins = AdministrativeDiv.objects.filter(short_name=position_city)
+            if city_ins:
+                city_obj = city_ins[0]
+                data["position_city"] = city_obj
+            else:
+                print("city %s not exits"%data["position_city"])
+                del data["position_city"]
+        # try:
+        position_district = data["position_district"]
+        # except KeyError:
+        #     print("key 'position_district' not exists!")
+        # else:
+        if position_district != '':
+            city_ins = AdministrativeDiv.objects.filter(short_name=position_district)
+            if city_ins:
+                city_obj = city_ins[0]
+                data["position_district"] = city_obj
+            else:
+                print("district %s-%s not exits"%(data["position_city"], position_district))
+                del data["position_district"]
+        labels = data.get("label", None)
+        welfare = data.get("welfare", None)
+        position_business_zones = data.get("position_business_zones", None)
+        del data["labels"]
+        del data["welfare"]
+        del data["position_business_zones"]
+        data['warehouse_time'] = datetime.datetime.now()
+        try:
+            # create Position obj
+            position_obj = Position.objects.create(**data)
+            if labels:
+                labels_id = self.__process_many_to_many(PositionLabels, labels)
+                position_obj.label.set(labels_id)
+            if welfare:
+                welfare_id = self.__process_many_to_many(PositionWelfares, welfare)
+                position_obj.welfare.set(welfare_id)
+            # process business zones
+            if position_business_zones:
+                zone_ids = self.__process_business_zones(data["position_city"], data["position_district"],
+                                                         position_business_zones)
+                position_obj.position_business_zones.set(zone_ids)
+            print("\033[1;32m\t store position id %s success!\033[0m" % (data["id"]))
+        except Exception as e:
+            print("\033[1;31m\t store position id %s failed! %s \n\t data:%s\033[0m" % (data["id"], e, data))
+            exit(-2)
 
     def __start_threads(self, threads:list):
+        '''
+        多线程运行
+        '''
         thread_len = threads.__len__()
+        print("Thread len: %s"%thread_len)
         range_num = thread_len // self.thread_count
         # 线程切割启动
         for i in range(range_num):
-            for thread in threads[i * self.thread_count : (i + 1) * self.thread_count]:
+            __start_thread = i * self.thread_count
+            __end_thread = (i + 1) * self.thread_count
+            # self.__progress(int(__end_thread / range_num * 100))
+            print("Process thread No.%s to No.%s..." % (__start_thread, __end_thread))
+            for thread in threads[__start_thread : __end_thread]:
                 thread.start()
-            for thread in threads[i * self.thread_count : (i + 1) * self.thread_count]:
+            for thread in threads[__start_thread : __end_thread]:
                 thread.join()
+
             time.sleep(self.thread_delay)
         # 启动剩余线程
         for thread in threads[range_num * 3:]:
@@ -230,29 +303,44 @@ class CrawlPosiion(object):
         for thread in threads[range_num * 3:]:
             thread.join()
 
+    def __create_task(self, form_data):
 
+        run = self.get_requests_data(form_data)
+        for i in run:
+            __task = self.__get_task(i)
+            self.spider_queue.put(__task)
     def run(self):
-        threads = []
+        '''
+        入口函数
+        '''
+        task_threads = []
+        queue_threads = []
         page = self.__detect_page()
         print("All page: %s"%page)
-        for page in range(1, page + 1):
-        # for page in range(1, 2):
+        for i in range(1, page + 1):
+        # for i in range(1, 21):
             form_data = {
                 'first': 'false',
-                'pn': page,
+                'pn': i,
                 'kd': self.kd,
             }
-            run = self.get_requests_data(form_data)
-            for i in run:
-                __task = self.__get_task(i)
-                self.spider_queue.put(__task)
+            thread = MyThread(func=self.__create_task, args=(form_data, ))
+            task_threads.append(thread)
+        self.__start_threads(task_threads)
         print("Queue ready")
         while not self.spider_queue.empty():
             thread = MyThread(func=next, args=(self.spider_queue.get(), ))
-            thread.setName(str(id))
-            threads.append(thread)
-        self.__start_threads(threads)
+            # thread.setName(str(id))
+            queue_threads.append(thread)
+        self.__start_threads(queue_threads)
 
+
+    # def run_one(self, pid):
+    #     url = self.url_template.format(cid=pid)
+    #     run = self.get_requests_data(pid, url)
+    #     self.spider_queue.put(run)
+    #     while not self.spider_queue.empty():
+    #         next(self.spider_queue.get())
 
 if __name__ == '__main__':
     spider = CrawlPosiion()

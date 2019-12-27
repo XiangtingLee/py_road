@@ -45,7 +45,7 @@ class CrawlCompany(object):
             'Connection': 'keep-alive',
             'X-Anit-Forge-Token': 'None',
         }
-        self.cache_field_data = self.__cache(self.foreign_fields)
+        self.cache = self.__cache(self.foreign_fields)
 
     def __cache(self, foreign_fields:dict) -> dict:
         cache_data = {}
@@ -53,25 +53,24 @@ class CrawlCompany(object):
             field = foreign_fields[key]
             cache_data[field] = {}
             obj = eval(field)
-            for i in list(obj.objects.all()):
-                cache_data[field][i.name] = i.id
+            for i in obj.objects.all():
+                cache_data[field][i.name] = i
         return cache_data
 
     def __process_many_to_many(self, obj:django.db.models.base.ModelBase, labels: list) -> list:
         ids = []
-        ThreadLock.acquire()
         for label in labels:
             try:
-                is_exist = obj.objects.get(name=label)
+                field_obj = obj.objects.get(name=label)
             except models.ObjectDoesNotExist:
-                field_id = obj.objects.create(name=label, add_time=datetime.datetime.now()).id
+                ThreadLock.acquire()
+                field_obj = obj.objects.create(name=label, add_time=datetime.datetime.now())
+                ThreadLock.release()
             except:
+                ThreadLock.release()
                 print("Label '%s' Process Failed! "%label)
                 continue
-            else:
-                field_id = is_exist.id
-            ids.append(field_id)
-        ThreadLock.release()
+            ids.append(field_obj)
         return ids
 
     def get_requests_data(self, cid, url):
@@ -115,32 +114,30 @@ class CrawlCompany(object):
                 item["business_reg_status"] = business_info.get("regStatus", None)
             yield self.store(item)
         else:
-            yield print("company %s not found!"%cid)
+            yield print("\033[1;33m\t company %s not found!\033[0m"%cid)
 
     def store(self, data: dict):
-        # todo: 外键name不存在时自动创建，需要上锁防止重复提交
-        # todo: 自动创建后，需要更新cache，考虑将缓存放入redis
         for key in self.foreign_fields:
             field = self.foreign_fields[key]
             if key in data:
-                key_id = self.cache_field_data[field].get(data[key], None)
-                if not key_id:
-                    ThreadLock.acquire()
-                    obj = eval(field)
+                ThreadLock.acquire()
+                key_obj = self.cache[field].get(data[key], None)
+                if not key_obj and data[key]:
                     try:
-                        key_id = obj.objects.create(name=data[key], add_time=datetime.datetime.now()).id
-                        self.cache_field_data[field][data[key]] = key_id
-                    except Exception as e:
-                        print(field, e)
-                    ThreadLock.release()
-                del data[key]
-                data[key + "_id"] = key_id
+                        obj = eval(field)
+                        key_obj = obj.objects.create(name=data[key], add_time=datetime.datetime.now())
+                        self.cache[field][key_obj.name] = key_obj
+                    except:
+                        ThreadLock.release()
+                        print("\033[1;31m\t company %s field %s '%s' Process Failed!\033[0m" % (data["id"], field, data[key]))
+                ThreadLock.release()
+                data[key] = key_obj
             else:
-                print("key %s not exists!"%key)
+                print("\033[1;33m\t key %s not exists!\033[0m"%key)
         try:
             city = data["city"]
         except KeyError:
-            print("key city not exists!")
+            print("\033[1;33m\t key city not exists!\033[0m")
         else:
             del data["city"]
             if city != '':
@@ -149,10 +146,10 @@ class CrawlCompany(object):
                     city_id = city_ins[0].id
                     data["city_id"] = city_id
         data['warehouse_time'] = datetime.datetime.now()
-        industry = data.get("industry", None)
-        del data["industry"]
         labels = data.get("label", None)
+        industry = data.get("industry", None)
         del data["label"]
+        del data["industry"]
         try:
             result = Company.objects.create(**data)
             if labels:
@@ -161,9 +158,10 @@ class CrawlCompany(object):
             if industry:
                 industry_id = self.__process_many_to_many(CompanyIndustries, industry)
                 result.industry.set(industry_id)
-            print("store company id %s success!"%(data["id"]))
+            print("\033[1;32m\t store company id %s success!\033[0m"%(data["id"]))
         except Exception as e:
-            print("store company id %s failed! %s"%(data["id"], e))
+            print("\033[1;31m\t store company id %s failed! %s\033[0m"%(data["id"], e))
+            print(data)
 
     def __start_threads(self, threads:list):
         thread_len = threads.__len__()
@@ -196,11 +194,10 @@ class CrawlCompany(object):
         return True
 
 
-
 if __name__ == '__main__':
     spider = CrawlCompany()
     spider.thread_count = 5
-    spider.run(start_id=1, count=100)
+    spider.run(start_id=1, count=10)
     # spider.run(start_id=1, count=100)
     # print(AdministrativeDiv.objects.filter(short_name="北京")[0].level_one.id)*
     #
