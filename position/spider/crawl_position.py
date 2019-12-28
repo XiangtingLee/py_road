@@ -27,7 +27,7 @@ class CrawlPosiion(object):
 
     def __init__(self):
         self.spider_queue = Queue()
-        self.thread_count = 3
+        self.thread_count = 5
         self.thread_delay = 0
         self.city = "%E5%85%A8%E5%9B%BD"
         self.kd = "python"
@@ -252,7 +252,7 @@ class CrawlPosiion(object):
             else:
                 print("district %s-%s not exits"%(data["position_city"], position_district))
                 del data["position_district"]
-        labels = data.get("label", None)
+        labels = data.get("labels", None)
         welfare = data.get("welfare", None)
         position_business_zones = data.get("position_business_zones", None)
         del data["labels"]

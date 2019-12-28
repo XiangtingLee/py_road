@@ -14,11 +14,11 @@
 <div class="login-container">
 	<h1>用户登录</h1>
 	<div class="connect">
-        <h2 style="color: {{ message.color }} ;text-align: center;font-size: 15px;" ><b>{{ message.text }}</b></h2>
-		<p>www.tayfl1314.cn</p>
+        <h2 style="color: {{ msg.color }} ;text-align: center;font-size: 15px;" ><b>{{ msg.text }}</b></h2>
+		<p>www.lixiangting.com</p>
 	</div>
 
-	<form action="{% url 'login_act' %}" method="post">
+	<form action="{% url 'login' %}" method="post">
         {% csrf_token %}
 		<div>
 			<input type="text" name="username" class="username" placeholder="用户名"/>
@@ -26,6 +26,9 @@
 		<div>
 			<input type="password" name="password" class="password" placeholder="密码" oncontextmenu="return false" onpaste="return false" />
 		</div>
+        <div style="display: none;">
+            <input id="next" type="text" name="next_url" value="{{ next_url }}" />
+        </div>
 		<button id="submit" type="submit">登 录</button>
 	</form>
 

@@ -19,12 +19,12 @@ from django.conf.urls import url
 from . import views
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
+    path('site/', admin.site.urls),
     url('^$', views.main, name='main'),
     url('^index$', views.index, name='index'),
-    url('^login$', views.login_view, name='login'),
-    url('^login_act$', views.login_action, name='login_act'),
-    url('^reg$', views.reg_view, name='reg'),
-    url('^reg_act$', views.reg_action, name='reg_act'),
+    url('^login$', views.login_act, name='login'),
+    url('^logout$', views.logout_act, name='logout'),
+    url('^reg$', views.reg_act, name='reg'),
     path('public/', include('public.urls', namespace='public')),
+    path('position/', include('position.urls', namespace='position')),
 ]

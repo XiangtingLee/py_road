@@ -1,0 +1,187 @@
+{% extends 'lib/base.html' %}
+{% load static %}
+{% block title %}数据展示{% endblock %}
+{% block content %}
+<div class="layui-fluid">
+    <div class="layui-row layui-col-space15">
+        <div class="layui-col-md6">
+            <div class="layui-card">
+                <div class="layui-card-header">职位标签词云</div>
+                <div class="layui-card-body">
+
+                    <div class="layui-carousel layadmin-carousel layadmin-dataview" data-anim="fade"
+                         lay-filter="wdcloud">
+                        <div carousel-item id="wdcloud">
+                            <div><i class="layui-icon layui-icon-loading1 layadmin-loading"></i></div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="layui-card">
+                <div class="layui-card-header">职位学历要求</div>
+                <div class="layui-card-body">
+
+                    <div class="layui-carousel layadmin-carousel layadmin-dataview" data-anim="fade"
+                         lay-filter="EduNum">
+                        <div carousel-item id="EduNum">
+                            <div><i class="layui-icon layui-icon-loading1 layadmin-loading"></i></div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="layui-card">
+                <div class="layui-card-header">每日入库量</div>
+                <div class="layui-card-body">
+
+                    <div class="layui-carousel layadmin-carousel layadmin-dataview" data-anim="fade"
+                         lay-filter="dailyNum">
+                        <div carousel-item id="dailyNum">
+                            <div><i class="layui-icon layui-icon-loading1 layadmin-loading"></i></div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="layui-card">
+                <div class="layui-card-header">公司融资情况</div>
+                <div class="layui-card-body">
+
+                    <div class="layui-carousel layadmin-carousel layadmin-dataview" data-anim="fade"
+                         lay-filter="companyFinancing">
+                        <div carousel-item id="companyFinancing">
+                            <div><i class="layui-icon layui-icon-loading1 layadmin-loading"></i></div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+{#            <div class="layui-card">#}
+{#                <div class="layui-card-header">职位数量走势</div>#}
+{#                <div class="layui-card-body">#}
+{##}
+{#                    <div class="layui-carousel layadmin-carousel layadmin-dataview" data-anim="fade"#}
+{#                         lay-filter="LAY-index-normline">#}
+{#                        <div carousel-item id="LAY-index-normline">#}
+{#                            <div><i class="layui-icon layui-icon-loading1 layadmin-loading"></i></div>#}
+{#                        </div>#}
+{#                    </div>#}
+{##}
+{#                </div>#}
+{#            </div>#}
+
+{#            <div class="layui-card">#}
+{#                <div class="layui-card-header">职位薪资状况</div>#}
+{#                <div class="layui-card-body">#}
+{##}
+{#                    <div class="layui-carousel layadmin-carousel layadmin-dataview" data-anim="fade"#}
+{#                         lay-filter="LAY-index-diffline">#}
+{#                        <div carousel-item id="LAY-index-diffline">#}
+{#                            <div><i class="layui-icon layui-icon-loading1 layadmin-loading"></i></div>#}
+{#                        </div>#}
+{#                    </div>#}
+{##}
+{#                </div>#}
+{#            </div>#}
+        </div>
+        <div class="layui-col-md6">
+
+            <div class="layui-card">
+                <div class="layui-card-header">职位城市分布</div>
+                <div class="layui-card-body">
+
+                    <div class="layui-carousel layadmin-carousel layadmin-dataview" data-anim="fade"
+                         lay-filter="Distribution">
+                        <div carousel-item id="Distribution">
+                            <div><i class="layui-icon layui-icon-loading1 layadmin-loading"></i></div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="layui-card">
+                <div class="layui-card-header">职位经验要求</div>
+                <div class="layui-card-body">
+
+                    <div class="layui-carousel layadmin-carousel layadmin-dataview" data-anim="fade"
+                         lay-filter="ExpNum">
+                        <div carousel-item id="ExpNum">
+                            <div><i class="layui-icon layui-icon-loading1 layadmin-loading"></i></div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="layui-card">
+                <div class="layui-card-header">公司规模</div>
+                <div class="layui-card-body">
+
+                    <div class="layui-carousel layadmin-carousel layadmin-dataview" data-anim="fade"
+                         lay-filter="companyScale">
+                        <div carousel-item id="companyScale">
+                            <div><i class="layui-icon layui-icon-loading1 layadmin-loading"></i></div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="layui-card">
+                <div class="layui-card-header">公司所属行业分布</div>
+                <div class="layui-card-body">
+
+                    <div class="layui-carousel layadmin-carousel layadmin-dataview" data-anim="fade"
+                         lay-filter="cpyIndustry">
+                        <div carousel-item id="cpyIndustry">
+                            <div><i class="layui-icon layui-icon-loading1 layadmin-loading"></i></div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+{#            <div class="layui-card">#}
+{#                <div class="layui-card-header">经验要求/学历要求</div>#}
+{#                <div class="layui-card-body">#}
+{##}
+{#                    <div class="layui-carousel layadmin-carousel layadmin-dataview" data-anim="fade"#}
+{#                         lay-filter="LAY-index-area">#}
+{#                        <div carousel-item id="LAY-index-area">#}
+{#                            <div><i class="layui-icon layui-icon-loading1 layadmin-loading"></i></div>#}
+{#                        </div>#}
+{#                    </div>#}
+{##}
+{#                </div>#}
+{#            </div>#}
+{#            <div class="layui-card">#}
+{#                <div class="layui-card-header">对数轴</div>#}
+{#                <div class="layui-card-body">#}
+{##}
+{#                    <div class="layui-carousel layadmin-carousel layadmin-dataview" data-anim="fade"#}
+{#                         lay-filter="LAY-index-logline">#}
+{#                        <div carousel-item id="LAY-index-logline">#}
+{#                            <div><i class="layui-icon layui-icon-loading1 layadmin-loading"></i></div>#}
+{#                        </div>#}
+{#                    </div>#}
+{#                </div>#}
+{##}
+{#            </div>#}
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block tail_js %}
+<script>
+    layui.config({
+    base: '{% static 'layuiadmin/' %}' //静态资源所在路径
+  }).extend({
+    index: '/lib/index' //主入口模块
+  }).use(['index', 'senior'])
+</script>
+{% endblock %}

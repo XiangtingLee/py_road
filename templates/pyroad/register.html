@@ -15,7 +15,7 @@
 		<p>Link the world. Share to world.</p>
 	</div>
 	
-	<form method="post" action="{% url 'reg_act' %}">
+	<form method="post" action="{% url 'reg' %}">
         {% csrf_token %}
 		<div>
 			<input type="text" name="username" class="username" placeholder="您的用户名" autocomplete="off"/>
