@@ -127,10 +127,12 @@ class CrawlCompany(object):
                         obj = eval(field)
                         key_obj = obj.objects.create(name=data[key], add_time=datetime.datetime.now())
                         self.cache[field][key_obj.name] = key_obj
+                        ThreadLock.release()
                     except:
                         ThreadLock.release()
                         print("\033[1;31m\t company %s field %s '%s' Process Failed!\033[0m" % (data["id"], field, data[key]))
-                ThreadLock.release()
+                else:
+                    ThreadLock.release()
                 data[key] = key_obj
             else:
                 print("\033[1;33m\t key %s not exists!\033[0m"%key)

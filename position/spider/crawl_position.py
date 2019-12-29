@@ -141,16 +141,18 @@ class CrawlPosiion(object):
             try:
                 is_exist = obj.objects.get(name=label)
             except models.ObjectDoesNotExist:
-                ThreadLock.acquire()
-                field_id = obj.objects.create(name=label, add_time=datetime.datetime.now()).id
-                ThreadLock.release()
-            except:
-                ThreadLock.release()
-                print("Label '%s' Process Failed! "%label)
-                continue
+                try:
+                    ThreadLock.acquire()
+                    field_id = obj.objects.create(name=label, add_time=datetime.datetime.now()).id
+                    ids.append(field_id)
+                    ThreadLock.release()
+                except:
+                    ThreadLock.release()
+                    print("Label '%s' Process Failed! " % label)
+            except Exception as e:
+                print("Label '%s' Process Failed! %s" %(label, e))
             else:
-                field_id = is_exist.id
-            ids.append(field_id)
+                ids.append(is_exist.id)
         return ids
 
     def get_requests_data(self, form_data):
@@ -203,10 +205,12 @@ class CrawlPosiion(object):
                     obj = eval(field)
                     key_obj = obj.objects.create(name=data[key], add_time=datetime.datetime.now())
                     self.cache[field][key_obj.name] = key_obj
+                    ThreadLock.release()
                 except:
                     ThreadLock.release()
                     print("\033[1;31m\t position %s field %s '%s' Process Failed!\033[0m"%(data["id"], field, data[key]))
-            ThreadLock.release()
+            else:
+                ThreadLock.release()
             data[key] = key_obj
         # 处理公司外键
         cid = data["company"]
@@ -298,9 +302,9 @@ class CrawlPosiion(object):
 
             time.sleep(self.thread_delay)
         # 启动剩余线程
-        for thread in threads[range_num * 3:]:
+        for thread in threads[range_num * self.thread_count:]:
             thread.start()
-        for thread in threads[range_num * 3:]:
+        for thread in threads[range_num * self.thread_count:]:
             thread.join()
 
     def __create_task(self, form_data):
@@ -309,6 +313,8 @@ class CrawlPosiion(object):
         for i in run:
             __task = self.__get_task(i)
             self.spider_queue.put(__task)
+
+
     def run(self):
         '''
         入口函数
