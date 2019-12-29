@@ -7,5 +7,5 @@ urlpatterns = [
     url('^visualization/view/$', views.visualization_view, name='visualization_view'),
 
 
-    url('^tag_analysis/$', views.tag_analysis, name='tag_analysis'),
+    url('^visualization/data/$', views.visualization_data, name='visualization_data'),
 ]

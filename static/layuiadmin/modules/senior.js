@@ -9,7 +9,6 @@
 
 layui.define(function (exports) {
 
-
     //区块轮播切换
     layui.use(['admin', 'carousel'], function () {
         var $ = layui.$
@@ -42,22 +41,23 @@ layui.define(function (exports) {
             , carousel = layui.carousel
             , echarts = layui.echarts;
 
-        //词云
-        var echwdcloud = [],
-            elemwdcloud = $('#wdcloud').children('div')
-            , renderwdcloud = function (index) {
-                echwdcloud[index] = echarts.init(elemwdcloud[index], layui.echartsTheme);
-                echwdcloud[index].showLoading({text: '正在加载数据'});
-                $.ajax({
-                    url: "/api/tagAnalysis/",
-                    method: 'POST',
-                    success: function (data) {
+        $.ajax({
+            url: "/position/visualization/data/",
+            method: 'POST',
+            success: function (data) {
+
+                //词云
+                var echwdcloud = [],
+                    elemwdcloud = [$('#wdCloud').children('div')]
+                    , render = function (index) {
+                        echwdcloud[index] = echarts.init(elemwdcloud[index], layui.echartsTheme);
+                        echwdcloud[index].showLoading({text: '正在加载数据'});
                         var plat = [
                             {
-                                title: {
-                                    text: data.title,
-                                    subtext: data.subtitle
-                                },
+                                // title: {
+                                //     text: data.title,
+                                //     subtext: data.subtitle
+                                // },
                                 tooltip: {
                                     trigger: 'item'
                                 },
@@ -88,7 +88,7 @@ layui.define(function (exports) {
                                                 shadowColor: '#333'
                                             }
                                         },
-                                        data: data.values
+                                        data: data.word_cloud_data.values
                                     }
                                 ]
 
@@ -97,80 +97,132 @@ layui.define(function (exports) {
                         echwdcloud[index].setOption(plat[index]);
                         window.onresize = echwdcloud[index].resize;
                         echwdcloud[index].hideLoading();
-                    }
-                });
-            };
-        if (!elemwdcloud[0]) return;
-        renderwdcloud(0);
+                    };
+                if (!elemwdcloud[0]) return;
+                render(0);
 
-        //地图
-        var echDistribution = [],
-            elemDistribution = $('#Distribution').children('div')
-            , renderDistribution = function (index) {
-                echDistribution[index] = echarts.init(elemDistribution[index], layui.echartsTheme);
-                echDistribution[index].showLoading({text: '正在加载数据'});
-                $.ajax({
-                    url: "/api/getPositionNumber/",
-                    method: 'POST',
-                    success: function (data) {
+
+                //词云
+                var echwdcloud = [],
+                    elemwdcloud = $('#wdCloud').children('div')
+                    , renderwdcloud = function (index) {
+                        echwdcloud[index] = echarts.init(elemwdcloud[index], layui.echartsTheme);
+                        echwdcloud[index].showLoading({text: '正在加载数据'});
                         var plat = [
                             {
-                                title: {
-                                    text: data.title,
-                                    subtext: data.subtitle
-                                },
+                                // title: {
+                                //     text: data.title,
+                                //     subtext: data.subtitle
+                                // },
                                 tooltip: {
                                     trigger: 'item'
                                 },
-                                dataRange: {
-                                    orient: 'horizontal',
-                                    min: 0,
-                                    max: data.range_max,
-                                    text: ['高', '低'],           // 文本，默认为数值文本
-                                    splitNumber: 0,
-                                    range: [0, data.range_max],
-                                    inverse: false,
-                                    realtime: true,
-                                    calculable: true,
-                                },
                                 series: [
                                     {
-                                        name: '职位数量',
-                                        type: 'map',
-                                        mapType: 'china',
-                                        mapLocation: {
-                                            x: 'center'
+                                        type: 'wordCloud',
+                                        size: ['90%', '90%'],
+                                        gridSize: 8,
+                                        textPadding: 1,
+                                        rotationRange: [-90, 90],
+                                        shape: 'pentagon',
+                                        autoSize: {
+                                            enable: true,
+                                            // minSize: 20
                                         },
-                                        selectedMode: 'multiple',
-                                        itemStyle: {
-                                            normal: {label: {show: true}, borderColor: '#ffffff'},
-                                            emphasis: {label: {show: true}, shadowBlur: 10,}
-                                        },
-                                        label: {
+                                        textStyle: {
                                             normal: {
-                                                show: false
+                                                color: function () {
+                                                    return 'rgb(' + [
+                                                        Math.round(Math.random() * 255),
+                                                        Math.round(Math.random() * 255),
+                                                        Math.round(Math.random() * 255)
+                                                    ].join(',') + ')';
+                                                }
                                             },
                                             emphasis: {
-                                                show: false
+                                                shadowBlur: 10,
+                                                shadowColor: '#333'
                                             }
                                         },
-                                        data: data.values
-                                        // {name: '广东', value: 53210.28(, selected: true)}
-
+                                        data: data.word_cloud_data.values
                                     }
-
-                                ],
+                                ]
 
                             }
                         ];
+                        echwdcloud[index].setOption(plat[index]);
+                        window.onresize = echwdcloud[index].resize;
+                        echwdcloud[index].hideLoading();
+                    };
+                if (!elemwdcloud[0]) return;
+                renderwdcloud(0);
+
+
+                //地图
+                var echDistribution = [],
+                    elemDistribution = $('#Distribution').children('div')
+                    , renderDistribution = function (index) {
+                        echDistribution[index] = echarts.init(elemDistribution[index], layui.echartsTheme);
+                        echDistribution[index].showLoading({text: '正在加载数据'});
+                        var plat = [
+                                    {
+                                        // title: {
+                                        //     text: data.title,
+                                        //     subtext: data.subtitle
+                                        // },
+                                        tooltip: {
+                                            trigger: 'item'
+                                        },
+                                        dataRange: {
+                                            orient: 'horizontal',
+                                            min: 0,
+                                            max: data.local_data.range_max,
+                                            text: ['高', '低'],           // 文本，默认为数值文本
+                                            splitNumber: 0,
+                                            range: [0, data.local_data.range_max],
+                                            inverse: false,
+                                            realtime: true,
+                                            calculable: true,
+                                        },
+                                        series: [
+                                            {
+                                                name: '职位数量',
+                                                type: 'map',
+                                                mapType: 'china',
+                                                mapLocation: {
+                                                    x: 'center'
+                                                },
+                                                selectedMode: 'multiple',
+                                                itemStyle: {
+                                                    normal: {label: {show: true}, borderColor: '#ffffff'},
+                                                    emphasis: {label: {show: true}, shadowBlur: 10,}
+                                                },
+                                                label: {
+                                                    normal: {
+                                                        show: false
+                                                    },
+                                                    emphasis: {
+                                                        show: false
+                                                    }
+                                                },
+                                                data: data.local_data.values
+                                                // {name: '广东', value: 53210.28(, selected: true)}
+
+                                            }
+
+                                        ],
+
+                                    }
+                    ];
                         echDistribution[index].setOption(plat[index]);
                         window.onresize = echDistribution[index].resize;
                         echDistribution[index].hideLoading();
-                    }
-                });
-            };
-        if (!elemDistribution[0]) return;
-        renderDistribution(0);
+                    };
+                if (!elemDistribution[0]) return;
+                renderDistribution(0);
+            }
+        });
+
 
         //职位学历要求
         var echEduNum = [],
