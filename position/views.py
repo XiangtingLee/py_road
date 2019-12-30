@@ -3,11 +3,11 @@ from django.http.response import HttpResponse, JsonResponse
 from django.db.models import Avg, Max, Min, Count
 from django.contrib.auth.decorators import login_required
 
-
+from django.conf import settings
 from .models import *
 
 import json
-import datetime
+import time
 import pandas as pd
 
 def __word_cloud():
@@ -115,16 +115,22 @@ def __company_financing():
     df.columns = ['name', 'count']
     xAxis = df["name"].tolist()
     values = [{"name": one[0], "value": one[1]} for one in df.values]
-    count = all_financing.__len__()
     return {"xAxis": xAxis, "values": values}
 
-
-
+@login_required
 def visualization_view(requests):
-    return render(requests, 'position/visualization.html', locals())
+    resp = render(requests, 'position/visualization.html', locals())
+    resp.set_signed_cookie(key='sign', value=int(time.time()), salt=settings.SECRET_KEY, path='/position/visualization/data/')
+    return resp
 
 @login_required
 def visualization_data(request):
+    user_agent = request.META.get("HTTP_USER_AGENT", None)
+    referer = request.META.get("HTTP_REFERER", None)
+    client = request.META.get("REMOTE_ADDR", None)
+    req_time = request.get_signed_cookie("sign", salt=settings.SECRET_KEY, default=0)
+    if not user_agent or not referer or int(time.time()) - int(req_time) > 3:
+        return JsonResponse({"msg": "非法访问！您的IP已被记录。", "client": client}, json_dumps_params={'ensure_ascii':False})
     if request.method == "POST":
         data = {}
         data["word_cloud"] = __word_cloud()
