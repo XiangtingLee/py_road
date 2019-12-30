@@ -41,68 +41,13 @@ layui.define(function (exports) {
             , carousel = layui.carousel
             , echarts = layui.echarts;
 
+
         $.ajax({
             url: "/position/visualization/data/",
             method: 'POST',
             success: function (data) {
 
-                //词云
-                var echwdcloud = [],
-                    elemwdcloud = [$('#wdCloud').children('div')]
-                    , render = function (index) {
-                        echwdcloud[index] = echarts.init(elemwdcloud[index], layui.echartsTheme);
-                        echwdcloud[index].showLoading({text: '正在加载数据'});
-                        var plat = [
-                            {
-                                // title: {
-                                //     text: data.title,
-                                //     subtext: data.subtitle
-                                // },
-                                tooltip: {
-                                    trigger: 'item'
-                                },
-                                series: [
-                                    {
-                                        type: 'wordCloud',
-                                        size: ['90%', '90%'],
-                                        gridSize: 8,
-                                        textPadding: 1,
-                                        rotationRange: [-90, 90],
-                                        shape: 'pentagon',
-                                        autoSize: {
-                                            enable: true,
-                                            // minSize: 20
-                                        },
-                                        textStyle: {
-                                            normal: {
-                                                color: function () {
-                                                    return 'rgb(' + [
-                                                        Math.round(Math.random() * 255),
-                                                        Math.round(Math.random() * 255),
-                                                        Math.round(Math.random() * 255)
-                                                    ].join(',') + ')';
-                                                }
-                                            },
-                                            emphasis: {
-                                                shadowBlur: 10,
-                                                shadowColor: '#333'
-                                            }
-                                        },
-                                        data: data.word_cloud_data.values
-                                    }
-                                ]
-
-                            }
-                        ];
-                        echwdcloud[index].setOption(plat[index]);
-                        window.onresize = echwdcloud[index].resize;
-                        echwdcloud[index].hideLoading();
-                    };
-                if (!elemwdcloud[0]) return;
-                render(0);
-
-
-                //词云
+                // 词云
                 var echwdcloud = [],
                     elemwdcloud = $('#wdCloud').children('div')
                     , renderwdcloud = function (index) {
@@ -144,7 +89,7 @@ layui.define(function (exports) {
                                                 shadowColor: '#333'
                                             }
                                         },
-                                        data: data.word_cloud_data.values
+                                        data: data.word_cloud.values
                                     }
                                 ]
 
@@ -176,10 +121,10 @@ layui.define(function (exports) {
                                         dataRange: {
                                             orient: 'horizontal',
                                             min: 0,
-                                            max: data.local_data.range_max,
+                                            max: data.local.range_max,
                                             text: ['高', '低'],           // 文本，默认为数值文本
                                             splitNumber: 0,
-                                            range: [0, data.local_data.range_max],
+                                            range: [0, data.local.range_max],
                                             inverse: false,
                                             realtime: true,
                                             calculable: true,
@@ -205,7 +150,7 @@ layui.define(function (exports) {
                                                         show: false
                                                     }
                                                 },
-                                                data: data.local_data.values
+                                                data: data.local.values
                                                 // {name: '广东', value: 53210.28(, selected: true)}
 
                                             }
@@ -220,33 +165,23 @@ layui.define(function (exports) {
                     };
                 if (!elemDistribution[0]) return;
                 renderDistribution(0);
-            }
-        });
 
 
-        //职位学历要求
-        var echEduNum = [],
-            elemEduNum = $('#EduNum').children('div'),
-            renderEduNum = function (index) {
-                echEduNum[index] = echarts.init(elemEduNum[index], layui.echartsTheme);
-                echEduNum[index].showLoading({text: '正在加载数据'});
+                //职位学历要求
+                var echEduNum = [],
+                    elemEduNum = $('#EduNum').children('div'),
+                    renderEduNum = function (index) {
+                        echEduNum[index] = echarts.init(elemEduNum[index], layui.echartsTheme);
+                        echEduNum[index].showLoading({text: '正在加载数据'});
 
-                $.ajax({
-                    url: "/api/getEduNumber/",
-                    method: 'POST',
-                    success: function (data) {
                         var EduNum = [
                             {
-                                title: {
-                                    text: data.title,
-                                    subtext: data.subtitle
-                                },
                                 tooltip: {
                                     trigger: 'item',
                                     formatter: "{a} <br/>{b} : {c}家公司 ({d}%)"
                                 },
                                 legend: {
-                                    data: data.xAxis
+                                    data: data.education.xAxis
                                 },
                                 series: [
                                     {
@@ -254,7 +189,7 @@ layui.define(function (exports) {
                                         type: 'pie',
                                         radius: '55%',
                                         center: ['50%', '60%'],
-                                        data: data.values,
+                                        data: data.education.values,
                                         itemStyle: {
                                             emphasis: {
                                                 shadowBlur: 10,
@@ -269,29 +204,23 @@ layui.define(function (exports) {
                         echEduNum[index].setOption(EduNum[index]);
                         window.onresize = echEduNum[index].resize;
                         echEduNum[index].hideLoading();
-                    }
-                });
-            };
-        if (!elemEduNum[0]) return;
-        renderEduNum(0);
+                    };
+                if (!elemEduNum[0]) return;
+                renderEduNum(0);
 
-        //职位经验要求
-        var echExpNum = [],
-            elemExpNum = $('#ExpNum').children('div'),
-            renderExpNum = function (index) {
-                echExpNum[index] = echarts.init(elemExpNum[index], layui.echartsTheme);
-                echExpNum[index].showLoading({text: '正在加载数据'});
 
-                $.ajax({
-                    url: "/api/getExpNumber/",
-                    method: 'POST',
-                    success: function (data) {
+                //职位经验要求
+                var echExpNum = [],
+                    elemExpNum = $('#ExpNum').children('div'),
+                    renderExpNum = function (index) {
+                        echExpNum[index] = echarts.init(elemExpNum[index], layui.echartsTheme);
+                        echExpNum[index].showLoading({text: '正在加载数据'});
                         var ExpNum = [
                             {
-                                title: {
-                                    text: data.title,
-                                    subtext: data.subtitle
-                                },
+                                // title: {
+                                //     text: data.title,
+                                //     subtext: data.subtitle
+                                // },
                                 tooltip: {
                                     trigger: 'item',
                                     formatter: "{a} <br/>{b} : {c}个职位"
@@ -302,7 +231,7 @@ layui.define(function (exports) {
                                 xAxis: [
                                     {
                                         type: 'category',
-                                        data: data.xAxis
+                                        data: data.experience.xAxis
                                     }
                                 ],
                                 yAxis: [
@@ -314,7 +243,7 @@ layui.define(function (exports) {
                                     {
                                         name: 'python方向',
                                         type: 'bar',
-                                        data: data.values,
+                                        data: data.experience.values,
                                     }
                                 ]
                             }
@@ -322,11 +251,142 @@ layui.define(function (exports) {
                         echExpNum[index].setOption(ExpNum[index]);
                         window.onresize = echExpNum[index].resize;
                         echExpNum[index].hideLoading();
-                    }
-                });
-            };
-        if (!elemExpNum[0]) return;
-        renderExpNum(0);
+                    };
+                if (!elemExpNum[0]) return;
+                renderExpNum(0);
+
+
+                //公司规模
+                var echCompanyScale = [],
+                    elemCompanyScale = $('#companyScale').children('div'),
+                    renderCompanyScale = function (index) {
+                        echCompanyScale[index] = echarts.init(elemCompanyScale[index], layui.echartsTheme);
+                        echCompanyScale[index].showLoading({text: '正在加载数据'});
+                        var CompanyScale = [
+                            option = {
+                                tooltip: {
+                                    // trigger: 'item',
+                                    formatter: "{a} <br/>{b} : {c}家公司"
+                                },
+                                series: [{
+                                    name: '公司规模',
+                                    type: 'treemap',
+                                    itemStyle: {
+                                        normal: {label: {show: true}, borderColor: '#ffffff'},
+                                        emphasis: {label: {show: true, textStyle: {color: '#fff'}}, shadowBlur: 10,}
+                                    },
+                                    data: data.company_scale.values
+                                }]
+                            }
+
+                        ];
+                        echCompanyScale[index].setOption(CompanyScale[index]);
+                        window.onresize = echCompanyScale[index].resize;
+                        echCompanyScale[index].hideLoading();
+                    };
+                if (!elemCompanyScale[0]) return;
+                renderCompanyScale(0);
+
+
+                //公司所属行业分布
+                var echheaparea = [],
+                    elemheaparea = $('#cpyIndustry').children('div'),
+                    renderheaparea = function (index) {
+                        echheaparea[index] = echarts.init(elemheaparea[index], layui.echartsTheme);
+                        echheaparea[index].showLoading({text: '正在加载数据'});
+                        var heaparea = [{
+                            // title: {
+                            //     text: '世界人口总量',
+                            //     subtext: '数据来自网络'
+                            // },
+                            tooltip: {
+                                trigger: 'item',
+                                formatter: "{a} <br/>{b} : {c}家公司"
+                            },
+                            legend: {
+                                data: ['python方向']
+                            },
+                            grid: {
+                                left: '3%',
+                                right: '4%',
+                                bottom: '3%',
+                                containLabel: true
+                            },
+                            xAxis: {
+                                type: 'value',
+                                boundaryGap: [0, 0.01]
+                            },
+                            yAxis: {
+                                type: 'category',
+                                data: data.company_industry.xAxis
+                            },
+                            series: [
+                                {
+                                    name: 'python方向',
+                                    type: 'bar',
+                                    data: data.company_industry.values
+                                }
+                            ]
+                        }];
+                        echheaparea[index].setOption(heaparea[index]);
+                        window.onresize = echheaparea[index].resize;
+                        echheaparea[index].hideLoading();
+                };
+                if (!elemheaparea[0]) return;
+                renderheaparea(0);
+
+
+                //公司融资
+                var echFinancing = [],
+                    elemFinancing = $('#companyFinancing').children('div'),
+                    renderFinancing = function (index) {
+                        echFinancing[index] = echarts.init(elemFinancing[index], layui.echartsTheme);
+                        echFinancing[index].showLoading({text: '正在加载数据'});
+                        var Financing = [
+                            {
+                                // title: {
+                                //     text: data.title,
+                                //     subtext: data.subtitle
+                                // },
+                                tooltip: {
+                                    trigger: 'item',
+                                    formatter: "{a} <br/>{b} : {c}家公司 ({d}%)"
+                                },
+                                legend: {
+                                    // orient: 'vertical',
+                                    top: 100,
+                                    data: data.company_financing.xAxis
+                                },
+                                series: [
+                                    {
+                                        name: '公司融资情况',
+                                        type: 'pie',
+                                        radius: '55%',
+                                        center: ['50%', '60%'],
+                                        roseType : 'area',
+                                        data: data.company_financing.values,
+                                        itemStyle: {
+                                            emphasis: {
+                                                shadowBlur: 10,
+                                                shadowOffsetX: 0,
+                                                shadowColor: 'rgba(0, 0, 0, 0.5)'
+                                            }
+                                        }
+                                    }
+                                ]
+                            }
+                        ];
+                        echFinancing[index].setOption(Financing[index]);
+                        window.onresize = echFinancing[index].resize;
+                        echFinancing[index].hideLoading();
+                    };
+                if (!elemFinancing[0]) return;
+                renderFinancing(0);
+
+            }
+        });
+
+
 
         //每日入库量
         var dailyNum = [],
@@ -384,151 +444,7 @@ layui.define(function (exports) {
         if (!elemDailyNum[0]) return;
         renderDailyNum(0);
 
-        //公司规模
-        var echCompanyScale = [],
-            elemCompanyScale = $('#companyScale').children('div'),
-            renderCompanyScale = function (index) {
-                echCompanyScale[index] = echarts.init(elemCompanyScale[index], layui.echartsTheme);
-                echCompanyScale[index].showLoading({text: '正在加载数据'});
 
-                $.ajax({
-                    url: "/api/getCpyScale/",
-                    method: 'POST',
-                    success: function (data) {
-                        var CompanyScale = [
-                            option = {
-                                tooltip: {
-                                    // trigger: 'item',
-                                    formatter: "{a} <br/>{b} : {c}家公司"
-                                },
-                                series: [{
-                                    name: '公司规模',
-                                    type: 'treemap',
-                                    itemStyle: {
-                                        normal: {label: {show: true}, borderColor: '#ffffff'},
-                                        emphasis: {label: {show: true, textStyle: {color: '#fff'}}, shadowBlur: 10,}
-                                    },
-                                    data: data.values
-                                }]
-                            }
-
-                        ];
-                        echCompanyScale[index].setOption(CompanyScale[index]);
-                        window.onresize = echCompanyScale[index].resize;
-                        echCompanyScale[index].hideLoading();
-                    }
-                });
-            };
-        if (!elemCompanyScale[0]) return;
-        renderCompanyScale(0);
-
-        //公司融资
-        var echFinancing = [],
-            elemFinancing = $('#companyFinancing').children('div'),
-            renderFinancing = function (index) {
-                echFinancing[index] = echarts.init(elemFinancing[index], layui.echartsTheme);
-                echFinancing[index].showLoading({text: '正在加载数据'});
-
-                $.ajax({
-                    url: "/api/getCpyFinancing/",
-                    method: 'POST',
-                    success: function (data) {
-                        var Financing = [
-                            {
-                                title: {
-                                    text: data.title,
-                                    subtext: data.subtitle
-                                },
-                                tooltip: {
-                                    trigger: 'item',
-                                    formatter: "{a} <br/>{b} : {c}家公司 ({d}%)"
-                                },
-                                legend: {
-                                    // orient: 'vertical',
-                                    top: 100,
-                                    data: data.xAxis
-                                },
-                                series: [
-                                    {
-                                        name: '公司融资情况',
-                                        type: 'pie',
-                                        radius: '55%',
-                                        center: ['50%', '60%'],
-                                        roseType : 'area',
-                                        data: data.values,
-                                        itemStyle: {
-                                            emphasis: {
-                                                shadowBlur: 10,
-                                                shadowOffsetX: 0,
-                                                shadowColor: 'rgba(0, 0, 0, 0.5)'
-                                            }
-                                        }
-                                    }
-                                ]
-                            }
-                        ];
-                        echFinancing[index].setOption(Financing[index]);
-                        window.onresize = echFinancing[index].resize;
-                        echFinancing[index].hideLoading();
-                    }
-                });
-            };
-        if (!elemFinancing[0]) return;
-        renderFinancing(0);
-
-        //公司所属行业分布
-        var echheaparea = [],
-            elemheaparea = $('#cpyIndustry').children('div'),
-            renderheaparea = function (index) {
-                echheaparea[index] = echarts.init(elemheaparea[index], layui.echartsTheme);
-                echheaparea[index].showLoading({text: '正在加载数据'});
-
-                $.ajax({
-                    url: "/api/getCpyIndustry/",
-                    method: 'POST',
-                    success: function (data) {
-                        var heaparea = [{
-                    // title: {
-                    //     text: '世界人口总量',
-                    //     subtext: '数据来自网络'
-                    // },
-                    tooltip: {
-                        trigger: 'item',
-                        formatter: "{a} <br/>{b} : {c}家公司"
-                    },
-                    legend: {
-                        data: ['python方向']
-                    },
-                    grid: {
-                        left: '3%',
-                        right: '4%',
-                        bottom: '3%',
-                        containLabel: true
-                    },
-                    xAxis: {
-                        type: 'value',
-                        boundaryGap: [0, 0.01]
-                    },
-                    yAxis: {
-                        type: 'category',
-                        data: data.xAxis
-                    },
-                    series: [
-                        {
-                            name: 'python方向',
-                            type: 'bar',
-                            data: data.values
-                        }
-                    ]
-                }];
-                        echheaparea[index].setOption(heaparea[index]);
-                        window.onresize = echheaparea[index].resize;
-                        echheaparea[index].hideLoading();
-                    }
-                });
-        };
-        if (!elemheaparea[0]) return;
-        renderheaparea(0);
 
     });
 
