@@ -200,6 +200,3 @@ if __name__ == '__main__':
     spider = CrawlCompany()
     spider.thread_count = 5
     spider.run(start_id=1, count=10)
-    # spider.run(start_id=1, count=100)
-    # print(AdministrativeDiv.objects.filter(short_name="北京")[0].level_one.id)*
-    #

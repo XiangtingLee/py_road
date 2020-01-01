@@ -176,7 +176,7 @@ class CrawlPosiion(object):
                 data["company"] = item_data["companyId"]
                 data["id"] = item_data["positionId"]
                 data["position_name"] = item_data["positionName"]
-                data["position_type"] = "Python"
+                data["position_type"] = self.kd
                 data["position_nature"] = item_data["jobNature"]
                 data["position_city"] = item_data["city"]
                 data["position_district"] = item_data["district"]
@@ -254,7 +254,7 @@ class CrawlPosiion(object):
                 city_obj = city_ins[0]
                 data["position_district"] = city_obj
             else:
-                print("district %s-%s not exits"%(data["position_city"], position_district))
+                print("\033[1;33m\t district %s-%s not exits\033[0m"%(data["position_city"], position_district))
                 del data["position_district"]
         labels = data.get("labels", None)
         welfare = data.get("welfare", None)
@@ -349,10 +349,20 @@ class CrawlPosiion(object):
     #         next(self.spider_queue.get())
 
 if __name__ == '__main__':
-    spider = CrawlPosiion()
-    city = "全国"
-    spider.kd = "python"
-    spider.city = urllib.parse.quote(city)
-    spider.run()
+    exists_cities = ["全国", "上海", "杭州", "深圳", "成都", "武汉", "江苏"]
+    commands = sys.argv
+    try:
+        args = commands[1:3]
+    except:
+        raise Exception("please use command 'python crawl_company.py [local_name] [position_type]' and try again")
+    city, kd = args[0].replace('-', ''), args[1].replace('-', '')
+    if city not in exists_cities:
+        raise Exception("The city you entered is not yet open!")
+    else:
+        print(city, type)
+        spider = CrawlPosiion()
+        spider.kd = kd
+        spider.city = urllib.parse.quote(city)
+        spider.run()
     # print(AdministrativeDiv.objects.get(name="北京市").id)
     # print(spider.cache)

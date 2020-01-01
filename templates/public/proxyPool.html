@@ -46,7 +46,7 @@
 
             table.render({
                 elem: '#proxy-data-form'
-                , url: '{% url 'public:getProxy' %}'
+                , url: '{% url 'public:proxy_data' %}'
                 , method: 'POST' //方式
                 , cellMinWidth: 80
                 , toolbar: '#proxy-toolbar'
@@ -93,7 +93,7 @@
 
             upload.render({ //允许上传的文件后缀
                 elem: '#upload'
-                , url: '{% url 'public:uploadProxy' %}'
+                , url: '{% url 'public:proxy_upload' %}'
                 , accept: 'file' //普通文件
                 , exts: 'csv' //只允许上传csv文件
                 , data: {
@@ -125,7 +125,7 @@
                     var $ = layui.$
                         , layer = layui.layer;
                     $.ajax({
-                        url: "{% url 'public:changeProxy' %}",
+                        url: "{% url 'public:proxy_change' %}",
                         method: 'POST',
                         data: {'id': id, 'is_available': obj.elem.checked},
                         success: function (res) {
@@ -149,7 +149,7 @@
                 var $ = layui.$
                     , layer = layui.layer;
                 $.ajax({
-                    url: "{% url 'public:checkProxy' %}",
+                    url: "{% url 'public:proxy_check' %}",
                     method: 'POST',
                     data: {'ids': ids},
                     success: function (data) {

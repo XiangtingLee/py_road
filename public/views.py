@@ -1,6 +1,8 @@
 # 外部模块导入
 import requests
 import datetime
+import time
+import os
 from uuid import uuid4
 from urllib.parse import quote
 from scrapyd_api import ScrapydAPI
@@ -14,10 +16,11 @@ from django.views.decorators.http import require_POST, require_http_methods
 # 项目内引用
 from .models import *
 from log.models import SpiderRunLog
-from .tools import MyThread
+from .tools import MyThread, verify_sign
+from django.conf import settings
 
 # connect scrapyd service
-scrapyd = ScrapydAPI('http://localhost:6800')
+# scrapyd = ScrapydAPI('http://localhost:6800')
 
 
 @csrf_exempt
@@ -83,21 +86,27 @@ def crawl(request):
 
 
 def proxy_view(requests):
-    return render(requests, 'public/proxyPool.html' )
+    resp = render(requests, 'public/proxyPool.html')
+    resp.set_signed_cookie(key="sign", value=int(time.time()), salt=settings.SECRET_KEY, path="/public/proxy/")
+    return resp
 
-def proxy_get(request):
-    data = {'code': 0, 'count': 0,'data': [], 'msg': ''}
-    if request.method == 'POST':
-        page = int(request.POST.get('page',1))
-        limit = int(request.POST.get('limit',10))
-        _data = list(ProxyPool.objects.filter(is_delete=0).values())
-        total = data['count'] = _data.__len__()
-        if total:
-            last = (total - 1) // limit + 1
-            _data = _data[(page - 1) * limit: page * limit]
-            if 1 <= page <= last:
-                data['data'] = _data
-    return JsonResponse(data, json_dumps_params={'ensure_ascii': False})
+@verify_sign()
+def proxy_data(request):
+    if request.method == "POST":
+        data = {'code': 0, 'count': 0,'data': [], 'msg': ''}
+        if request.method == 'POST':
+            page = int(request.POST.get('page',1))
+            limit = int(request.POST.get('limit',10))
+            _data = list(ProxyPool.objects.filter(is_delete=0).values())
+            total = data['count'] = _data.__len__()
+            if total:
+                last = (total - 1) // limit + 1
+                _data = _data[(page - 1) * limit: page * limit]
+                if 1 <= page <= last:
+                    data['data'] = _data
+        return JsonResponse(data, json_dumps_params={'ensure_ascii': False})
+    else:
+        return JsonResponse({"msg": "访问太频繁，请稍后再试！"}, json_dumps_params={'ensure_ascii':False})
 
 def proxy_upload(request):
     csv_file = request.FILES.get('file', None)
@@ -132,7 +141,6 @@ def proxy_change(request):
             ProxyPool.objects.filter(id=id).update(is_available=is_available, updatetime=datetime.datetime.now())
             data['status'] = 1
     return JsonResponse(data, json_dumps_params={'ensure_ascii': False})
-
 
 def proxy_check(request):
     data = {'message': ''}
@@ -191,3 +199,24 @@ def __proxy_judge(protocol, address):
             return False
     except Exception as e:
         return False
+
+def spider_view(request):
+    resp = render(request, 'public/spider.html')
+    resp.set_signed_cookie(key="sign", value=int(time.time()), salt=settings.SECRET_KEY, path="/public/spider/")
+    return resp
+
+def spider_run(request):
+    spider_dir = {
+        "position": "\position\spider\crawl_position.py",
+        "company": "\position\spider\crawl_company.py",
+    }
+    location = request.POST.get('location', None)
+    language = request.POST.get('language', None)
+    spider_name = request.POST.get('spider', None)
+    base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    command = "python " + base_dir + spider_dir.get(spider_name, None) + " -" + location + " -" + language
+    print(command)
+    return HttpResponseRedirect('/public/spider/view/')
+
+
+
