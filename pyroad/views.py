@@ -11,7 +11,7 @@ from user.models import User
 def main(request):
     data = {}
     user = request.user
-    data["username"] = user.username
+    data["nick_name"] = user.nick_name
     return render(request, 'lib/main.html', data)
 
 @login_required()

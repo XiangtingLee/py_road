@@ -26,5 +26,6 @@ urlpatterns = [
     url('^logout$', views.logout_act, name='logout'),
     url('^reg$', views.reg_act, name='reg'),
     path('public/', include('public.urls', namespace='public')),
+    path('user/', include('user.urls', namespace='user')),
     path('position/', include('position.urls', namespace='position')),
 ]

@@ -4,7 +4,7 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 
 def get_nick_name():
-    return "User-%s" % int(time.time()*1000)
+    return "User%s" % int(time.time()*1000)
 
 class Menu(models.Model):
     caption = models.CharField(max_length=32,verbose_name="菜单")
@@ -57,6 +57,7 @@ class Role(models.Model):
 
 
 class User(AbstractUser):
+    nick_name = models.CharField(null=True, blank=True, max_length=20, verbose_name="真实姓名", default=get_nick_name())
     face_img = models.ImageField(upload_to="face_img/", verbose_name="头像")
     qq = models.CharField(null=True, blank=True, max_length=11, verbose_name="qq号码")
     mobile = models.CharField(null=True, blank=True, max_length=11, verbose_name="手机号码")

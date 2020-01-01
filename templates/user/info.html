@@ -1,0 +1,142 @@
+{% extends 'lib/base.html' %}
+{% load static %}
+{% block title %}数据展示{% endblock %}
+{% block content %}
+
+    <div class="layui-fluid">
+        <div class="layui-row layui-col-space15">
+            <div class="layui-col-md12">
+                <div class="layui-card">
+                    <div class="layui-card-header">设置我的资料</div>
+                    <div class="layui-card-body" pad15>
+
+                        <div class="layui-form" lay-filter="">
+                            <div class="layui-form-item">
+                                <label class="layui-form-label">我的角色</label>
+                                <div class="layui-input-inline">
+                                    <select name="role" lay-verify="">
+                                        <option value="1" {% if user.is_superuser == 1 %}selected{% else %}disabled{% endif %}>超管</option>
+                                        <option value="2" {% if user.is_superuser == 0 and user.is_staff == 1 %}selected{% else %}disabled{% endif %}>职员</option>
+                                        <option value="3" {% if user.is_superuser == 0 and user.is_staff == 0 %}selected{% else %}disabled{% endif %}>用户</option>
+                                    </select>
+                                </div>
+                                <div class="layui-form-mid layui-word-aux">当前角色不可更改为其它角色</div>
+                            </div>
+                            <div class="layui-form-item">
+                                <label class="layui-form-label">用户名</label>
+                                <div class="layui-input-inline">
+                                    <input type="text" name="username" value="{{ user.username }}" readonly class="layui-input" disabled>
+                                </div>
+                                    <div class="layui-form-mid layui-word-aux">登录使用，不可修改。</div>
+                            </div>
+                            <div class="layui-form-item">
+                                <label class="layui-form-label">昵称</label>
+                                <div class="layui-input-inline">
+                                    <input type="text" name="nickname" value="{{ user.nick_name }}" lay-verify="nickname"
+                                           autocomplete="off" placeholder="请输入昵称" class="layui-input">
+                                </div>k
+                            </div>
+                            <div class="layui-form-item">
+                                <label class="layui-form-label">性别</label>
+                                <div class="layui-input-block">
+                                    <input type="radio" name="sex" value="2" title="保密" {% if user.sex == 2 %}checked{% endif %}>
+                                    <input type="radio" name="sex" value="1" title="男" {% if user.sex == 1 %}checked{% endif %}>
+                                    <input type="radio" name="sex" value="0" title="女" {% if user.sex == 0 %}checked{% endif %}>
+                                </div>
+                            </div>
+                            <div class="layui-form-item">
+                                <label class="layui-form-label">头像</label>
+{#                                <div class="layui-input-inline">#}
+{#                                    <input name="avatar" lay-verify="required" id="LAY_avatarSrc" placeholder="图片地址"#}
+{#                                           value="{{ user.face_img }}" class="layui-input">#}
+{#                                </div>#}
+                                <div class="layui-input-inline layui-btn-container" style="width: auto;">
+                                    <button type="button" class="layui-btn layui-btn-primary" id="img_upload">
+                                        <i class="layui-icon">&#xe67c;</i>上传图片
+                                    </button>
+                                    <button class="layui-btn layui-btn-primary" layadmin-event="avartatPreview">查看图片
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="layui-form-item">
+                                <label class="layui-form-label">手机</label>
+                                <div class="layui-input-inline">
+                                    <input type="text" name="mobile" value="{% if not user.mobile %}{% else %}{{ user.mobile }}{% endif %}" lay-verify="phone" autocomplete="off"
+                                           class="layui-input">
+                                </div>
+                            </div>
+                            <div class="layui-form-item">
+                                <label class="layui-form-label">邮箱</label>
+                                <div class="layui-input-inline">
+                                    <input type="text" name="email" value="{{ user.email }}" lay-verify="email" autocomplete="off"
+                                           class="layui-input">
+                                </div>
+                            </div>
+                            <div class="layui-form-item">
+                                <label class="layui-form-label">QQ</label>
+                                <div class="layui-input-inline">
+                                    <input type="text" name="qq" value="{% if not user.qq %}{% else %}{{ user.qq }}{% endif %}" lay-verify="qq" autocomplete="off"
+                                           class="layui-input">
+                                </div>
+                            </div>
+{#                            <div class="layui-form-item layui-form-text">#}
+{#                                <label class="layui-form-label">备注</label>#}
+{#                                <div class="layui-input-block">#}
+{#                                    <textarea name="remarks" placeholder="请输入内容" class="layui-textarea"></textarea>#}
+{#                                </div>#}
+{#                            </div>#}
+                            <div class="layui-form-item">
+                                <div class="layui-input-block">
+                                    <button class="layui-btn" lay-submit lay-filter="setmyinfo">确认修改</button>
+                                    <button type="reset" class="layui-btn layui-btn-primary">重新填写</button>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+{% block tail_js %}
+    <script>
+        layui.config({
+            base: '{% static 'layuiadmin/' %}' //静态资源所在路径
+        }).extend({
+            index: '/lib/index' //主入口模块
+        }).use(['index', 'set', 'upload'], function () {
+            var table = layui.table
+                , form = layui.form
+                , $ = layui.jquery
+                ,upload = layui.upload;
+
+            upload.render({ //允许上传的文件后缀
+                elem: '#img_upload'
+                , url: '{% url 'public:proxy_upload' %}'
+                {#, accept: 'file' //普通文件#}
+                {#, exts: 'csv' //只允许上传csv文件#}
+                , data: {
+                    'csrfmiddlewaretoken': function () {
+                        //return $(":input:first").val();
+                        return $("input[name='csrfmiddlewaretoken']").attr('value');
+                    }
+                }
+                , done: function (res) {
+                    if(res.status===1){
+                        layer.msg('上传成功', {icon: 1}, function () {
+                            table.reload('proxyForm', {
+                                page: {
+                                    curr: 1 //重新从第 1 页开始
+                                }
+                                , where: {key: {}}
+                            }, 'data');
+                        });
+                    }else if(res.status===0){
+                        layer.msg('上传失败，' + res.message, {icon: 2});
+                    }
+                }
+            });
+        })
+    </script>
+{% endblock %}
