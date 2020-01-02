@@ -31,7 +31,12 @@ layui.use(['jquery', 'layer'], function () {
         , layer = layui.layer;
     $.ajaxSetup({
         data: {csrfmiddlewaretoken: '{{ csrf_token }}' },
-    })
+    });
+    {% if messages %}
+        {% for message in messages %}
+            layer.msg('{{ message }}', {icon: {% if message.tags == 'success' %}1{% elif message.tags == 'error' %}2{% elif message.tags == 'warning' %}3{% endif %}});
+        {% endfor %}
+    {% endif %}
 });
 </script>
 {% block tail_include_after %}{% endblock %}

@@ -9,8 +9,9 @@
                 <div class="layui-card">
                     <div class="layui-card-header">设置我的资料</div>
                     <div class="layui-card-body" pad15>
+                        <form class="layui-form" lay-filter="info_change" action="{% url 'user:info_change' %}" method="post">
+                            {% csrf_token %}
 
-                        <div class="layui-form" lay-filter="">
                             <div class="layui-form-item">
                                 <label class="layui-form-label">我的角色</label>
                                 <div class="layui-input-inline">
@@ -22,76 +23,87 @@
                                 </div>
                                 <div class="layui-form-mid layui-word-aux">当前角色不可更改为其它角色</div>
                             </div>
+
                             <div class="layui-form-item">
                                 <label class="layui-form-label">用户名</label>
                                 <div class="layui-input-inline">
-                                    <input type="text" name="username" value="{{ user.username }}" readonly class="layui-input" disabled>
+                                    <input type="text" name="username" value="{{ user.username }}" readonly
+                                           class="layui-input" disabled>
                                 </div>
-                                    <div class="layui-form-mid layui-word-aux">登录使用，不可修改。</div>
+                                <div class="layui-form-mid layui-word-aux">登录使用，不可修改。</div>
                             </div>
+
                             <div class="layui-form-item">
                                 <label class="layui-form-label">昵称</label>
                                 <div class="layui-input-inline">
-                                    <input type="text" name="nickname" value="{{ user.nick_name }}" lay-verify="nickname"
+                                    <input type="text" name="nick_name" value="{{ user.nick_name }}"
+                                           lay-verify="nickname"
                                            autocomplete="off" placeholder="请输入昵称" class="layui-input">
-                                </div>k
+                                </div>
                             </div>
+
                             <div class="layui-form-item">
                                 <label class="layui-form-label">性别</label>
                                 <div class="layui-input-block">
-                                    <input type="radio" name="sex" value="2" title="保密" {% if user.sex == 2 %}checked{% endif %}>
-                                    <input type="radio" name="sex" value="1" title="男" {% if user.sex == 1 %}checked{% endif %}>
-                                    <input type="radio" name="sex" value="0" title="女" {% if user.sex == 0 %}checked{% endif %}>
+                                    <input type="radio" name="sex" value="2" title="保密"
+                                           {% if user.sex == 2 %}checked{% endif %}>
+                                    <input type="radio" name="sex" value="1" title="男"
+                                           {% if user.sex == 1 %}checked{% endif %}>
+                                    <input type="radio" name="sex" value="0" title="女"
+                                           {% if user.sex == 0 %}checked{% endif %}>
                                 </div>
                             </div>
+
                             <div class="layui-form-item">
                                 <label class="layui-form-label">头像</label>
-{#                                <div class="layui-input-inline">#}
-{#                                    <input name="avatar" lay-verify="required" id="LAY_avatarSrc" placeholder="图片地址"#}
-{#                                           value="{{ user.face_img }}" class="layui-input">#}
-{#                                </div>#}
-                                <div class="layui-input-inline layui-btn-container" style="width: auto;">
-                                    <button type="button" class="layui-btn layui-btn-primary" id="img_upload">
-                                        <i class="layui-icon">&#xe67c;</i>上传图片
-                                    </button>
-                                    <button class="layui-btn layui-btn-primary" layadmin-event="avartatPreview">查看图片
-                                    </button>
+                                <div class="layui-input-inline">
+                                    <div class="layui-upload-list" style="margin:0">
+                                        <img src="{{ user.face_img }}" id="srcimgurl" class="layui-upload-img">
+                                    </div>
                                 </div>
+                                <div class="layui-input-inline layui-btn-container" style="width: auto;">
+                                    <button type="button" class="layui-btn layui-btn-primary" id="editimg">修改图片</button>
+                                </div>
+                                <div class="layui-form-mid layui-word-aux">头像的尺寸限定150x150px,大小在50kb以内</div>
                             </div>
+
                             <div class="layui-form-item">
                                 <label class="layui-form-label">手机</label>
                                 <div class="layui-input-inline">
-                                    <input type="text" name="mobile" value="{% if not user.mobile %}{% else %}{{ user.mobile }}{% endif %}" lay-verify="phone" autocomplete="off"
+                                    <input type="text" name="mobile"
+                                           value="{% if not user.mobile %}{% else %}{{ user.mobile }}{% endif %}"
+                                           lay-verify="phone" autocomplete="off"
                                            class="layui-input">
                                 </div>
                             </div>
+
                             <div class="layui-form-item">
                                 <label class="layui-form-label">邮箱</label>
                                 <div class="layui-input-inline">
-                                    <input type="text" name="email" value="{{ user.email }}" lay-verify="email" autocomplete="off"
+                                    <input type="text" name="email" value="{{ user.email }}" lay-verify="email"
+                                           autocomplete="off"
                                            class="layui-input">
                                 </div>
                             </div>
+
                             <div class="layui-form-item">
                                 <label class="layui-form-label">QQ</label>
                                 <div class="layui-input-inline">
-                                    <input type="text" name="qq" value="{% if not user.qq %}{% else %}{{ user.qq }}{% endif %}" lay-verify="qq" autocomplete="off"
+                                    <input type="text" name="qq"
+                                           value="{% if not user.qq %}{% else %}{{ user.qq }}{% endif %}"
+                                           lay-verify="qq" autocomplete="off"
                                            class="layui-input">
                                 </div>
                             </div>
-{#                            <div class="layui-form-item layui-form-text">#}
-{#                                <label class="layui-form-label">备注</label>#}
-{#                                <div class="layui-input-block">#}
-{#                                    <textarea name="remarks" placeholder="请输入内容" class="layui-textarea"></textarea>#}
-{#                                </div>#}
-{#                            </div>#}
+
                             <div class="layui-form-item">
                                 <div class="layui-input-block">
-                                    <button class="layui-btn" lay-submit lay-filter="setmyinfo">确认修改</button>
+                                    <button class="layui-btn" lay-submit lay-filter="info_change">确认修改</button>
                                     <button type="reset" class="layui-btn layui-btn-primary">重新填写</button>
                                 </div>
                             </div>
-                        </div>
+
+                        </form>
 
                     </div>
                 </div>
@@ -105,38 +117,25 @@
             base: '{% static 'layuiadmin/' %}' //静态资源所在路径
         }).extend({
             index: '/lib/index' //主入口模块
-        }).use(['index', 'set', 'upload'], function () {
+        }).use(['index', 'set', 'croppers'], function () {
             var table = layui.table
                 , form = layui.form
                 , $ = layui.jquery
-                ,upload = layui.upload;
+                , croppers = layui.croppers;
 
-            upload.render({ //允许上传的文件后缀
-                elem: '#img_upload'
-                , url: '{% url 'public:proxy_upload' %}'
-                {#, accept: 'file' //普通文件#}
-                {#, exts: 'csv' //只允许上传csv文件#}
-                , data: {
-                    'csrfmiddlewaretoken': function () {
-                        //return $(":input:first").val();
-                        return $("input[name='csrfmiddlewaretoken']").attr('value');
-                    }
-                }
-                , done: function (res) {
-                    if(res.status===1){
-                        layer.msg('上传成功', {icon: 1}, function () {
-                            table.reload('proxyForm', {
-                                page: {
-                                    curr: 1 //重新从第 1 页开始
-                                }
-                                , where: {key: {}}
-                            }, 'data');
-                        });
-                    }else if(res.status===0){
-                        layer.msg('上传失败，' + res.message, {icon: 2});
-                    }
+            croppers.render({
+                elem: '#editimg'
+                , saveW: 150     //保存宽度
+                , saveH: 150
+                , mark: 1 / 1    //选取比例
+                , area: '900px'  //弹窗宽度
+                , url: "{% url 'user:info_upload' %}"  //图片上传接口返回和（layui 的upload 模块）返回的JOSN一样
+                , done: function (url) { //上传完毕回调
+                    $("#inputimgurl").val(url);
+                    $("#srcimgurl").attr('src', url);
                 }
             });
-        })
+
+        });
     </script>
 {% endblock %}
