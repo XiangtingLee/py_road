@@ -1,7 +1,8 @@
 from django.shortcuts import render, redirect
 from django.http.response import HttpResponse, JsonResponse
 from django.core.files.storage import FileSystemStorage
-from django.contrib import messages
+from django.contrib import messages, auth
+from django.contrib.auth.decorators import login_required
 
 from .models import User
 
@@ -22,7 +23,6 @@ def info_change(request):
     del kwargs["csrfmiddlewaretoken"]
     del kwargs["role"]
     User.objects.filter(id=user_id).update(**kwargs)
-    print(kwargs)
     messages.success(request, "修改成功")
     return redirect('user:info_view')
 
@@ -36,3 +36,28 @@ def info_upload(request):
         uploaded_file_url = fs.url(filename)
         User.objects.filter(id=uid).update(face_img=uploaded_file_url)
         return JsonResponse({"code": 0, "msg": "上传成功", "data": {"src": uploaded_file_url}})
+
+def password_view(request):
+    return render(request, 'user/password.html')
+@login_required()
+def password_change(request):
+    if request.method == "POST":
+        username = request.user.username
+        req_args = request.POST
+        old_pwd = req_args["oldPassword"]
+        new_pwd = req_args["password"]
+        if old_pwd == new_pwd:
+            messages.warning(request, "新密码不能与旧密码相同，请重新输入")
+            return redirect('user:password_view')
+        user = auth.authenticate(username=username, password=old_pwd)
+        if not user:
+            messages.error(request, "修改失败，原密码输入错误")
+            return redirect('user:password_view')
+        try:
+            user.set_password(new_pwd)
+            user.save()
+            messages.success(request, "修改成功, 登录密码将于下次登录生效")
+            return redirect('user:password_view')
+        except:
+            messages.warning(request, "修改失败，请检查网络环境后重试")
+            return redirect('user:password_view')

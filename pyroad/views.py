@@ -28,6 +28,8 @@ def login_act(request):
             if user.is_active:
                 login(request, user)
                 request.session['user'] = username
+                # todo 判断是否记住登录状态
+                request.session.set_expiry(0)
                 return redirect(reverse('main'))
             else:
                 return render(request, "pyroad/login.html", {
