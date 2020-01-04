@@ -8,12 +8,8 @@ from queue import Queue
 import datetime
 
 requests.packages.urllib3.disable_warnings()
-# BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-# print(BASE_DIR)
-# sys.path.append(BASE_DIR)
-# os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'pyroad.settings')
-# django.setup()
-
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.append(BASE_DIR)
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'pyroad.settings')
 django.setup()
 

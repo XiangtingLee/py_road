@@ -205,6 +205,7 @@ def spider_view(request):
     resp.set_signed_cookie(key="sign", value=int(time.time()), salt=settings.SECRET_KEY, path="/public/spider/")
     return resp
 
+from .tasks import run_shell
 def spider_run(request):
     spider_dir = {
         "position": "\position\spider\crawl_position.py",
@@ -215,7 +216,7 @@ def spider_run(request):
     spider_name = request.POST.get('spider', None)
     base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     command = "python " + base_dir + spider_dir.get(spider_name, None) + " -" + location + " -" + language
-    print(command)
+    sync_task_id = run_shell.delay(command)
     return HttpResponseRedirect('/public/spider/view/')
 
 
