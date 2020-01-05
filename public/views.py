@@ -90,7 +90,7 @@ def proxy_view(requests):
     resp.set_signed_cookie(key="sign", value=int(time.time()), salt=settings.SECRET_KEY, path="/public/proxy/")
     return resp
 
-@verify_sign()
+@verify_sign("POST")
 def proxy_data(request):
     if request.method == "POST":
         data = {'code': 0, 'count': 0,'data': [], 'msg': ''}

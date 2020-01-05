@@ -232,8 +232,8 @@ class CrawlPosiion(object):
             # print("key 'position_city' not exists!")
         # else:
         if position_city != '':
-            city_ins = AdministrativeDiv.objects.filter(short_name=position_city)
-            if city_ins:
+            city_ins = AdministrativeDiv.objects.filter(short_name=position_city).order_by("id")
+            if city_ins and city_ins.city__id == city_ins.id:
                 city_obj = city_ins[0]
                 data["position_city"] = city_obj
             else:
@@ -245,7 +245,7 @@ class CrawlPosiion(object):
         #     print("key 'position_district' not exists!")
         # else:
         if position_district != '':
-            city_ins = AdministrativeDiv.objects.filter(short_name=position_district)
+            city_ins = AdministrativeDiv.objects.filter(short_name=position_district).order_by("id")
             if city_ins:
                 city_obj = city_ins[0]
                 data["position_district"] = city_obj

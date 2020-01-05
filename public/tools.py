@@ -30,14 +30,14 @@ class MyThread(threading.Thread):
             return None
 
 
-def verify_sign():
+def verify_sign(method):
     '''
     验证渲染标识
     '''
     def decorator(func):
         @wraps(func)
         def returned_wrapper(request, *args, **kwargs):
-            if request.method == "POST":
+            if request.method == method:
                 user_agent = request.META.get('HTTP_USER_AGENT', None)
                 req_time = request.get_signed_cookie(key="sign", salt=settings.SECRET_KEY, default="0")
                 referer = request.META.get("HTTP_REFERER", None)

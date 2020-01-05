@@ -125,7 +125,7 @@ def visualization_view(requests):
     return resp
 
 @login_required
-@verify_sign()
+@verify_sign("POST")
 def visualization_data(request):
     if request.method == "POST":
         data = {}
@@ -139,3 +139,61 @@ def visualization_data(request):
         return JsonResponse(data, json_dumps_params={'ensure_ascii':False})
     else:
         return JsonResponse({"msg": "访问太频繁，请稍后再试！"}, json_dumps_params={'ensure_ascii':False})
+
+def reveal_view(request):
+    data = {"search_node": []}
+    place_data = Position.objects.filter(is_effective=1).values_list("position_city__province__name", "position_city__name", "position_district__name")
+    df = pd.DataFrame(list(place_data))
+    df.columns = ["province", "city", "district"]
+    df["district"] = df["district"].fillna("其它地区")
+    df = df.drop_duplicates(subset=["province", "city", "district"])
+    # 按照province过滤
+    province_node = [city for city in df.drop_duplicates(['province'])['province']]
+    for province in province_node:
+        # 按照city过滤
+        city_node = df[df['province'].str.contains(province)].drop_duplicates(['city'])['city']
+        all_city_data = [] # 一个city下所有的district
+        for city in city_node:
+            province_df = df[df['province'].str.contains(province)]
+            district_node = [{"name": place, "type": "district"} for place in
+                province_df[province_df["city"].str.contains(city)].drop_duplicates(['district'])['district']]
+            # 构造city数据
+            all_city_data.append({"name": city, "type": "city", "children": district_node})
+        # 构造province数据
+        data["search_node"].append({"name": province, "type": "province", "children": all_city_data})
+    resp = render(request, 'position/reveal.html', data)
+    resp.set_signed_cookie(key='sign', value=int(time.time()), salt=settings.SECRET_KEY, path='/position/reveal/')
+    return resp
+
+
+@login_required
+@verify_sign("GET")
+def reveal_filter(request):
+    filter_data = request.GET
+    data = {'code': 0, 'count': 0, 'data': [], 'msg': ''}
+    filter_item = {'is_effective': 1}
+    for k in filter_data:
+        v = filter_data.get(k, "")
+        if v and k == 'salary':
+            try:
+                filter_item["salary_lower__gte"] = int(filter_data["salary"].split(',')[0])
+                filter_item["salary_lower__lte"] = int(filter_data["salary"].split(',')[1])
+            except:
+                pass
+        elif v:
+            filter_item[k + "__contains" if k in ["company__name", "position_name"] else k] = v
+    first = 1
+    page = int(request.POST.get('page', 1))
+    limit = int(request.POST.get('limit', 10))
+    _data = list(
+        Position.objects.filter(**filter_item).values('id', 'company__name', 'position_type__name', 'position_name',
+                                                      'position_city__name', 'position_district__name',
+                                                      'education__name', 'experience__name', 'update_time')
+    )
+    data['count'] = total = _data.__len__()
+    if total:
+        last = (total - 1) // limit + 1
+        _data = _data[(page - 1) * limit: page * limit]
+        if first <= page <= last:
+            data['data'] = _data
+    return JsonResponse(data, json_dumps_params={'ensure_ascii': False})
