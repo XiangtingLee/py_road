@@ -23,7 +23,19 @@
                                 <div class="layui-inline">
                                     <label class="layui-form-label">ID</label>
                                     <div class="layui-input-inline">
-                                        <input class="layui-input" name="id" id="filterId" autocomplete="off">
+                                        <input class="layui-input" name="id" id="filterId" autocomplete="off" lay-verify="number">
+                                    </div>
+                                </div>
+
+                                <div class="layui-inline">
+                                    <label class="layui-form-label">职位类型</label>
+                                    <div class="layui-input-inline">
+                                        <select name="position_type__name" lay-search>
+                                            <option value=""></option>
+                                            {% for type in all_type %}
+                                                <option value="{{ type }}">{{ type }}</option>
+                                            {% endfor %}
+                                        </select>
                                     </div>
                                 </div>
 
@@ -59,9 +71,9 @@
                                         <div class="layui-select-title">
                                             <span class="layui-input layui-unselect" id="treeclass"
                                                   style="padding-top: 10px;"></span>
-                                            <input type="hidden" id="filter-province" name="position_city__province"/>
-                                            <input type="hidden" id="filter-city" name="position_city"/>
-                                            <input type="hidden" id="filter-district" name="position_district"/>
+                                            <input type="hidden" id="filter-province" name="position_city__province__name"/>
+                                            <input type="hidden" id="filter-city" name="position_city__name"/>
+                                            <input type="hidden" id="filter-district" name="position_district__name"/>
                                             <i class="layui-edge"></i>
                                         </div>
                                         <dl class="layui-anim layui-anim-upbit">
@@ -99,15 +111,16 @@
             base: '{% static 'layuiadmin/' %}' //静态资源所在路径
         }).extend({
             index: '/lib/index' //主入口模块
-        }).use(['tree', 'index', 'table', 'slider'], function () {
+        }).use(['tree', 'index', 'table', 'slider', "form"], function () {
             var table = layui.table
                 , $ = layui.jquery
+                , form = layui.form
                 , slider = layui.slider;
 
             //开启范围选择
             slider.render({
                 elem: '#salaryRange'
-                , value: 40 //初始值
+                , value: 100 //初始值
                 , range: true //范围选择
                 , setTips: function (value) { //自定义提示文本
                     return value + 'K';
@@ -157,7 +170,7 @@
                     , {field: 'position_district__name', title: '所在地点', width: 101, sort: true}
                     , {field: 'education__name', title: '学历要求', width: 101, sort: true}
                     , {field: 'experience__name', title: '经验要求', width: 120, sort: true}
-                    {#, {field: 'salary', title: '薪资', width: 100, sort: true}#}
+                    , {field: 'salary', title: '薪资', width: 100, sort: true}
                     , {field: 'update_time', title: '最后修改时间', width: 180, sort: true}
                     , {fixed: 'right', title: '操作', width: 80, align: 'center', toolbar: '#barDemo'}
                 ]]

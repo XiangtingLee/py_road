@@ -1,13 +1,13 @@
 from django.shortcuts import render
-from django.http.response import HttpResponse, JsonResponse
-from django.db.models import Avg, Max, Min, Count
+from django.http.response import JsonResponse
+from django.db.models import CharField, Value as V
+from django.db.models.functions import Concat
 from django.contrib.auth.decorators import login_required
 
 from django.conf import settings
 from .models import *
 from public.tools import verify_sign
 
-import json
 import time
 import pandas as pd
 
@@ -142,6 +142,7 @@ def visualization_data(request):
 
 def reveal_view(request):
     data = {"search_node": []}
+    data["all_type"] = PositionType.objects.values_list("name", flat=True)
     place_data = Position.objects.filter(is_effective=1).values_list("position_city__province__name", "position_city__name", "position_district__name")
     df = pd.DataFrame(list(place_data))
     df.columns = ["province", "city", "district"]
@@ -186,9 +187,10 @@ def reveal_filter(request):
     page = int(request.POST.get('page', 1))
     limit = int(request.POST.get('limit', 10))
     _data = list(
-        Position.objects.filter(**filter_item).values('id', 'company__name', 'position_type__name', 'position_name',
-                                                      'position_city__name', 'position_district__name',
-                                                      'education__name', 'experience__name', 'update_time')
+        Position.objects.filter(**filter_item).annotate(salary=Concat("salary_lower", V("-"), "salary_upper", V("k"),
+                                                        output_field=CharField())).values(
+            'id', 'company__name', 'position_type__name', 'position_name', 'position_city__name',
+            'position_district__name', 'education__name', 'experience__name', 'update_time', "salary")
     )
     data['count'] = total = _data.__len__()
     if total:
