@@ -23,7 +23,7 @@ class CrawlPosiion(object):
 
     def __init__(self):
         self.spider_queue = Queue()
-        self.thread_count = 5
+        self.thread_count = 20
         self.thread_delay = 0
         self.city = "%E5%85%A8%E5%9B%BD"
         self.kd = "python"
@@ -119,13 +119,16 @@ class CrawlPosiion(object):
             if isinstance(district, AdministrativeDiv):
                 kwargs["area"] = district
             try:
-                zone_ins = CityBusinessZone.objects.get(**kwargs)
-                zone_id = zone_ins.id if zone_ins else None
+                zone_ins = CityBusinessZone.objects.filter(**kwargs)
+                zone_id = [zone.id for zone in zone_ins] if zone_ins else None
             except models.ObjectDoesNotExist:
                 kwargs["add_time"] = datetime.datetime.now()
                 zone_id = CityBusinessZone.objects.create(**kwargs).id
             if zone_id:
-                zone_ids.append(zone_id)
+                if isinstance(zone_id, list):
+                    zone_ids += zone_id
+                else:
+                    zone_ids.append(zone_id)
         return zone_ids
 
     def __process_many_to_many(self, obj:django.db.models.base.ModelBase, labels: list) -> list:
@@ -134,21 +137,20 @@ class CrawlPosiion(object):
         '''
         ids = []
         for label in labels:
+            ThreadLock.acquire()
             try:
                 is_exist = obj.objects.get(name=label)
             except models.ObjectDoesNotExist:
                 try:
-                    ThreadLock.acquire()
                     field_id = obj.objects.create(name=label, add_time=datetime.datetime.now()).id
                     ids.append(field_id)
-                    ThreadLock.release()
                 except:
-                    ThreadLock.release()
                     print("Label '%s' Process Failed! " % label)
             except Exception as e:
                 print("Label '%s' Process Failed! %s" %(label, e))
             else:
                 ids.append(is_exist.id)
+            ThreadLock.release()
         return ids
 
     def get_requests_data(self, form_data):
@@ -233,9 +235,14 @@ class CrawlPosiion(object):
         # else:
         if position_city != '':
             city_ins = AdministrativeDiv.objects.filter(short_name=position_city).order_by("id")
-            if city_ins and city_ins.city__id == city_ins.id:
-                city_obj = city_ins[0]
-                data["position_city"] = city_obj
+            if city_ins:
+                for city in city_ins:
+                    if not isinstance(data["position_city"], AdministrativeDiv) and city.city and city.city.id == city.id:
+                        data["position_city"] = city
+                        break
+                # if city_ins[0].city.id == city_ins[0].id:
+                #     city_obj = city_ins[0]
+                #     data["position_city"] = city_obj
             else:
                 print("city %s not exits"%data["position_city"])
                 del data["position_city"]
@@ -247,8 +254,7 @@ class CrawlPosiion(object):
         if position_district != '':
             city_ins = AdministrativeDiv.objects.filter(short_name=position_district).order_by("id")
             if city_ins:
-                city_obj = city_ins[0]
-                data["position_district"] = city_obj
+                data["position_district"] = city_ins[0]
             else:
                 print("\033[1;33m\t district %s-%s not exits\033[0m"%(data["position_city"], position_district))
                 del data["position_district"]
@@ -260,7 +266,7 @@ class CrawlPosiion(object):
         del data["position_business_zones"]
         data['warehouse_time'] = datetime.datetime.now()
         try:
-            # create Position obj
+        # create Position obj
             position_obj = Position.objects.create(**data)
             if labels:
                 labels_id = self.__process_many_to_many(PositionLabels, labels)
@@ -275,8 +281,8 @@ class CrawlPosiion(object):
                 position_obj.position_business_zones.set(zone_ids)
             print("\033[1;32m\t store position id %s success!\033[0m" % (data["id"]))
         except Exception as e:
-            print("\033[1;31m\t store position id %s failed! %s \n\t data:%s\033[0m" % (data["id"], e, data))
-            exit(-2)
+            if "PRIMARY" not in str(e):
+                print("\033[1;31m\t store position id %s failed! %s \n\t data:%s\033[0m" % (data["id"], e, data))
 
     def __start_threads(self, threads:list):
         '''
@@ -355,7 +361,7 @@ if __name__ == '__main__':
     if city not in exists_cities:
         raise Exception("The city you entered is not yet open!")
     else:
-        print(city, type)
+        print("采集城市：%s"%city, "采集分类：%s"%kd)
         spider = CrawlPosiion()
         spider.kd = kd
         spider.city = urllib.parse.quote(city)

@@ -60,16 +60,15 @@ class CrawlCompany(object):
     def __process_many_to_many(self, obj:django.db.models.base.ModelBase, labels: list) -> list:
         ids = []
         for label in labels:
+            ThreadLock.acquire()
             try:
                 field_obj = obj.objects.get(name=label)
             except models.ObjectDoesNotExist:
-                ThreadLock.acquire()
                 field_obj = obj.objects.create(name=label, add_time=datetime.datetime.now())
-                ThreadLock.release()
             except:
-                ThreadLock.release()
                 print("Label '%s' Process Failed! "%label)
                 continue
+            ThreadLock.release()
             ids.append(field_obj)
         return ids
 
@@ -162,8 +161,9 @@ class CrawlCompany(object):
                 result.industry.set(industry_id)
             print("\033[1;32m\t store company id %s success!\033[0m"%(data["id"]))
         except Exception as e:
-            print("\033[1;31m\t store company id %s failed! %s\033[0m"%(data["id"], e))
-            print(data)
+            if "PRIMARY" not in str(e):
+                print("\033[1;31m\t store company id %s failed! %s\033[0m"%(data["id"], e))
+                # print("\t%s"%data)
 
     def __start_threads(self, threads:list):
         thread_len = threads.__len__()
