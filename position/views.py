@@ -6,9 +6,11 @@ from django.contrib.auth.decorators import login_required
 
 from django.conf import settings
 from .models import *
-from public.tools import verify_sign
+from public.tools import verify_sign, MyThread, ThreadLock, get_session_request
 
 import time
+import datetime
+from lxml import etree
 import pandas as pd
 
 def __word_cloud():
@@ -140,7 +142,7 @@ def visualization_data(request):
     else:
         return JsonResponse({"msg": "访问太频繁，请稍后再试！"}, json_dumps_params={'ensure_ascii':False})
 
-def reveal_view(request):
+def display_view(request):
     data = {"search_node": []}
     data["all_type"] = PositionType.objects.values_list("name", flat=True)
     place_data = Position.objects.filter(is_effective=1).values_list("position_city__province__name", "position_city__name", "position_district__name")
@@ -162,14 +164,14 @@ def reveal_view(request):
             all_city_data.append({"name": city, "type": "city", "children": district_node})
         # 构造province数据
         data["search_node"].append({"name": province, "type": "province", "children": all_city_data})
-    resp = render(request, 'position/reveal.html', data)
+    resp = render(request, 'position/display.html', data)
     resp.set_signed_cookie(key='sign', value=int(time.time()), salt=settings.SECRET_KEY, path='/position/reveal/')
     return resp
 
 
 @login_required
 @verify_sign("GET")
-def reveal_filter(request):
+def display_filter(request):
     filter_data = request.GET
     data = {'code': 0, 'count': 0, 'data': [], 'msg': ''}
     filter_item = {'is_effective': 1}
@@ -199,3 +201,68 @@ def reveal_filter(request):
         if first <= page <= last:
             data['data'] = _data
     return JsonResponse(data, json_dumps_params={'ensure_ascii': False})
+
+def cleaning_view(request):
+    resp = render(request, 'position/cleaning.html')
+    return resp
+
+
+def __checkPositionEffective(pid):
+    '''
+    职位有效性检测
+    :param record:
+    :return:
+    '''
+    post_url = 'https://www.lagou.com/jobs/%s.html' % pid
+    session = get_session_request(post_url)
+    resp = session.get(post_url)
+    DOM_elements = etree.HTML(resp.text)
+    is_outline = DOM_elements.xpath("//span[@class='outline_tag']")
+    is_online = DOM_elements.xpath('''//a[@class="send-CV-btn s-send-btn fr"]''')
+    is_delete = True if '\n\t\t\t亲，你来晚了，该信息已经被删除鸟~\n\t\t\t' in DOM_elements.xpath(
+        '''//div[@class="content"]/text()[1]''') else False
+    if is_outline or is_delete:
+        ThreadLock.acquire()
+        effect_row = Position.objects.filter(id=pid).update(is_effective=0, update_time=datetime.datetime.now())
+        ThreadLock.release()
+        if effect_row:
+            return 1
+        else:
+            return 0
+    elif is_online:
+        return 2
+    else:
+        return -1
+
+def validityCheck(request):
+    '''
+    多线程职位检测
+    :param request:
+    :return:
+    '''
+    data = {'message': ''}
+    if request.method == "POST":
+        ids = request.POST.getlist('ids[]', None)
+        check_id = list(map(int, ids))
+        if check_id:
+            filter = {'id__in': check_id}
+        else:
+            filter = {'is_effective': 1}
+        check_data = Position.objects.filter(**filter).exclude(position_id=0).values_list('id', flat=True)
+
+        threads = []
+        for pid in check_data:
+            thread = MyThread(func=__checkPositionEffective, args=(pid, ))
+            thread.setName(pid['id'])
+            threads.append(thread)
+        for thread in threads:
+            thread.start()
+        for thread in threads:
+            thread.join()
+        thread_result = pd.DataFrame([i.get_result() for i in threads])[0].value_counts().to_dict()
+        print(thread_result)
+        data['status'] = 'ok'
+        data['result'] = {'check_row': check_data.__len__(), 'effect_row': thread_result.get(1, 0), 'failed_count': thread_result.get(0, 0)}
+        return JsonResponse(data, json_dumps_params={'ensure_ascii':False})
+    else:
+        return JsonResponse({"status": "error", "maessage": "网络繁忙，请稍后再试！"}, json_dumps_params={'ensure_ascii': False})

@@ -157,7 +157,7 @@
             //方法级渲染
             table.render({
                 elem: '#test-table-toolbar'
-                , url: '{% url 'position:reveal_filter' %}'
+                , url: '{% url 'position:display_filter' %}'
                 , method: 'POST'
                 , title: '用户数据表'
                 , cols: [[
@@ -187,7 +187,7 @@
 
                     //执行重载
                     table.reload('dataForm', {
-                        url: "{% url "position:reveal_filter" %}?" + filter,
+                        url: "{% url "position:display_filter" %}?" + filter,
                         page: {
                             curr: 1 //重新从第 1 页开始
                         }

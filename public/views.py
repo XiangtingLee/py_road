@@ -15,6 +15,7 @@ from django.views.decorators.http import require_POST, require_http_methods
 
 # 项目内引用
 from .models import *
+from .tasks import run_shell
 # from log.models import SpiderRunLog
 from .tools import MyThread, verify_sign
 from django.conf import settings
@@ -205,7 +206,7 @@ def spider_view(request):
     resp.set_signed_cookie(key="sign", value=int(time.time()), salt=settings.SECRET_KEY, path="/public/spider/")
     return resp
 
-from .tasks import run_shell
+# todo 添加反爬验证
 def spider_run(request):
     spider_dir = {
         "position": "\position\spider\crawl_position.py",
@@ -217,7 +218,7 @@ def spider_run(request):
     base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     command = "python " + base_dir + spider_dir.get(spider_name, None) + " -" + location + " -" + language
     sync_task_id = run_shell.delay(command)
+    # todo 处理返回的任务id
     return HttpResponseRedirect('/public/spider/view/')
-
 
 

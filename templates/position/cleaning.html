@@ -1,0 +1,187 @@
+{% extends 'lib/base.html' %}
+{% load static %}
+{% block title %}数据清洗{% endblock %}
+{% block content %}
+    <div class="layui-fluid">
+        <div class="layui-row layui-col-space15">
+            <div class="layui-col-md12">
+                <div class="layui-card">
+                    <div class="layui-card-header">数据清洗</div>
+                    <div class="layui-card-body">
+                        <table class="layui-hide" id="test-table-toolbar" lay-filter="test-table-toolbar"></table>
+
+                        <script type="text/html" id="data-toolbar">
+                            <div class="layui-btn-container">
+                                <button class="layui-btn layui-btn-sm" lay-event="reloadData">刷新</button>
+{#                                {% if detection.count != 0 %}#}
+{#                                    <button class="layui-btn layui-btn-sm" lay-event="duplicateCheck">去重(选中)</button>#}
+{#                                    <button class="layui-btn layui-btn-sm" lay-event="duplicateAll">去重(全部)</button>#}
+{#                                {% else %}#}
+                                    <button class="layui-btn layui-btn-sm" lay-event="validityCheck">有效性检测(选中)</button>
+                                    <button class="layui-btn layui-btn-sm" lay-event="validityCheckAll">有效性检测(全部)
+                                    </button>
+{#                                {% endif %}#}
+                            </div>
+                        </script>
+
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+{% endblock %}
+{% block tail_include_after %}
+    <script>
+        layui.config({
+            base: '{% static 'layuiadmin/' %}' //静态资源所在路径
+        }).extend({
+            index: '/lib/index' //主入口模块
+        }).use(['index', 'table'], function () {
+            var admin = layui.admin;
+            var table = layui.table;
+
+            table.render({
+                elem: '#test-table-toolbar'
+                , url: '{% url 'position:display_filter' %}'
+                , method: 'POST'
+                , toolbar: '#data-toolbar'
+                , title: '用户数据表'
+                , cols: [[
+                    {type: 'checkbox', fixed: 'left'}
+                    , {field: 'id', title: 'ID', width: 80, fixed: 'left', sort: true}
+                    , {field: 'company__name', title: '公司名称', width: 100, sort: true}
+                    , {field: 'position_type__name', title: '职位类型', width: 100, sort: true}
+                    , {field: 'position_name', title: '职位名称', width: 150, sort: true}
+                    , {field: 'position_city__name', title: '所在城市', width: 100, sort: true}
+                    , {field: 'position_district__name', title: '所在地点', width: 100, sort: true}
+                    , {field: 'education__name', title: '学历要求', width: 100, sort: true}
+                    , {field: 'experience__name', title: '经验要求', width: 120, sort: true}
+                    , {field: 'salary', title: '薪资', width: 100, sort: true}
+                    , {field: 'update_time', title: '最后修改时间', width: 180, sort: true}
+                    //,{field:'email', title:'邮箱', width:150, templet: function(res){
+                    //  return '<em>'+ res.email +'</em>'
+                    //}}
+                ]]
+                , id: 'dataForm'
+                , page: true
+            });
+            //头工具栏事件
+            table.on('toolbar(test-table-toolbar)', function (obj) {
+                var checkStatus = table.checkStatus(obj.config.id);
+                switch (obj.event) {
+                    case 'reloadData':
+                        reloadData(table);
+                        break;
+                    {% if detection.count != 0 %}
+                        case 'duplicateCheck':
+                            var duplicateData = checkStatus.data;
+                            var duplicateIds = [];
+                            if (duplicateData.length === 0) {
+                                layer.msg('请选择需要去重的数据', {icon: 5, time: 2000});
+                            } else {
+                                for (var i = 0; i < duplicateData.length; i++) {
+                                    duplicateIds.push(duplicateData[i].id);
+                                }
+                                layer.confirm('即将执行去重操作，是否继续？', function () {
+                                    layer.msg('正在去重', {icon: 16, time: 500}, function () {
+                                        deDuplication(duplicateIds, table);
+                                    });
+                                });
+                            }
+                            break;
+                        case 'duplicateAll':
+                            layer.confirm('即将执行去重操作，是否继续？', function () {
+                                layer.msg('正在去重', {icon: 16, time: 500}, function () {
+                                    deDuplication([], table);
+                                });
+                            });
+                            break;
+                    {% endif %}
+                    case 'validityCheck':
+                        var validityData = checkStatus.data;
+                        validityids = [];
+                        if (validityData.length === 0) {
+                            layer.msg('请选择需要去重的数据', {icon: 5});
+                        } else {
+                            for (var i = 0; i < validityData.length; i++) {
+                                validityids.push(validityData[i].id);
+                            }
+                            layer.confirm('即将执行数据检查操作，是否继续？', function () {
+                                layer.msg('正在检测', {icon: 16, time: 500}, function () {
+                                    validityCheck(validityids, table);
+                                });
+                            });
+                        }
+                        break;
+                    case 'validityCheckAll':
+                        layer.confirm('即将执行数据检查操作，是否继续？', function () {
+                            layer.msg('正在检测', {icon: 16, time: 500}, function () {
+                                validityCheck([], table);
+                            });
+                        });
+                        break;
+                }
+            });
+
+        });
+
+{#        {% if detection.count != 0 %}#}
+{#            //去重#}
+{#            function deDuplication(ids, dataEle) {#}
+{#                layui.use(['jquery', 'layer'], function () {#}
+{#                    var $ = layui.$#}
+{#                        , layer = layui.layer;#}
+{#                    $.ajax({#}
+                        {#url: "{% url 'datas:deDuplication' %}",#}
+{#                        url: "***************",#}
+{#                        method: 'POST',#}
+{#                        data: {'ids': ids},#}
+{#                        success: function (data) {#}
+{#                            layer.msg('去重成功，' +#}
+{#                                data.result.repeat_row + '条数据，共去重' + data.result.effect_row + '条',#}
+{#                                {icon: 1, time: 1000}, function(){#}
+{#                                    window.location.reload();#}
+{#                                });#}
+{#                        }#}
+{#                    });#}
+{#                });#}
+{#            }#}
+{#        {% else %}#}
+            //有效性检测
+            function validityCheck(ids, dataEle) {
+                layui.use(['jquery', 'layer'], function () {
+                    var $ = layui.$ //重点处
+                        , layer = layui.layer;
+                    $.ajax({
+                        {#url: "{% url 'datas:validityCheck' %}",#}
+                        url: "***************",
+                        method: 'POST',
+                        data: {'ids': ids},
+                        success: function (data) {
+                            layer.msg('检测成功，' +
+                                data.result.check_row + '条数据，共去重' + data.result.effect_row + '条',
+                                {icon: 1, time: 1000}, function(){
+                                    reloadData(dataEle);
+                                });
+                        }
+                    });
+                });
+            }
+{#        {% endif %}#}
+
+        //数据重载
+        function reloadData(dataEle) {
+            dataEle.reload('dataForm', {
+                page: {
+                    curr: 1 //重新从第 1 页开始
+                }
+                , where: {
+                    key: {
+                        {#id: demoReload.val()#}
+                    }
+                }
+            }, 'data');
+        }
+    </script>
+{% endblock %}
