@@ -3,6 +3,7 @@ from django.http.response import JsonResponse
 from django.db.models import CharField, Value as V
 from django.db.models.functions import Concat
 from django.contrib.auth.decorators import login_required
+from django.contrib import messages
 
 from django.conf import settings
 from .models import *
@@ -202,6 +203,8 @@ def display_filter(request):
             data['data'] = _data
     return JsonResponse(data, json_dumps_params={'ensure_ascii': False})
 
+
+@login_required
 def cleaning_view(request):
     resp = render(request, 'position/cleaning.html')
     return resp
@@ -234,7 +237,8 @@ def __checkPositionEffective(pid):
     else:
         return -1
 
-def validityCheck(request):
+@login_required
+def cleaning_check(request):
     '''
     多线程职位检测
     :param request:
@@ -248,21 +252,20 @@ def validityCheck(request):
             filter = {'id__in': check_id}
         else:
             filter = {'is_effective': 1}
-        check_data = Position.objects.filter(**filter).exclude(position_id=0).values_list('id', flat=True)
-
+        check_data = Position.objects.filter(**filter).values_list('id', flat=True)
         threads = []
         for pid in check_data:
             thread = MyThread(func=__checkPositionEffective, args=(pid, ))
-            thread.setName(pid['id'])
+            thread.setName(pid)
             threads.append(thread)
         for thread in threads:
             thread.start()
         for thread in threads:
             thread.join()
-        thread_result = pd.DataFrame([i.get_result() for i in threads])[0].value_counts().to_dict()
-        print(thread_result)
+        thread_result = pd.DataFrame([i.result for i in threads])[0].value_counts().to_dict()
         data['status'] = 'ok'
         data['result'] = {'check_row': check_data.__len__(), 'effect_row': thread_result.get(1, 0), 'failed_count': thread_result.get(0, 0)}
+        # messages.success(request, '检测成功，共检测%s条数据，失效%s条'%(check_data.__len__(), thread_result.get(1, 0)))
         return JsonResponse(data, json_dumps_params={'ensure_ascii':False})
     else:
         return JsonResponse({"status": "error", "maessage": "网络繁忙，请稍后再试！"}, json_dumps_params={'ensure_ascii': False})

@@ -102,7 +102,7 @@
                         var validityData = checkStatus.data;
                         validityids = [];
                         if (validityData.length === 0) {
-                            layer.msg('请选择需要去重的数据', {icon: 5});
+                            layer.msg('请选择需要检查的数据', {icon: 5});
                         } else {
                             for (var i = 0; i < validityData.length; i++) {
                                 validityids.push(validityData[i].id);
@@ -154,14 +154,13 @@
                     var $ = layui.$ //重点处
                         , layer = layui.layer;
                     $.ajax({
-                        {#url: "{% url 'datas:validityCheck' %}",#}
-                        url: "***************",
+                        url: "{% url 'position:cleaning_check' %}",
                         method: 'POST',
                         data: {'ids': ids},
                         success: function (data) {
-                            layer.msg('检测成功，' +
-                                data.result.check_row + '条数据，共去重' + data.result.effect_row + '条',
-                                {icon: 1, time: 1000}, function(){
+                            layer.msg('检测成功，共检测' +
+                                data.result.check_row + '条数据，失效' + data.result.effect_row + '条',
+                                {icon: 1}, function(){
                                     reloadData(dataEle);
                                 });
                         }
