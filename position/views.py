@@ -121,6 +121,23 @@ def __company_financing():
     values = [{"name": one[0], "value": one[1]} for one in df.values]
     return {"xAxis": xAxis, "values": values}
 
+def __get_daily_num():
+    '''
+    每日入库数据量统计
+    '''
+    data = {"xAxis": [], "values": []}
+    day = 7
+    range_date_end = datetime.date.today()
+    range_date_start = range_date_end - datetime.timedelta(days=day)
+    while range_date_start <= range_date_end:
+        end_date = range_date_start + datetime.timedelta(days=1)
+        daily_count = Position.objects.filter(warehouse_time__gte=range_date_start, warehouse_time__lt=end_date).count()
+        date_str = range_date_start.strftime("%m-%d")
+        data["xAxis"].append(date_str)
+        data["values"].append(daily_count)
+        range_date_start = range_date_start + datetime.timedelta(days=1)
+    return data
+
 @login_required
 def visualization_view(requests):
     resp = render(requests, 'position/visualization.html', locals())
@@ -139,6 +156,7 @@ def visualization_data(request):
         data["company_scale"] =__company_scale()
         data["company_industry"] =__company_industry()
         data["company_financing"] =__company_financing()
+        data["daily_num"] =__get_daily_num()
         return JsonResponse(data, json_dumps_params={'ensure_ascii':False})
     else:
         return JsonResponse({"msg": "访问太频繁，请稍后再试！"}, json_dumps_params={'ensure_ascii':False})

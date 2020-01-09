@@ -39,22 +39,23 @@ layui.define(function (exports) {
     layui.use(['carousel', 'echarts'], function () {
         var $ = layui.$
             , carousel = layui.carousel
-            , echarts = layui.echarts;
-
-
+            , echarts = layui.echarts
+            , node_list = ["wdCloud", "Distribution", "EduNum", "ExpNum", "companyScale", "cpyIndustry", "companyFinancing", "dailyNum"];
+        for (var i = 0; i < node_list.length; i++) {
+            var node_name = node_list[i]
+                , node_obj = $("#" + node_name).children('div')
+                , echars_obj = echarts.init(node_obj[0], layui.echartsTheme);
+            echars_obj.showLoading({text: '正在加载数据'});
+        }
         $.ajax({
             url: "/position/visualization/data/",
             method: 'POST',
             success: function (data) {
 
-                // 词云
-                var echwdcloud = [],
-                    elemwdcloud = $('#wdCloud').children('div')
-                    , renderwdcloud = function (index) {
-                        echwdcloud[index] = echarts.init(elemwdcloud[index], layui.echartsTheme);
-                        echwdcloud[index].showLoading({text: '正在加载数据'});
-                        var plat = [
-                            {
+                //循环渲染节点
+                var node_data = {
+                        //词云
+                        'wdCloud': {
                                 // title: {
                                 //     text: data.title,
                                 //     subtext: data.subtitle
@@ -93,24 +94,9 @@ layui.define(function (exports) {
                                     }
                                 ]
 
-                            }
-                        ];
-                        echwdcloud[index].setOption(plat[index]);
-                        window.onresize = echwdcloud[index].resize;
-                        echwdcloud[index].hideLoading();
-                    };
-                if (!elemwdcloud[0]) return;
-                renderwdcloud(0);
-
-
-                //地图
-                var echDistribution = [],
-                    elemDistribution = $('#Distribution').children('div')
-                    , renderDistribution = function (index) {
-                        echDistribution[index] = echarts.init(elemDistribution[index], layui.echartsTheme);
-                        echDistribution[index].showLoading({text: '正在加载数据'});
-                        var plat = [
-                                    {
+                            },
+                        //地图
+                        "Distribution": {
                                         // title: {
                                         //     text: data.title,
                                         //     subtext: data.subtitle
@@ -157,25 +143,9 @@ layui.define(function (exports) {
 
                                         ],
 
-                                    }
-                    ];
-                        echDistribution[index].setOption(plat[index]);
-                        window.onresize = echDistribution[index].resize;
-                        echDistribution[index].hideLoading();
-                    };
-                if (!elemDistribution[0]) return;
-                renderDistribution(0);
-
-
-                //职位学历要求
-                var echEduNum = [],
-                    elemEduNum = $('#EduNum').children('div'),
-                    renderEduNum = function (index) {
-                        echEduNum[index] = echarts.init(elemEduNum[index], layui.echartsTheme);
-                        echEduNum[index].showLoading({text: '正在加载数据'});
-
-                        var EduNum = [
-                            {
+                                    },
+                        //学历
+                        "EduNum": {
                                 tooltip: {
                                     trigger: 'item',
                                     formatter: "{a} <br/>{b} : {c}家公司 ({d}%)"
@@ -199,24 +169,9 @@ layui.define(function (exports) {
                                         }
                                     }
                                 ]
-                            }
-                        ];
-                        echEduNum[index].setOption(EduNum[index]);
-                        window.onresize = echEduNum[index].resize;
-                        echEduNum[index].hideLoading();
-                    };
-                if (!elemEduNum[0]) return;
-                renderEduNum(0);
-
-
-                //职位经验要求
-                var echExpNum = [],
-                    elemExpNum = $('#ExpNum').children('div'),
-                    renderExpNum = function (index) {
-                        echExpNum[index] = echarts.init(elemExpNum[index], layui.echartsTheme);
-                        echExpNum[index].showLoading({text: '正在加载数据'});
-                        var ExpNum = [
-                            {
+                            },
+                        //经验
+                        "ExpNum": {
                                 // title: {
                                 //     text: data.title,
                                 //     subtext: data.subtitle
@@ -246,24 +201,9 @@ layui.define(function (exports) {
                                         data: data.experience.values,
                                     }
                                 ]
-                            }
-                        ];
-                        echExpNum[index].setOption(ExpNum[index]);
-                        window.onresize = echExpNum[index].resize;
-                        echExpNum[index].hideLoading();
-                    };
-                if (!elemExpNum[0]) return;
-                renderExpNum(0);
-
-
-                //公司规模
-                var echCompanyScale = [],
-                    elemCompanyScale = $('#companyScale').children('div'),
-                    renderCompanyScale = function (index) {
-                        echCompanyScale[index] = echarts.init(elemCompanyScale[index], layui.echartsTheme);
-                        echCompanyScale[index].showLoading({text: '正在加载数据'});
-                        var CompanyScale = [
-                            option = {
+                            },
+                        //公司规模
+                        "companyScale": {
                                 tooltip: {
                                     // trigger: 'item',
                                     formatter: "{a} <br/>{b} : {c}家公司"
@@ -277,24 +217,9 @@ layui.define(function (exports) {
                                     },
                                     data: data.company_scale.values
                                 }]
-                            }
-
-                        ];
-                        echCompanyScale[index].setOption(CompanyScale[index]);
-                        window.onresize = echCompanyScale[index].resize;
-                        echCompanyScale[index].hideLoading();
-                    };
-                if (!elemCompanyScale[0]) return;
-                renderCompanyScale(0);
-
-
-                //公司所属行业分布
-                var echheaparea = [],
-                    elemheaparea = $('#cpyIndustry').children('div'),
-                    renderheaparea = function (index) {
-                        echheaparea[index] = echarts.init(elemheaparea[index], layui.echartsTheme);
-                        echheaparea[index].showLoading({text: '正在加载数据'});
-                        var heaparea = [{
+                            },
+                        //公司行业
+                        "cpyIndustry": {
                             // title: {
                             //     text: '世界人口总量',
                             //     subtext: '数据来自网络'
@@ -327,23 +252,9 @@ layui.define(function (exports) {
                                     data: data.company_industry.values
                                 }
                             ]
-                        }];
-                        echheaparea[index].setOption(heaparea[index]);
-                        window.onresize = echheaparea[index].resize;
-                        echheaparea[index].hideLoading();
-                };
-                if (!elemheaparea[0]) return;
-                renderheaparea(0);
-
-
-                //公司融资
-                var echFinancing = [],
-                    elemFinancing = $('#companyFinancing').children('div'),
-                    renderFinancing = function (index) {
-                        echFinancing[index] = echarts.init(elemFinancing[index], layui.echartsTheme);
-                        echFinancing[index].showLoading({text: '正在加载数据'});
-                        var Financing = [
-                            {
+                        },
+                        //公司融资
+                        "companyFinancing": {
                                 // title: {
                                 //     text: data.title,
                                 //     subtext: data.subtitle
@@ -374,33 +285,9 @@ layui.define(function (exports) {
                                         }
                                     }
                                 ]
-                            }
-                        ];
-                        echFinancing[index].setOption(Financing[index]);
-                        window.onresize = echFinancing[index].resize;
-                        echFinancing[index].hideLoading();
-                    };
-                if (!elemFinancing[0]) return;
-                renderFinancing(0);
-
-            }
-        });
-
-
-
-        //每日入库量
-        var dailyNum = [],
-            elemDailyNum = $('#dailyNum').children('div'),
-            renderDailyNum = function (index) {
-                dailyNum[index] = echarts.init(elemDailyNum[index], layui.echartsTheme);
-                dailyNum[index].showLoading({text: '正在加载数据'});
-
-                $.ajax({
-                    url: "/api/getDailyNumber/",
-                    method: 'POST',
-                    success: function (data) {
-                        heapline = [
-                            {
+                            },
+                        //公司融资
+                        "dailyNum": {
                                 tooltip: {
                                     trigger: 'axis'
                                 },
@@ -411,7 +298,7 @@ layui.define(function (exports) {
                                     {
                                         type: 'category',
                                         boundaryGap: false,
-                                        data: data.xAxis
+                                        data: data.daily_num.xAxis
                                     }
                                 ],
                                 yAxis: [
@@ -424,7 +311,7 @@ layui.define(function (exports) {
                                         name: 'python职位',
                                         type: 'line',
                                         stack: '总量',
-                                        data: data.values,
+                                        data: data.daily_num.values,
                                         markPoint: {
                                             data: [{type: 'max', name: '最大值'}, {type: 'min', name: '最小值'}]
                                         },
@@ -433,21 +320,19 @@ layui.define(function (exports) {
                                         }
                                     }
                                 ]
-                            }
-                        ];
-                        dailyNum[index].setOption(heapline[index]);
-                        window.onresize = dailyNum[index].resize;
-                        dailyNum[index].hideLoading();
-                    }
-                });
-            };
-        if (!elemDailyNum[0]) return;
-        renderDailyNum(0);
+                            },
+                };
 
-
-
+                for (var i = 0; i < node_list.length; i++) {
+                    var node_name = node_list[i]
+                        , node_obj = $("#" + node_name).children('div')
+                        , echars_obj = echarts.init(node_obj[0], layui.echartsTheme);
+                    echars_obj.setOption(node_data[node_name]);
+                    window.onresize = echars_obj.resize;
+                    echars_obj.hideLoading();
+                }
+            }
+        });
     });
-
     exports('senior', {})
-
 });
