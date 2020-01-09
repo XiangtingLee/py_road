@@ -19,8 +19,9 @@
                                         <select name="spider" lay-verify="required" lay-filter="selectSpider"
                                                 lay-search>
                                             <option value="">请选择爬虫</option>
-                                            <option value="position">lg_position(职位)</option>
-                                            <option value="company">lg_company(公司)</option>
+                                            {% for spider in spiders %}
+                                                <option value="{{ spider.name }}">{{ spider.name }}({{ spider.remark }})</option>
+                                            {% endfor %}
                                         </select>
                                     </div>
                                 </div>
@@ -129,7 +130,7 @@
 
             table.render({
                 elem: '#spiderRunlogData'
-                , url: '*************'
+                , url: '{% url 'log:log_spider' %}'
                 , method: 'POST'
                 , initSort: {
                     field: 'id'
@@ -138,11 +139,12 @@
                 , cols: [[
                     {field: 'id', title: 'ID', width: 80, fixed: 'left', unresize: true, sort: true}
                     , {field: 'spider_name', title: '爬虫名称', width: 100}
-                    , {field: 'unique_id', title: '标识ID', width: 300, sort: true}
+                    , {field: 'status', title: '运行状态', width: 90}
+                    , {field: 'param', title: '运行参数', width: 130}
                     , {field: 'task_id', title: '任务ID', width: 300, sort: true}
                     , {field: 'start_time', title: '开始时间', width: 180, sort: true}
                     , {field: 'end_time', title: '结束时间', width: 180, sort: true}
-                    , {field: 'status', title: '运行状态', width: 100}
+                    , {field: 'remark', title: '备注', width: 180}
                     //,{field:'email', title:'邮箱', width:150, templet: function(res){
                     //  return '<em>'+ res.email +'</em>'
                     //}}

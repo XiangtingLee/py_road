@@ -65,3 +65,23 @@ class ProxyPool(models.Model):
 
     def __str__(self):
         return self.address + ':' + str(self.port)
+
+
+class Spider(models.Model):
+    name = models.CharField(max_length=100, verbose_name='爬虫名称', blank=True)
+    path = models.CharField(max_length=255, verbose_name='爬虫路径')
+    add_time = models.DateTimeField(verbose_name="添加时间")
+    update_time = models.DateTimeField(auto_now=True, verbose_name="更新时间")
+    is_available = models.BooleanField(default=False, verbose_name='是否可用')
+    is_delete = models.BooleanField(default=False, verbose_name='是否删除')
+    remark = models.TextField(verbose_name="备注")
+
+    class Meta:
+        managed = True
+        db_table = 'public_spider'
+        verbose_name = '已有爬虫'
+        verbose_name_plural = verbose_name
+        ordering = ['-id']
+
+    def __str__(self):
+        return self.name

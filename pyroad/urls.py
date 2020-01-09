@@ -28,6 +28,7 @@ urlpatterns = [
     url('^login$', views.login_act, name='login'),
     url('^logout$', views.logout_act, name='logout'),
     url('^reg$', views.reg_act, name='reg'),
+    path('log/', include('log.urls', namespace='log')),
     path('public/', include('public.urls', namespace='public')),
     path('user/', include('user.urls', namespace='user')),
     path('position/', include('position.urls', namespace='position')),

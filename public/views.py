@@ -10,11 +10,13 @@ from scrapyd_api import ScrapydAPI
 # Django模块导入
 from django.shortcuts import render
 from django.http import JsonResponse, HttpResponseRedirect
+from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST, require_http_methods
 
 # 项目内引用
 from .models import *
+from log.models import *
 from .tasks import run_shell
 # from log.models import SpiderRunLog
 from .tools import MyThread, verify_sign
@@ -201,24 +203,27 @@ def __proxy_judge(protocol, address):
     except Exception as e:
         return False
 
+@login_required
 def spider_view(request):
-    resp = render(request, 'public/spider.html')
-    resp.set_signed_cookie(key="sign", value=int(time.time()), salt=settings.SECRET_KEY, path="/public/spider/")
+    spiders = Spider.objects.filter(is_available=1, is_delete=0).values("name", "remark").order_by('id')
+    data = {"spiders": [i for i in spiders]}
+    resp = render(request, 'public/spider.html', data)
     return resp
 
-# todo 添加反爬验证
 def spider_run(request):
-    spider_dir = {
-        "position": "\position\spider\crawl_position.py",
-        "company": "\position\spider\crawl_company.py",
-    }
-    location = request.POST.get('location', None)
-    language = request.POST.get('language', None)
-    spider_name = request.POST.get('spider', None)
-    base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    command = "python " + base_dir + spider_dir.get(spider_name, None) + " -" + location + " -" + language
-    sync_task_id = run_shell.delay(command)
-    # todo 处理返回的任务id
-    return HttpResponseRedirect('/public/spider/view/')
+    if request.method == "POST":
+        location = request.POST.get('location', None)
+        language = request.POST.get('language', None)
+        spider_name = request.POST.get('spider', None)
+        base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        spider_path = Spider.objects.get(name=spider_name).path
+        param = " -" + location + " -" + language
+        command = "python " + base_dir + spider_path + param
+        sync_task = run_shell.delay(command)
+        SpiderRunLog.objects.create(spider_name=spider_name, task_id=sync_task.id, param=param)
+        return HttpResponseRedirect('/public/spider/view/')
+    else:
+        return JsonResponse({"status": "error", "maessage": "网络繁忙，请稍后再试！"}, json_dumps_params={'ensure_ascii': False})
+
 
 

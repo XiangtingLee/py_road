@@ -48,7 +48,7 @@ def get_session_request(url):
     session.get(url)
     return session
 
-def verify_sign(method):
+def verify_sign(method, key="sign"):
     '''
     验证渲染标识
     '''
@@ -57,7 +57,7 @@ def verify_sign(method):
         def returned_wrapper(request, *args, **kwargs):
             if request.method == method:
                 user_agent = request.META.get('HTTP_USER_AGENT', None)
-                req_time = request.get_signed_cookie(key="sign", salt=settings.SECRET_KEY, default="0")
+                req_time = request.get_signed_cookie(key=key, salt=settings.SECRET_KEY, default="0")
                 referer = request.META.get("HTTP_REFERER", None)
                 if int(time.time()) - int(req_time) > 3 or not user_agent or not referer:
                     client = request.META.get("REMOTE_ADDR", None)
