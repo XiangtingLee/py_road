@@ -138,6 +138,21 @@ def __get_daily_num():
         range_date_start = range_date_start + datetime.timedelta(days=1)
     return data
 
+def __get_position_type_salary():
+    '''
+    获取行业薪资
+    '''
+    data = {"xAxis": [], "values": []}
+    all_position_type = PositionType.objects.values_list("name", flat=True)
+    for type in all_position_type:
+        data["xAxis"].append(type)
+        salary = list(Position.objects.filter(position_type__name=type).values_list("salary_lower", "salary_upper"))
+        df = pd.DataFrame(salary)
+        df.columns = ['low', 'up']
+        df["mean"] = (df["low"]+df["up"])/2
+        data["values"].append(round(df["mean"].mean(), 2))
+    return data
+
 @login_required
 def visualization_view(requests):
     resp = render(requests, 'position/visualization.html', locals())
@@ -157,6 +172,7 @@ def visualization_data(request):
         data["company_industry"] =__company_industry()
         data["company_financing"] =__company_financing()
         data["daily_num"] =__get_daily_num()
+        data["type_salary"] =__get_position_type_salary()
         return JsonResponse(data, json_dumps_params={'ensure_ascii':False})
     else:
         return JsonResponse({"msg": "访问太频繁，请稍后再试！"}, json_dumps_params={'ensure_ascii':False})
