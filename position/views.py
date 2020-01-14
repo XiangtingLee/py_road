@@ -164,15 +164,25 @@ def visualization_view(requests):
 def visualization_data(request):
     if request.method == "POST":
         data = {}
-        data["word_cloud"] = __word_cloud()
-        data["local"] = __local_distribution()
-        data["education"] = __education()
-        data["experience"] = __experience()
-        data["company_scale"] =__company_scale()
-        data["company_industry"] =__company_industry()
-        data["company_financing"] =__company_financing()
-        data["daily_num"] =__get_daily_num()
-        data["type_salary"] =__get_position_type_salary()
+        threads = []
+        data_dict = {
+            "word_cloud": __word_cloud,
+             "local": __local_distribution,
+             "education": __education,
+             "experience": __experience,
+             "company_scale": __company_scale,
+             "company_industry": __company_industry,
+             "company_financing": __company_financing,
+             "daily_num": __get_daily_num,
+             "type_salary": __get_position_type_salary
+        }
+        for k, v in data_dict.items():
+            threads.append(MyThread(func=v, name=k, args=()))
+        for thread in threads:
+            thread.start()
+        for thread in threads:
+            thread.join()
+            data[thread.name] = thread.result
         return JsonResponse(data, json_dumps_params={'ensure_ascii':False})
     else:
         return JsonResponse({"msg": "访问太频繁，请稍后再试！"}, json_dumps_params={'ensure_ascii':False})
