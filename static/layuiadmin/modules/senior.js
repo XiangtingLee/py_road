@@ -181,7 +181,7 @@ layui.define(function (exports) {
                                     formatter: "{a} <br/>{b} : {c}个职位"
                                 },
                                 legend: {
-                                    data: ['python方向']
+                                    data: ['Python', 'Java']
                                 },
                                 xAxis: [
                                     {
@@ -196,9 +196,18 @@ layui.define(function (exports) {
                                 ],
                                 series: [
                                     {
-                                        name: 'python方向',
+                                        name: 'Python',
                                         type: 'bar',
-                                        data: data.experience.values,
+                                        data: data.experience.values.Python,
+                                        markPoint: {data: [{type: "max", name: "最大值"}, {type: "min", name: "最小值"}]},
+                                        markLine: {data: [{type: "average", name: "平均值"}]}
+                                    },
+                                    {
+                                        name: 'Java',
+                                        type: 'bar',
+                                        data: data.experience.values.Java,
+                                        markPoint: {data: [{type: "max", name: "最大值"}, {type: "min", name: "最小值"}]},
+                                        markLine: {data: [{type: "average", name: "平均值"}]}
                                     }
                                 ]
                             },

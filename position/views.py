@@ -67,17 +67,24 @@ def __experience():
     '''
     获取经验要求
     '''
-    data = {}
-    # all_exp = Position.objects.filter(is_effective=1).values_list("position_type__name").annotate(
-    #     Count("experience__name")).values_list("experience__name", flat=True)
+    data = {"values": {}}
     all_exp = Position.objects.filter(is_effective=1).values_list("experience__name", flat=True)
     value_count = pd.value_counts(list(all_exp)).to_frame()
     df_value_counts = pd.DataFrame(value_count).reset_index()
     df_value_counts.columns = ['name', 'counts']
-    all_data = df_value_counts.values
     data['xAxis'] = df_value_counts["name"].tolist()
-    data['values'] = [{"name": one[0], "value": one[1]} for one in all_data]
     data['count'] = all_exp.__len__()
+    all_exp = Position.objects.filter(is_effective=1).values_list("position_type__name", "experience__name")
+    df = pd.DataFrame(list(all_exp))
+    df.columns = ["type", "name"]
+    gdf = df.groupby(["type", "name"]).size().to_frame().sort_values(by="type", ascending=True)
+    gdf.columns = ["count"]
+    for k, v in gdf.to_dict()["count"].items():
+        try:
+            data["values"][k[0]].append({"name": k[1], "value": v})
+        except:
+            data["values"][k[0]] = []
+            data["values"][k[0]].append({"name": k[1], "value": v})
     return data
 
 def __company_scale():
