@@ -67,24 +67,30 @@ def __experience():
     '''
     获取经验要求
     '''
-    data = {"values": {}}
-    all_exp = Position.objects.filter(is_effective=1).values_list("experience__name", flat=True)
-    value_count = pd.value_counts(list(all_exp)).to_frame()
-    df_value_counts = pd.DataFrame(value_count).reset_index()
-    df_value_counts.columns = ['name', 'counts']
-    data['xAxis'] = df_value_counts["name"].tolist()
-    data['count'] = all_exp.__len__()
-    all_exp = Position.objects.filter(is_effective=1).values_list("position_type__name", "experience__name")
-    df = pd.DataFrame(list(all_exp))
+    data = {"series": [], "legend":{"data":[]}}
+    data['xAxis'] = list(PositionExperience.objects.filter(is_effective=1).values_list("name", flat=True))
+    all_data = Position.objects.filter(is_effective=1).values_list("position_type__name", "experience__name")
+    all_type = list(PositionType.objects.values_list("name", flat=True))
+    df = pd.DataFrame(list(all_data))
     df.columns = ["type", "name"]
     gdf = df.groupby(["type", "name"]).size().to_frame().sort_values(by="type", ascending=True)
     gdf.columns = ["count"]
+    temp = {}
     for k, v in gdf.to_dict()["count"].items():
         try:
-            data["values"][k[0]].append({"name": k[1], "value": v})
+            temp[k[0]].append({"name": k[1], "value": v})
         except:
-            data["values"][k[0]] = []
-            data["values"][k[0]].append({"name": k[1], "value": v})
+            temp[k[0]] = []
+            temp[k[0]].append({"name": k[1], "value": v})
+    for type in all_type:
+        data["legend"]["data"].append(type)
+        data["series"].append({
+            "name": type,
+            "type": 'bar',
+            "data": temp.get(type, []),
+            "markPoint": {"data": [{"type": "max", "name": "最大值"}, {"type": "min", "name": "最小值"}]},
+            "markLine": {"data": [{"type": "average", "name": "平均值"}]}
+        })
     return data
 
 def __company_scale():
@@ -132,17 +138,33 @@ def __get_daily_num():
     '''
     每日入库数据量统计
     '''
-    data = {"xAxis": [], "values": []}
+    data = {"xAxis": [], "legend": {"data": []}, "series": []}
     day = 7
     range_date_end = datetime.date.today()
     range_date_start = range_date_end - datetime.timedelta(days=day)
+    all_type = PositionType.objects.all()
+    type_count = {}
     while range_date_start <= range_date_end:
         end_date = range_date_start + datetime.timedelta(days=1)
-        daily_count = Position.objects.filter(warehouse_time__gte=range_date_start, warehouse_time__lt=end_date).count()
         date_str = range_date_start.strftime("%m-%d")
         data["xAxis"].append(date_str)
-        data["values"].append(daily_count)
+        for type in all_type:
+            daily_count = Position.objects.filter(position_type=type, warehouse_time__gte=range_date_start, warehouse_time__lt=end_date).count()
+            try:
+                type_count[type.name].append(daily_count)
+            except:
+                type_count[type.name] = []
+                type_count[type.name].append(daily_count)
         range_date_start = range_date_start + datetime.timedelta(days=1)
+    for k, v in type_count.items():
+        data["legend"]["data"].append(k)
+        data["series"].append({
+            "name": k,
+            "type": 'line',
+            "data": v,
+            "markPoint": {"data": [{"type": 'max', "name": '最大值'}, {"type": 'min', "name": '最小值'}]},
+            "markLine": {"data": [{"type": 'average', "name": '平均值'}]}
+        })
     return data
 
 def __get_position_type_salary():

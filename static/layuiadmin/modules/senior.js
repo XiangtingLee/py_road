@@ -172,44 +172,11 @@ layui.define(function (exports) {
                             },
                         //经验
                         "ExpNum": {
-                                // title: {
-                                //     text: data.title,
-                                //     subtext: data.subtitle
-                                // },
-                                tooltip: {
-                                    trigger: 'item',
-                                    formatter: "{a} <br/>{b} : {c}个职位"
-                                },
-                                legend: {
-                                    data: ['Python', 'Java']
-                                },
-                                xAxis: [
-                                    {
-                                        type: 'category',
-                                        data: data.experience.xAxis
-                                    }
-                                ],
-                                yAxis: [
-                                    {
-                                        type: 'value'
-                                    }
-                                ],
-                                series: [
-                                    {
-                                        name: 'Python',
-                                        type: 'bar',
-                                        data: data.experience.values.Python,
-                                        markPoint: {data: [{type: "max", name: "最大值"}, {type: "min", name: "最小值"}]},
-                                        markLine: {data: [{type: "average", name: "平均值"}]}
-                                    },
-                                    {
-                                        name: 'Java',
-                                        type: 'bar',
-                                        data: data.experience.values.Java,
-                                        markPoint: {data: [{type: "max", name: "最大值"}, {type: "min", name: "最小值"}]},
-                                        markLine: {data: [{type: "average", name: "平均值"}]}
-                                    }
-                                ]
+                                tooltip: {trigger: 'item',formatter: "{a} <br/>{b} : {c}个职位"},
+                                legend: {data: data.experience.legend.data},
+                                xAxis: [{type: 'category', data: data.experience.xAxis}],
+                                yAxis: [{type: 'value'}],
+                                series: data.experience.series
                             },
                         //公司规模
                         "companyScale": {
@@ -238,7 +205,7 @@ layui.define(function (exports) {
                                 formatter: "{a} <br/>{b} : {c}家公司"
                             },
                             legend: {
-                                data: ['python方向']
+                                data: ['全部公司']
                             },
                             grid: {
                                 left: '3%',
@@ -256,7 +223,7 @@ layui.define(function (exports) {
                             },
                             series: [
                                 {
-                                    name: 'python方向',
+                                    name: '全部公司',
                                     type: 'bar',
                                     data: data.company_industry.values
                                 }
@@ -295,13 +262,12 @@ layui.define(function (exports) {
                                     }
                                 ]
                             },
-                        //公司融资
+                        //入库量
                         "dailyNum": {
                                 tooltip: {
                                     trigger: 'axis'
                                 },
-                                // legend: {data: ['邮件营销', '联盟广告', '视频广告', '直接访问', '搜索引擎']},
-                                legend: {data: ['python职位']},
+                                legend: data.daily_num.legend,
                                 calculable: true,
                                 xAxis: [
                                     {
@@ -310,25 +276,8 @@ layui.define(function (exports) {
                                         data: data.daily_num.xAxis
                                     }
                                 ],
-                                yAxis: [
-                                    {
-                                        type: 'value'
-                                    }
-                                ],
-                                series: [
-                                    {
-                                        name: 'python职位',
-                                        type: 'line',
-                                        stack: '总量',
-                                        data: data.daily_num.values,
-                                        markPoint: {
-                                            data: [{type: 'max', name: '最大值'}, {type: 'min', name: '最小值'}]
-                                        },
-                                        markLine: {
-                                            data: [{type: 'average', name: '平均值'}]
-                                        }
-                                    }
-                                ]
+                                yAxis: [{type: 'value'}],
+                                series: data.daily_num.series
                             },
                 };
 
