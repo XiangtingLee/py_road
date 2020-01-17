@@ -1,6 +1,7 @@
 import time
 import threading
 import requests
+import datetime
 from functools import wraps
 
 from django.http import JsonResponse, HttpResponseRedirect
@@ -66,3 +67,21 @@ def verify_sign(method, key="sign"):
             return func(request, *args, **kwargs)
         return returned_wrapper
     return decorator
+
+class DateProcess(object):
+    '''
+    时间处理类
+    '''
+
+    def get_day_range_str(self, day_num:int, format:str="%Y-%m-%d", include_today:bool=True) -> list:
+        '''
+        获取指定格式n天前日期的str
+        '''
+        days = []
+        range_date_end = datetime.date.today() if include_today else datetime.date.today() - datetime.timedelta(days=1)
+        range_date_start = range_date_end - datetime.timedelta(days=day_num-1 if include_today else day_num)
+        while range_date_start <= range_date_end:
+            date_str = range_date_start.strftime(format)
+            days.append(date_str)
+            range_date_start = range_date_start + datetime.timedelta(days=1)
+        return days
