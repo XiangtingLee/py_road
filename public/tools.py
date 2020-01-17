@@ -73,15 +73,26 @@ class DateProcess(object):
     时间处理类
     '''
 
-    def get_day_range_str(self, day_num:int, format:str="%Y-%m-%d", include_today:bool=True) -> list:
+    def get_day_range_str(self, num:int, format:str= "%Y-%m-%d", include_today:bool=True) -> list:
         '''
         获取指定格式n天前日期的str
         '''
         days = []
         range_date_end = datetime.date.today() if include_today else datetime.date.today() - datetime.timedelta(days=1)
-        range_date_start = range_date_end - datetime.timedelta(days=day_num-1 if include_today else day_num)
+        range_date_start = range_date_end - datetime.timedelta(days=num - 1 if include_today else num)
         while range_date_start <= range_date_end:
             date_str = range_date_start.strftime(format)
             days.append(date_str)
             range_date_start = range_date_start + datetime.timedelta(days=1)
         return days
+
+    def get_month_range_str(self, num:int, format:str= "%Y-%m", include_this_month:bool=True) -> list:
+        '''
+        获取指定格式n月前的str
+        '''
+        months = []
+        sign = 1 if not include_this_month else 0
+        for i in range(num):
+            new_date = datetime.date.today().replace(day=1) - datetime.timedelta(days=30*i+sign)
+            months.append(new_date.strftime(format))
+        return months[::-1]
