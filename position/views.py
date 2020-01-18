@@ -7,7 +7,7 @@ from django.contrib import messages
 
 from django.conf import settings
 from .models import *
-from public.tools import verify_sign, MyThread, ThreadLock, get_session_request
+from public.tools import *
 
 import time
 import datetime
@@ -67,8 +67,7 @@ def __experience():
     '''
     获取经验要求
     '''
-    data = {"series": [], "legend":{"data":[]}}
-    data['xAxis'] = list(PositionExperience.objects.filter(is_effective=1).values_list("name", flat=True))
+    data = {"series": [], "legend":{"data":[]}, "xAxis": []}
     all_data = Position.objects.filter(is_effective=1).values_list("position_type__name", "experience__name")
     all_type = list(PositionType.objects.values_list("name", flat=True))
     df = pd.DataFrame(list(all_data))
@@ -78,12 +77,12 @@ def __experience():
     temp = {}
     for k, v in gdf.to_dict()["count"].items():
         try:
+            data["xAxis"].append(k[1]) if k[1] not in data["xAxis"] else None
             temp[k[0]].append({"name": k[1], "value": v})
         except:
             temp[k[0]] = []
             temp[k[0]].append({"name": k[1], "value": v})
     for type in all_type:
-        data["legend"]["data"].append(type)
         data["series"].append({
             "name": type,
             "type": 'bar',
@@ -171,15 +170,48 @@ def __get_position_type_salary():
     '''
     获取行业薪资
     '''
-    data = {"xAxis": [], "values": []}
-    all_position_type = PositionType.objects.values_list("name", flat=True)
-    for type in all_position_type:
-        data["xAxis"].append(type)
-        salary = list(Position.objects.filter(position_type__name=type).values_list("salary_lower", "salary_upper"))
-        df = pd.DataFrame(salary)
-        df.columns = ['low', 'up']
-        df["mean"] = (df["low"]+df["up"])/2
-        data["values"].append(round(df["mean"].mean(), 2))
+    data = {"xAxis": [], "series": [], "legend": {"data": []}}
+    # all_position_type = PositionType.objects.values_list("name", flat=True)
+    # for type in all_position_type:
+    #     data["xAxis"].append(type)
+    #     salary = list(Position.objects.filter(position_type__name=type).values_list("salary_lower", "salary_upper"))
+    #     df = pd.DataFrame(salary)
+    #     df.columns = ['low', 'up']
+    #     df["mean"] = (df["low"]+df["up"])/2
+    #     data["values"].append(round(df["mean"].mean(), 2))
+    # data["xAxis"] = DateProcess().get_day_range_str(7, format="%m-%d", include_today=False)
+    data["xAxis"] = DateProcess().get_month_range_str(6, format="%Y-%m", include_this_month=True)
+    all_type = list(Position.objects.values_list("position_type__name", flat=True).distinct())
+    data["legend"]["data"] = all_type
+    a = Position.objects.filter(is_effective=1).values_list("position_type__name", "salary_lower", "salary_upper", "warehouse_time")
+    df = pd.DataFrame(list(a), columns=["type", "salary_low", "salary_up", "date"])
+    df["salary"] = (df["salary_low"] + df["salary_up"]) / 2
+    df.drop(columns=["salary_low", "salary_up"], inplace=True)
+    df["date"] = [datetime.datetime.strftime(i, "%Y-%m") for i in df["date"]]
+    '''
+    {
+        name: "直接访问",
+        type: "line",
+        stack: "总量",
+        itemStyle: {normal: {areaStyle: {type: "default"}}},
+        data: [320, 332, 301, 334, 390, 330, 320]
+    }
+    '''
+    for type in all_type:
+        type_num = []
+        for month in data["xAxis"]:
+            date_df = df[(df["type"]==type) & (df["date"]==month)]
+            if date_df.empty:
+                date_df = pd.DataFrame([0], columns=["salary"])
+            mean = date_df["salary"].mean()
+            type_num.append(round(mean, 2))
+        data["series"].append({
+                "name": type,
+                "type": "line",
+                "stack": "总量",
+                "itemStyle": {"normal": {"areaStyle": {"type": "default"}}},
+                "data": type_num
+        })
     return data
 
 @login_required
