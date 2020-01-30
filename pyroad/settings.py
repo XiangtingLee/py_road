@@ -23,9 +23,9 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = '4_+7(vkl@)q)fckx6twd8-z73%)va(o1zd-v20o()zz4$yxa+('
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'api',
     'position',
     'log',
+    'wuhan2020',
 ]
 
 MIDDLEWARE = [
@@ -87,7 +88,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'py_road',
         'USER': 'root',
-        'PASSWORD': 'root',
+        'PASSWORD': 'Li63033.',
         'HOST': '127.0.0.1',
         'PORT': '3306',
         'OPTIONS': {
@@ -140,6 +141,10 @@ USE_TZ = False
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 STATIC_URL = '/static/'
-STATICFILES_DIRS = (os.path.join(BASE_DIR, 'static'),)
-if DEBUG is False:
-    STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+
+# if DEBUG is False:
+#     STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+# else:
+#     STATICFILES_DIRS = (os.path.join(BASE_DIR, 'static'),)
+

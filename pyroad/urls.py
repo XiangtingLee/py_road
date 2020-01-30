@@ -32,4 +32,4 @@ urlpatterns = [
     path('public/', include('public.urls', namespace='public')),
     path('user/', include('user.urls', namespace='user')),
     path('position/', include('position.urls', namespace='position')),
-] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

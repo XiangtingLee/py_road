@@ -218,7 +218,7 @@ def spider_run(request):
         base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         spider_path = Spider.objects.get(name=spider_name).path
         param = " -" + location + " -" + language
-        command = "python " + base_dir + spider_path + param
+        command = "python3 " + base_dir + spider_path + param
         sync_task = run_shell.delay(command)
         SpiderRunLog.objects.create(spider_name=spider_name, task_id=sync_task.id, param=param)
         return HttpResponseRedirect('/public/spider/view/')
