@@ -200,7 +200,7 @@ def __get_position_type_salary():
 def visualization_view(requests):
     data = {}
     data["is_first_use"] = False
-    if Position.objects.count() != 0:
+    if Position.objects.count() == 0:
         data["is_first_use"] = True
     resp = render(requests, 'position/visualization.html', data)
     resp.set_signed_cookie(key='sign', value=int(time.time()), salt=settings.SECRET_KEY, path='/position/visualization/')
