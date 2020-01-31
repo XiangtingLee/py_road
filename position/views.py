@@ -190,7 +190,6 @@ def __get_position_type_salary():
         data["series"].append({
                 "name": type,
                 "type": "line",
-                "stack": "总量",
                 "itemStyle": {"normal": {"areaStyle": {"type": "default"}}},
                 "data": type_num
         })

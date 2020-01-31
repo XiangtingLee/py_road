@@ -1,0 +1,51 @@
+{% extends 'lib/base.html' %}
+{% load static %}
+{% block title %}数据展示{% endblock %}
+{% block content %}
+    <div class="layui-fluid">
+        <div class="layui-row layui-col-space15">
+            <div class="layui-col-md12">
+
+                <div class="layui-card">
+                    <div class="layui-card-header">疫情新增趋势</div>
+                    <div class="layui-card-body">
+
+                        <div class="layui-carousel layadmin-carousel layadmin-dataview" data-anim="fade"
+                             lay-filter="pneumoniaSum">
+                            <div carousel-item id="pneumoniaSum">
+                                <div><i class="layui-icon layui-icon-loading1 layadmin-loading"></i></div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+
+
+{#            <div class="layui-col-md6">#}
+{##}
+{#            </div>#}
+        </div>
+    </div>
+{% endblock %}
+{% block tail_js %}
+    <script>
+        layui.config({
+            base: '{% static 'layuiadmin/' %}' //静态资源所在路径
+        }).extend({
+            index: '/lib/index' //主入口模块
+        }).use(['index', 'senior_wuhan2020'], function () {
+            var layer = layui.layer;
+
+            {% if is_first_use %}
+                layer.confirm('检测到系统为首次运行。为保证数据正常显示，请先前往"公共模块->爬虫管理"进行数据采集。',
+                    {closeBtn: false, btn: ['确定', '刷新'], icon: 2, title: '提示'}, function (index) {
+                        parent.layui.index.openTabsPage('{% url 'public:spider_view' %}', '爬虫管理');
+                    }, function (index) {
+                        window.location.reload();
+                    });
+            {% endif %}
+        })
+    </script>
+{% endblock %}

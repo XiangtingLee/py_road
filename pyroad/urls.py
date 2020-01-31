@@ -32,4 +32,5 @@ urlpatterns = [
     path('public/', include('public.urls', namespace='public')),
     path('user/', include('user.urls', namespace='user')),
     path('position/', include('position.urls', namespace='position')),
+    path('wuhan2020/', include('wuhan2020.urls', namespace='wuhan2020')),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

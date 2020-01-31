@@ -171,7 +171,7 @@
             base: '{% static 'layuiadmin/' %}' //静态资源所在路径
         }).extend({
             index: '/lib/index' //主入口模块
-        }).use(['index', 'senior'], function () {
+        }).use(['index', 'senior_position'], function () {
             var layer = layui.layer;
 
             {% if is_first_use %}

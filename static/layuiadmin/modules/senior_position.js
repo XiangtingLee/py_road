@@ -40,12 +40,14 @@ layui.define(function (exports) {
         var $ = layui.$
             , carousel = layui.carousel
             , echarts = layui.echarts
-            , node_list = ["wdCloud", "Distribution", "EduNum", "ExpNum", "companyScale", "cpyIndustry", "companyFinancing", "dailyNum", "salary"];
+            , node_list = ["wdCloud", "Distribution", "EduNum", "ExpNum", "companyScale", "cpyIndustry", "companyFinancing", "dailyNum", "salary", "companyFinancing"];
         for (var i = 0; i < node_list.length; i++) {
             var node_name = node_list[i]
-                , node_obj = $("#" + node_name).children('div')
-                , echars_obj = echarts.init(node_obj[0], layui.echartsTheme);
-            echars_obj.showLoading({text: '正在加载数据'});
+                , node_obj = $("#" + node_name).children('div');
+                if(node_obj[0]){
+                    var echars_obj = echarts.init(node_obj[0], layui.echartsTheme);
+                    echars_obj.showLoading({text: '正在加载数据'});
+                }
         }
         $.ajax({
             url: "/position/visualization/data/",
@@ -287,19 +289,21 @@ layui.define(function (exports) {
                         xAxis: [{type: "category", boundaryGap: !1, data: data.type_salary.xAxis}],
                         yAxis: [{type: "value"}],
                         series: data.type_salary.series
-                    }
+                    },
                 };
 
                 for (var i = 0; i < node_list.length; i++) {
                     var node_name = node_list[i]
-                        , node_obj = $("#" + node_name).children('div')
-                        , echars_obj = echarts.init(node_obj[0], layui.echartsTheme);
-                    echars_obj.setOption(node_data[node_name]);
-                    window.onresize = echars_obj.resize;
-                    echars_obj.hideLoading();
+                        , node_obj = $("#" + node_name).children('div');
+                        if(node_obj[0]){
+                            var echars_obj = echarts.init(node_obj[0], layui.echartsTheme);
+                            echars_obj.setOption(node_data[node_name]);
+                            window.onresize = echars_obj.resize;
+                            echars_obj.hideLoading();
+                        }
                 }
             }
         });
     });
-    exports('senior', {})
+    exports('senior_position', {})
 });
