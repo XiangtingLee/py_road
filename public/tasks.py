@@ -18,3 +18,8 @@ def run_shell(command):
     logging.warning("start command %s"%command)
     subprocess.run(command, shell=True)
     logging.warning('command "%s" done'%command)
+
+@shared_task
+def run_schedule():
+    command = "python3 /workspace/py_road/wuhan2020/spider/crawl_pneumonia.py"
+    subprocess.run(command, shell=True)

@@ -91,9 +91,7 @@ class CrawlPneumonia(object):
             raise TypeError("%s.start_url must not be 'None' type."%self.__class__)
 
     def run(self):
-        while True:
-            self.crawl()
-            time.sleep(60)
+        self.crawl()
 
 if __name__ == "__main__":
     spider = CrawlPneumonia()
