@@ -2,9 +2,9 @@
 {% load static %}
 {% block title %}数据展示{% endblock %}
 {% block content %}
-<div class="layui-fluid">
-    <div class="layui-row layui-col-space15">
-        <div class="layui-col-md6">
+    <div class="layui-fluid">
+        <div class="layui-row layui-col-space15">
+            <div class="layui-col-md6">
 
             <div class="layui-card">
                 <div class="layui-card-header">职位标签词云</div>
@@ -76,33 +76,33 @@
                 </div>
             </div>
 
-{#            <div class="layui-card">#}
-{#                <div class="layui-card-header">职位数量走势</div>#}
-{#                <div class="layui-card-body">#}
-{##}
-{#                    <div class="layui-carousel layadmin-carousel layadmin-dataview" data-anim="fade"#}
-{#                         lay-filter="LAY-index-normline">#}
-{#                        <div carousel-item id="LAY-index-normline">#}
-{#                            <div><i class="layui-icon layui-icon-loading1 layadmin-loading"></i></div>#}
-{#                        </div>#}
-{#                    </div>#}
-{##}
-{#                </div>#}
-{#            </div>#}
+            {#            <div class="layui-card">#}
+            {#                <div class="layui-card-header">职位数量走势</div>#}
+            {#                <div class="layui-card-body">#}
+            {##}
+            {#                    <div class="layui-carousel layadmin-carousel layadmin-dataview" data-anim="fade"#}
+            {#                         lay-filter="LAY-index-normline">#}
+            {#                        <div carousel-item id="LAY-index-normline">#}
+            {#                            <div><i class="layui-icon layui-icon-loading1 layadmin-loading"></i></div>#}
+            {#                        </div>#}
+            {#                    </div>#}
+            {##}
+            {#                </div>#}
+            {#            </div>#}
 
-{#            <div class="layui-card">#}
-{#                <div class="layui-card-header">职位薪资状况</div>#}
-{#                <div class="layui-card-body">#}
-{##}
-{#                    <div class="layui-carousel layadmin-carousel layadmin-dataview" data-anim="fade"#}
-{#                         lay-filter="LAY-index-diffline">#}
-{#                        <div carousel-item id="LAY-index-diffline">#}
-{#                            <div><i class="layui-icon layui-icon-loading1 layadmin-loading"></i></div>#}
-{#                        </div>#}
-{#                    </div>#}
-{##}
-{#                </div>#}
-{#            </div>#}
+            {#            <div class="layui-card">#}
+            {#                <div class="layui-card-header">职位薪资状况</div>#}
+            {#                <div class="layui-card-body">#}
+            {##}
+            {#                    <div class="layui-carousel layadmin-carousel layadmin-dataview" data-anim="fade"#}
+            {#                         lay-filter="LAY-index-diffline">#}
+            {#                        <div carousel-item id="LAY-index-diffline">#}
+            {#                            <div><i class="layui-icon layui-icon-loading1 layadmin-loading"></i></div>#}
+            {#                        </div>#}
+            {#                    </div>#}
+            {##}
+            {#                </div>#}
+            {#            </div>#}
         </div>
         <div class="layui-col-md6">
 
@@ -161,42 +161,27 @@
 
                 </div>
             </div>
-{#            <div class="layui-card">#}
-{#                <div class="layui-card-header">经验要求/学历要求</div>#}
-{#                <div class="layui-card-body">#}
-{##}
-{#                    <div class="layui-carousel layadmin-carousel layadmin-dataview" data-anim="fade"#}
-{#                         lay-filter="LAY-index-area">#}
-{#                        <div carousel-item id="LAY-index-area">#}
-{#                            <div><i class="layui-icon layui-icon-loading1 layadmin-loading"></i></div>#}
-{#                        </div>#}
-{#                    </div>#}
-{##}
-{#                </div>#}
-{#            </div>#}
-{#            <div class="layui-card">#}
-{#                <div class="layui-card-header">对数轴</div>#}
-{#                <div class="layui-card-body">#}
-{##}
-{#                    <div class="layui-carousel layadmin-carousel layadmin-dataview" data-anim="fade"#}
-{#                         lay-filter="LAY-index-logline">#}
-{#                        <div carousel-item id="LAY-index-logline">#}
-{#                            <div><i class="layui-icon layui-icon-loading1 layadmin-loading"></i></div>#}
-{#                        </div>#}
-{#                    </div>#}
-{#                </div>#}
-{##}
-{#            </div>#}
         </div>
     </div>
-</div>
+    </div>
 {% endblock %}
 {% block tail_js %}
-<script>
-    layui.config({
-    base: '{% static 'layuiadmin/' %}' //静态资源所在路径
-  }).extend({
-    index: '/lib/index' //主入口模块
-  }).use(['index', 'senior'])
-</script>
+    <script>
+        layui.config({
+            base: '{% static 'layuiadmin/' %}' //静态资源所在路径
+        }).extend({
+            index: '/lib/index' //主入口模块
+        }).use(['index', 'senior'], function () {
+            var layer = layui.layer;
+
+            {% if is_first_use %}
+                layer.confirm('检测到系统为首次运行。为保证数据正常显示，请先前往"公共模块->爬虫管理"进行数据采集。',
+                    {closeBtn: false, btn: ['确定', '刷新'], icon:2, title: '提示'}, function (index) {
+                        parent.layui.index.openTabsPage('{% url 'public:spider_view' %}', '爬虫管理');
+                    } , function (index) {
+                        window.location.reload();
+                });
+            {% endif %}
+        })
+    </script>
 {% endblock %}

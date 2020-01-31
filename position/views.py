@@ -171,15 +171,6 @@ def __get_position_type_salary():
     获取行业薪资
     '''
     data = {"xAxis": [], "series": [], "legend": {"data": []}}
-    # all_position_type = PositionType.objects.values_list("name", flat=True)
-    # for type in all_position_type:
-    #     data["xAxis"].append(type)
-    #     salary = list(Position.objects.filter(position_type__name=type).values_list("salary_lower", "salary_upper"))
-    #     df = pd.DataFrame(salary)
-    #     df.columns = ['low', 'up']
-    #     df["mean"] = (df["low"]+df["up"])/2
-    #     data["values"].append(round(df["mean"].mean(), 2))
-    # data["xAxis"] = DateProcess().get_day_range_str(7, format="%m-%d", include_today=False)
     data["xAxis"] = DateProcess().get_month_range_str(6, format="%Y-%m", include_this_month=True)
     all_type = list(Position.objects.values_list("position_type__name", flat=True).distinct())
     data["legend"]["data"] = all_type
@@ -188,15 +179,6 @@ def __get_position_type_salary():
     df["salary"] = (df["salary_low"] + df["salary_up"]) / 2
     df.drop(columns=["salary_low", "salary_up"], inplace=True)
     df["date"] = [datetime.datetime.strftime(i, "%Y-%m") for i in df["date"]]
-    '''
-    {
-        name: "直接访问",
-        type: "line",
-        stack: "总量",
-        itemStyle: {normal: {areaStyle: {type: "default"}}},
-        data: [320, 332, 301, 334, 390, 330, 320]
-    }
-    '''
     for type in all_type:
         type_num = []
         for month in data["xAxis"]:
@@ -216,7 +198,11 @@ def __get_position_type_salary():
 
 @login_required
 def visualization_view(requests):
-    resp = render(requests, 'position/visualization.html', locals())
+    data = {}
+    data["is_first_use"] = False
+    if Position.objects.count() != 0:
+        data["is_first_use"] = True
+    resp = render(requests, 'position/visualization.html', data)
     resp.set_signed_cookie(key='sign', value=int(time.time()), salt=settings.SECRET_KEY, path='/position/visualization/')
     return resp
 
