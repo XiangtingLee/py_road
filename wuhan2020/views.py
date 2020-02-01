@@ -13,9 +13,8 @@ from public.tools import *
 def __get_pneumonia_sum(is_stack=False, is_accumulate=False, *field, **kwargs):
     if field:
         field = field[0]
-    # print(field, type(field), [i for i in field])
     fields = {"confirmed": "confirmedCount", "suspected": "suspectedCount", "cured": "curedCount", "dead": "deadCount"}
-    colors = {"dead": "#2F4554", "cured": "#00FF7F", "confirmed": "#FF2400", "suspected": "#CFB53B"}
+    colors = {"dead": "#5D7092", "cured": "#28B7A3", "confirmed": "#F74C31", "suspected": "#F78207"}
     data = {"xAxis": [], "series":[], "legend":{"data": []}}
     temp = []
     row_data = DXYData.objects.values_list("statistics", flat=True).order_by('id')
@@ -40,7 +39,7 @@ def __get_pneumonia_sum(is_stack=False, is_accumulate=False, *field, **kwargs):
             "type": "line",
             "data": type_num
         }
-        series["itemStyle"] = {"color": colors[title]}
+        series["itemStyle"] = {"normal": {"color": colors[title],"lineStyle": {"color": colors[title]}}}
         if is_accumulate:
             series["itemStyle"] = {"normal": {"areaStyle": {"type": "default"}, "color": colors[title]}}
         if is_stack:
@@ -54,10 +53,20 @@ def __get_pneumonia_sum(is_stack=False, is_accumulate=False, *field, **kwargs):
 
 @login_required
 def visualization_view(requests):
-    data = {}
+    data = {"introduction": []}
     data["is_first_use"] = False
     if DXYData.objects.count() == 0:
         data["is_first_use"] = True
+    last_record = DXYData.objects.order_by('id').last()
+    last_record_json = json.loads(last_record.statistics)
+    for key, value in {"virus": "病毒名称: ", "infectSource": "传染源: ", "passWay": "传播途径: ",
+                "remark1": "", "remark2": "", "remark3": "", "remark4": "", "remark5": ""}.items():
+        data["introduction"].append(value + last_record_json[key])
+    data["update_time"] = last_record.modify_time.strftime("%Y-%m-%d %H:%M:%S")
+    data["confirmed"] = last_record_json["confirmedCount"]
+    data["suspected"] = last_record_json["suspectedCount"]
+    data["cured"] = last_record_json["curedCount"]
+    data["dead"] = last_record_json["deadCount"]
     resp = render(requests, 'wuhan2020/visualization.html', data)
     resp.set_signed_cookie(key='sign', value=int(time.time()), salt=settings.SECRET_KEY, path='/wuhan2020/visualization/')
     return resp
