@@ -49,6 +49,7 @@ class CrawlPneumonia(object):
         return json.dumps(data)
 
     def foreign(self, data:list):
+        print(data)
         return json.dumps(data)
 
     def parse_json(self, data:str):
@@ -60,15 +61,18 @@ class CrawlPneumonia(object):
             return False
 
     def crawl(self):
+        from bs4 import BeautifulSoup
         kwargs = {}
         if self.start_url:
             session = get_session_request(self.start_url)
             resp = session.get(self.start_url)
-            data = etree.HTML(resp.text)
+            soup = BeautifulSoup(resp.content, 'lxml')
             for element, d_obj, in self.data_element.items():
-                statistics_service = data.xpath("""//script[@id="%s"]/text()"""%element)[0]
-                result = self.parse_json(statistics_service)
-                kwargs[d_obj.__name__] = d_obj(result)
+
+                ele = str(soup.find('script', attrs={'id': '%s'%element}))
+                result = self.parse_json(ele)
+                if result:
+                    kwargs[d_obj.__name__] = d_obj(result)
             kwargs["modify_time"] = self.modify_time
             modify_time_str = self.modify_time.strftime("%Y-%m-%d %H:%M:%S")
             if not DXYData.objects.filter(id=1).exists():
