@@ -1,4 +1,5 @@
 import requests
+from bs4 import BeautifulSoup
 import time
 import datetime
 import django
@@ -49,7 +50,6 @@ class CrawlPneumonia(object):
         return json.dumps(data)
 
     def foreign(self, data:list):
-        print(data)
         return json.dumps(data)
 
     def parse_json(self, data:str):
@@ -61,7 +61,6 @@ class CrawlPneumonia(object):
             return False
 
     def crawl(self):
-        from bs4 import BeautifulSoup
         kwargs = {}
         if self.start_url:
             session = get_session_request(self.start_url)
@@ -82,8 +81,8 @@ class CrawlPneumonia(object):
                 except Exception as e:
                     logging.error("first data store false! error: %s"%e)
             else:
-                last_data_time = DXYData.objects.all()[0]
-                if not datetime.datetime.strptime(last_data_time.__str__(), "%Y-%m-%d %H:%M:%S") == self.modify_time:
+                last_data = DXYData.objects.all()[0]
+                if not last_data.is_available or not datetime.datetime.strptime(last_data.__str__(), "%Y-%m-%d %H:%M:%S") == self.modify_time:
                     try:
                         DXYData.objects.create(**kwargs)
                         logging.info("data store successful! latest : %s"%modify_time_str)
