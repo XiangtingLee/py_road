@@ -7,12 +7,40 @@
             <div class="layui-col-md12">
 
                 <div class="layui-card">
-                    <div class="layui-card-header">疫情新增趋势</div>
+                    <div class="layui-card-header">疫情确诊/疑似趋势</div>
                     <div class="layui-card-body">
 
                         <div class="layui-carousel layadmin-carousel layadmin-dataview" data-anim="fade"
-                             lay-filter="pneumoniaSum">
-                            <div carousel-item id="pneumoniaSum">
+                             lay-filter="pneumoniaSumCs">
+                            <div carousel-item id="pneumoniaSumCs">
+                                <div><i class="layui-icon layui-icon-loading1 layadmin-loading"></i></div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <div class="layui-card">
+                    <div class="layui-card-header">疫情确诊/疑似趋势</div>
+                    <div class="layui-card-body">
+
+                        <div class="layui-carousel layadmin-carousel layadmin-dataview" data-anim="fade"
+                             lay-filter="pneumoniaSumCsStack">
+                            <div carousel-item id="pneumoniaSumCsStack">
+                                <div><i class="layui-icon layui-icon-loading1 layadmin-loading"></i></div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <div class="layui-card">
+                    <div class="layui-card-header">疫情治愈/死亡趋势</div>
+                    <div class="layui-card-body">
+
+                        <div class="layui-carousel layadmin-carousel layadmin-dataview" data-anim="fade"
+                             lay-filter="pneumoniaSumCd">
+                            <div carousel-item id="pneumoniaSumCd">
                                 <div><i class="layui-icon layui-icon-loading1 layadmin-loading"></i></div>
                             </div>
                         </div>
