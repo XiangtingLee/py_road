@@ -4,6 +4,7 @@ from django.urls import reverse
 # from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
+from django.conf import settings
 
 from user.models import User
 
@@ -59,10 +60,12 @@ def logout_act(request):
 
 def reg_act(request):
     if request.method == "POST":
-        username = request.POST.get('username')
-        password = request.POST.get('password')
-        email = request.POST.get('email')
-        User.objects.create_user(username=username, password=password, email=email)
-        return render(request, 'pyroad/login.html', {'message': {'text':"注册成功！",'color':'yellow'}})
+        if settings.ALLOW_REG:
+            username = request.POST.get('username')
+            password = request.POST.get('password')
+            email = request.POST.get('email')
+            User.objects.create_user(username=username, password=password, email=email)
+            return render(request, 'pyroad/login.html', {'msg': {'text':"注册成功！",'color':'yellow'}})
+        return render(request, 'pyroad/register.html', {'msg': {'text':"暂不提供注册服务，请联系管理员！",'color':'red'}})
     else:
         return render(request, 'pyroad/register.html')
