@@ -40,7 +40,7 @@ layui.define(function (exports) {
         var $ = layui.$
             , carousel = layui.carousel
             , echarts = layui.echarts
-            , node_list = ["DistributionCS", "DistributionCD", "pneumoniaSumCs", "pneumoniaSumCsStack", "pneumoniaSumCd"];
+            , node_list = ["DistributionCS", "DistributionCD", "pneumoniaCSIncr", "pneumoniaCSSum", "pneumoniaCDIncr", "pneumoniaCDSum"];
         for (var i = 0; i < node_list.length; i++) {
             var node_name = node_list[i]
                 , node_obj = $("#" + node_name).children('div');
@@ -101,7 +101,7 @@ layui.define(function (exports) {
                         },
                         series: [
                             {
-                                name: '职位数量',
+                                name: '确诊/疑似数量',
                                 type: 'map',
                                 mapType: 'china',
                                 mapLocation: {
@@ -159,7 +159,7 @@ layui.define(function (exports) {
                         },
                         series: [
                             {
-                                name: '职位数量',
+                                name: '治愈/死亡数量',
                                 type: 'map',
                                 mapType: 'china',
                                 mapLocation: {
@@ -186,32 +186,43 @@ layui.define(function (exports) {
                         ],
 
                     },
-                    //新增趋势
-                    "pneumoniaSumCs": {
-                        tooltip: {trigger: "axis", formatter: sum_func},
-                        legend: data.pneumonia_sum_cs.legend,
-                        calculable: !0,
-                        xAxis: [{type: "category", axisLabel: {rotate: 45}, boundaryGap: !1, data: data.pneumonia_sum_cs.xAxis}],
-                        yAxis: [{type: "value"}],
-                        series: data.pneumonia_sum_cs.series
-                    },
-                    //新增趋势
-                    "pneumoniaSumCsStack": {
-                        tooltip: {trigger: "axis", formatter: sum_func},
-                        legend: data.pneumonia_sum_cs_stack.legend,
-                        calculable: !0,
-                        xAxis: [{type: "category", axisLabel: {rotate: 45}, boundaryGap: !1, data: data.pneumonia_sum_cs_stack.xAxis}],
-                        yAxis: [{type: "value"}],
-                        series: data.pneumonia_sum_cs_stack.series
-                    },
-                    //治愈/死亡趋势
-                    "pneumoniaSumCd": {
+                    //确诊/疑似日增趋势
+                    "pneumoniaCSIncr": {
+                        timeline:0,
                         tooltip: {trigger: "axis"},
-                        legend: data.pneumonia_sum_cd.legend,
+                        legend: data.pneumonia_cs_incr.legend,
                         calculable: !0,
-                        xAxis: [{type: "category", axisLabel: {rotate: 45}, boundaryGap: !1, data: data.pneumonia_sum_cd.xAxis}],
+                        xAxis: [{type: "category", axisLabel: {rotate: 45}, boundaryGap: !1, data: data.pneumonia_cs_incr.xAxis}],
                         yAxis: [{type: "value"}],
-                        series: data.pneumonia_sum_cd.series
+                        series: data.pneumonia_cs_incr.series
+                    },
+                    //确诊/疑似总量趋势
+                    "pneumoniaCSSum": {
+                        tooltip: {trigger: "axis", formatter: sum_func},
+                        legend: data.pneumonia_cs_sum.legend,
+                        calculable: !0,
+                        xAxis: [{type: "category", axisLabel: {rotate: 45}, boundaryGap: !1, data: data.pneumonia_cs_sum.xAxis}],
+                        yAxis: [{type: "value"}],
+                        series: data.pneumonia_cs_sum.series
+                    },
+                    //治愈/死亡日增趋势
+                    "pneumoniaCDIncr": {
+                        timeline:0,
+                        tooltip: {trigger: "axis"},
+                        legend: data.pneumonia_cd_incr.legend,
+                        calculable: !0,
+                        xAxis: [{type: "category", axisLabel: {rotate: 45}, boundaryGap: !1, data: data.pneumonia_cd_incr.xAxis}],
+                        yAxis: [{type: "value"}],
+                        series: data.pneumonia_cd_incr.series
+                    },
+                    //治愈/死亡总量趋势
+                    "pneumoniaCDSum": {
+                        tooltip: {trigger: "axis"},
+                        legend: data.pneumonia_cd_sum.legend,
+                        calculable: !0,
+                        xAxis: [{type: "category", axisLabel: {rotate: 45}, boundaryGap: !1, data: data.pneumonia_cd_sum.xAxis}],
+                        yAxis: [{type: "value"}],
+                        series: data.pneumonia_cd_sum.series
                     }
                 };
 

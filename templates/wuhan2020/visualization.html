@@ -88,12 +88,12 @@
             <div class="layui-col-md12">
 
                 <div class="layui-card" id="c_s">
-                    <div class="layui-card-header">疫情确诊/疑似趋势</div>
+                    <div class="layui-card-header">疫情确诊/疑似日增趋势</div>
                     <div class="layui-card-body">
 
                         <div class="layui-carousel layadmin-carousel layadmin-dataview" data-anim="fade"
-                             lay-filter="pneumoniaSumCs">
-                            <div carousel-item id="pneumoniaSumCs">
+                             lay-filter="pneumoniaCSIncr">
+                            <div carousel-item id="pneumoniaCSIncr">
                                 <div><i class="layui-icon layui-icon-loading1 layadmin-loading"></i></div>
                             </div>
                         </div>
@@ -102,12 +102,26 @@
                 </div>
 
                 <div class="layui-card">
-                    <div class="layui-card-header">疫情确诊/疑似趋势</div>
+                    <div class="layui-card-header">疫情确诊/疑似总量趋势</div>
                     <div class="layui-card-body">
 
                         <div class="layui-carousel layadmin-carousel layadmin-dataview" data-anim="fade"
-                             lay-filter="pneumoniaSumCsStack">
-                            <div carousel-item id="pneumoniaSumCsStack">
+                             lay-filter="pneumoniaCSSum">
+                            <div carousel-item id="pneumoniaCSSum">
+                                <div><i class="layui-icon layui-icon-loading1 layadmin-loading"></i></div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <div class="layui-card" id="c_s">
+                    <div class="layui-card-header">疫情确诊/疑似日增趋势</div>
+                    <div class="layui-card-body">
+
+                        <div class="layui-carousel layadmin-carousel layadmin-dataview" data-anim="fade"
+                             lay-filter="pneumoniaCDIncr">
+                            <div carousel-item id="pneumoniaCDIncr">
                                 <div><i class="layui-icon layui-icon-loading1 layadmin-loading"></i></div>
                             </div>
                         </div>
@@ -116,12 +130,12 @@
                 </div>
 
                 <div class="layui-card" id="c_d">
-                    <div class="layui-card-header">疫情治愈/死亡趋势</div>
+                    <div class="layui-card-header">疫情治愈/死亡总量趋势</div>
                     <div class="layui-card-body">
 
                         <div class="layui-carousel layadmin-carousel layadmin-dataview" data-anim="fade"
-                             lay-filter="pneumoniaSumCd">
-                            <div carousel-item id="pneumoniaSumCd">
+                             lay-filter="pneumoniaCDSum">
+                            <div carousel-item id="pneumoniaCDSum">
                                 <div><i class="layui-icon layui-icon-loading1 layadmin-loading"></i></div>
                             </div>
                         </div>
