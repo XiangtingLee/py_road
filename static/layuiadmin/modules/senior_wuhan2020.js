@@ -40,7 +40,7 @@ layui.define(function (exports) {
         var $ = layui.$
             , carousel = layui.carousel
             , echarts = layui.echarts
-            , node_list = ["pneumoniaSumCs", "pneumoniaSumCsStack", "pneumoniaSumCd"];
+            , node_list = ["DistributionCS", "DistributionCD", "pneumoniaSumCs", "pneumoniaSumCsStack", "pneumoniaSumCd"];
         for (var i = 0; i < node_list.length; i++) {
             var node_name = node_list[i]
                 , node_obj = $("#" + node_name).children('div');
@@ -49,6 +49,7 @@ layui.define(function (exports) {
                     echars_obj.showLoading({text: '正在加载数据'});
                 }
         }
+
         $.ajax({
             url: "/wuhan2020/visualization/data/",
             method: 'POST',
@@ -69,6 +70,122 @@ layui.define(function (exports) {
 
                 //循环渲染节点
                 var node_data = {
+                    //地图
+                    "DistributionCS": {
+                        // title: {
+                        //     text: data.title,
+                        //     subtext: data.subtitle
+                        // },
+                        tooltip: {
+                            trigger: 'item'
+                        },
+                        visualMap: {
+                            min: 0,
+                            max: data.domestic_province.range_max.cs,
+                            splitNumber: 5,
+                            color: ['#d94e5d','#eac736','#50a3ba'],
+                            textStyle: {
+                                color: '#fff'
+                            }
+                        },
+                        dataRange: {
+                            orient: 'horizontal',
+                            min: 0,
+                            max: data.domestic_province.range_max.cs,
+                            text: ['高', '低'],           // 文本，默认为数值文本
+                            splitNumber: 0,
+                            range: [0, data.domestic_province.range_max.cs],
+                            inverse: false,
+                            realtime: true,
+                            calculable: true,
+                        },
+                        series: [
+                            {
+                                name: '职位数量',
+                                type: 'map',
+                                mapType: 'china',
+                                mapLocation: {
+                                    x: 'center'
+                                },
+                                selectedMode: 'multiple',
+                                itemStyle: {
+                                    normal: {label: {show: true}, borderColor: '#ffffff'},
+                                    emphasis: {label: {show: true}, shadowBlur: 10,}
+                                },
+                                label: {
+                                    normal: {
+                                        show: false
+                                    },
+                                    emphasis: {
+                                        show: false
+                                    }
+                                },
+                                data: data.domestic_province.province_cs
+                                // {name: '广东', value: 53210.28(, selected: true)}
+
+                            }
+
+                        ],
+
+                    },
+                    //地图
+                    "DistributionCD": {
+                        // title: {
+                        //     text: data.title,
+                        //     subtext: data.subtitle
+                        // },
+                        tooltip: {
+                            trigger: 'item'
+                        },
+                        visualMap: {
+                            min: 0,
+                            max: data.domestic_province.range_max.cd,
+                            splitNumber: 5,
+                            color: ['#d94e5d','#eac736','#50a3ba'],
+                            textStyle: {
+                                color: '#fff'
+                            }
+                        },
+                        dataRange: {
+                            orient: 'horizontal',
+                            min: 0,
+                            max: data.domestic_province.range_max.cd,
+                            text: ['高', '低'],           // 文本，默认为数值文本
+                            splitNumber: 0,
+                            range: [0, data.domestic_province.range_max.cd],
+                            inverse: false,
+                            realtime: true,
+                            calculable: true,
+                        },
+                        series: [
+                            {
+                                name: '职位数量',
+                                type: 'map',
+                                mapType: 'china',
+                                mapLocation: {
+                                    x: 'center'
+                                },
+                                selectedMode: 'multiple',
+                                itemStyle: {
+                                    normal: {label: {show: true}, borderColor: '#ffffff'},
+                                    emphasis: {label: {show: true}, shadowBlur: 10,}
+                                },
+                                label: {
+                                    normal: {
+                                        show: false
+                                    },
+                                    emphasis: {
+                                        show: false
+                                    }
+                                },
+                                data: data.domestic_province.province_cd
+                                // {name: '广东', value: 53210.28(, selected: true)}
+
+                            }
+
+                        ],
+
+                    },
                     //新增趋势
                     "pneumoniaSumCs": {
                         tooltip: {trigger: "axis", formatter: sum_func},

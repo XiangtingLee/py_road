@@ -96,3 +96,27 @@ class DateProcess(object):
             new_date = datetime.date.today().replace(day=1) - datetime.timedelta(days=30*i+sign)
             months.append(new_date.strftime(format))
         return months[::-1]
+
+class ListProcess(object):
+    '''
+    list处理类
+    '''
+    def sliceN(self, item: list, count: int) -> list:
+        '''
+        将item按照count切割成多个list
+        '''
+        return [item[i:i + count] for i in range(0, len(item), count)]
+
+
+
+
+
+
+
+
+
+
+
+
+
+

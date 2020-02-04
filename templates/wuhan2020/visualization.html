@@ -12,13 +12,15 @@
 
                         <div class="layui-carousel layadmin-carousel layadmin-backlog">
                             <div carousel-item>
-                                <ul class="layui-row layui-col-space10">
-                                    {% for one in introduction %}
-                                        {% if one %}
-                                            <p><span class="layui-badge-dot"></span> {{ one }}</p>
-                                        {% endif %}
-                                    {% endfor %}
-                                </ul>
+                                {% for items in introduction %}
+                                    <ul class="layui-row layui-col-space10">
+                                        {% for item in items %}
+                                            {% if item %}
+                                                <p><span class="layui-badge-dot"></span> {{ item }}</p>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </ul>
+                                {% endfor %}
                             </div>
                         </div>
                     </div>
@@ -32,38 +34,57 @@
 
                         <div class="layui-carousel layadmin-carousel layadmin-backlog">
                             <div carousel-item>
-                                <ul class="layui-row layui-col-space10">
-                                    <li class="layui-col-xs6">
-                                        <a href="#c_s" class="layadmin-backlog-body">
-                                            <h3>确诊病例</h3>
-                                            <p><cite style="color: #F74C31;">{{ confirmed }}</cite></p>
-                                        </a>
-                                    </li>
-                                    <li class="layui-col-xs6">
-                                        <a href="#c_s" class="layadmin-backlog-body">
-                                            <h3>疑似病例</h3>
-                                            <p><cite style="color: #F78207;">{{ suspected }}</cite></p>
-                                        </a>
-                                    </li>
-                                    <li class="layui-col-xs6">
-                                        <a href="#c_d" class="layadmin-backlog-body">
-                                            <h3>治愈人数</h3>
-                                            <p><cite style="color: #28B7A3;">{{ cured }}</cite></p>
-                                        </a>
-                                    </li>
-                                    <li class="layui-col-xs6">
-                                        <a href="#c_d" class="layadmin-backlog-body">
-                                            <h3>死亡人数</h3>
-                                            <p><cite style="color: #5D7092;">{{ dead }}</cite></p>
-                                        </a>
-                                    </li>
-                                </ul>
+                                {% for items in counter %}
+                                    <ul class="layui-row layui-col-space10">
+                                    {% for item in items %}
+                                        <li class="layui-col-xs6">
+                                            <a href="#{{ item.href }}" class="layadmin-backlog-body">
+                                                <h3>{{ item.name }} <span class="layui-badge"
+                                                                          style="background-color: {{ item.color }}">较昨日+{{ item.incr }}</span>
+                                                </h3>
+                                                <p><cite style="color: {{ item.color }};">{{ item.count }}</cite></p>
+                                            </a>
+                                        </li>
+                                    {% endfor %}
+                                    </ul>
+                                {% endfor %}
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
 
+            <div class="layui-col-md6">
+                <div class="layui-card">
+                    <div class="layui-card-header">确诊/疑似城市分布</div>
+                    <div class="layui-card-body">
+
+                        <div class="layui-carousel layadmin-carousel layadmin-dataview" data-anim="fade"
+                             lay-filter="DistributionCS">
+                            <div carousel-item id="DistributionCS">
+                                <div><i class="layui-icon layui-icon-loading1 layadmin-loading"></i></div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                </div>
+            </div>
+            <div class="layui-col-md6">
+                <div class="layui-card">
+                    <div class="layui-card-header">治愈/死亡城市分布</div>
+                    <div class="layui-card-body">
+
+                        <div class="layui-carousel layadmin-carousel layadmin-dataview" data-anim="fade"
+                             lay-filter="DistributionCD">
+                            <div carousel-item id="DistributionCD">
+                                <div><i class="layui-icon layui-icon-loading1 layadmin-loading"></i></div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
             <div class="layui-col-md12">
 
                 <div class="layui-card" id="c_s">
