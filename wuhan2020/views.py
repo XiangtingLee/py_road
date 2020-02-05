@@ -122,7 +122,7 @@ def visualization_view(requests):
 
 def __get_tree_table():
     data = {"internal": [], "foreign": []}
-    latest_data = DXYData.objects.filter(is_available=1).last()
+    latest_data = DXYData.objects.filter(is_available=1).order_by('id').last()
     internal_data = latest_data.domestic_area
     foreign_data = latest_data.foreign
     try:
