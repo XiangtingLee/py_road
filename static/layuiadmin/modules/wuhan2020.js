@@ -36,10 +36,11 @@ layui.define(function (exports) {
     });
 
 
-    layui.use(['carousel', 'echarts'], function () {
+    layui.use(['carousel', 'echarts', 'treeTable'], function () {
         var $ = layui.$
             , carousel = layui.carousel
             , echarts = layui.echarts
+            , treeTable = layui.treeTable
             , node_list = ["DistributionCS", "DistributionCD", "pneumoniaCSIncr", "pneumoniaCSSum", "pneumoniaCDIncr", "pneumoniaCDSum"];
         for (var i = 0; i < node_list.length; i++) {
             var node_name = node_list[i]
@@ -236,8 +237,70 @@ layui.define(function (exports) {
                             echars_obj.hideLoading();
                         }
                 }
+
+                // 国内疫情
+                treeTable.render({
+                    elem: '#treeTableInternal',
+                    data: data.tree_table.internal,
+                    tree: {
+                        iconIndex: 0,
+                        getIcon: function(d) {  // 自定义图标
+                            if (d.children&&d.children.length>0) {  // 判断是否有子集
+                                return '<i class="layui-icon layui-icon-list"></i> ';
+                            } else {
+                                return '<i class="layui-icon layui-icon-location"></i> ';
+                            }
+                        }
+                    },
+                    cols: [
+                        {field: 'id', title: '地区', width: 180},
+                        {field: 'confirmedCount', title: '确诊', align: "center"},
+                        {field: 'deadCount', title: '死亡', align: "center"},
+                        {field: 'curedCount', title: '治愈', align: "center"},
+                    ],
+                    style: 'margin-top:0; color: #fff;',
+                    getThead: function() {
+                        return '<tr>' +
+                                    '<td style="text-align: center; background-color:">地区</td>' +
+                                    '<td style="text-align: center; background-color: #f3bab0;">确诊</td>' +
+                                    '<td style="text-align: center; background-color: #b4c0d5;">死亡</td>' +
+                                    '<td style="text-align: center; background-color: #6c9;">治愈</td>' +
+                               '</tr>';
+                    }
+                });
+
+                // 国际疫情
+                treeTable.render({
+                    elem: '#treeTableForeign',
+                    data: data.tree_table.foreign,
+                    tree: {
+                        iconIndex: 0,
+                        getIcon: function(d) {  // 自定义图标
+                            if (d.children&&d.children.length>0) {  // 判断是否有子集
+                                return '<i class="layui-icon layui-icon-list"></i> ';
+                            } else {
+                                return '<i class="layui-icon layui-icon-location"></i> ';
+                            }
+                        }
+                    },
+                    cols: [
+                        {field: 'id', title: '地区', width: 180},
+                        {field: 'confirmedCount', title: '确诊', align: "center"},
+                        {field: 'deadCount', title: '死亡', align: "center"},
+                        {field: 'curedCount', title: '治愈', align: "center"},
+                    ],
+                    style: 'margin-top:0; color: #fff;',
+                    getThead: function() {
+                        return '<tr>' +
+                                    '<td style="text-align: center; background-color:">地区</td>' +
+                                    '<td style="text-align: center; background-color: #f3bab0;">确诊</td>' +
+                                    '<td style="text-align: center; background-color: #b4c0d5;">死亡</td>' +
+                                    '<td style="text-align: center; background-color: #6c9;">治愈</td>' +
+                               '</tr>';
+                    }
+                });
             }
         });
     });
-    exports('senior_wuhan2020', {})
+    exports('wuhan2020', {})
 });

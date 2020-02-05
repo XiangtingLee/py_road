@@ -36,16 +36,17 @@
                             <div carousel-item>
                                 {% for items in counter %}
                                     <ul class="layui-row layui-col-space10">
-                                    {% for item in items %}
-                                        <li class="layui-col-xs6">
-                                            <a href="#{{ item.href }}" class="layadmin-backlog-body">
-                                                <h3>{{ item.name }} <span class="layui-badge"
-                                                                          style="background-color: {{ item.color }}">较昨日+{{ item.incr }}</span>
-                                                </h3>
-                                                <p><cite style="color: {{ item.color }};">{{ item.count }}</cite></p>
-                                            </a>
-                                        </li>
-                                    {% endfor %}
+                                        {% for item in items %}
+                                            <li class="layui-col-xs6">
+                                                <a href="#{{ item.href }}" class="layadmin-backlog-body">
+                                                    <h3>{{ item.name }} <span class="layui-badge"
+                                                                              style="background-color: {{ item.color }}">较昨日+{{ item.incr }}</span>
+                                                    </h3>
+                                                    <p><cite style="color: {{ item.color }};">{{ item.count }}</cite>
+                                                    </p>
+                                                </a>
+                                            </li>
+                                        {% endfor %}
                                     </ul>
                                 {% endfor %}
                             </div>
@@ -146,9 +147,35 @@
             </div>
 
 
-            {#            <div class="layui-col-md6">#}
-            {##}
-            {#            </div>#}
+            <div class="layui-col-md6">
+                <div class="layui-card">
+                    <div class="layui-card-header">国内疫情统计</div>
+                    <div class="layui-card-body" style="overflow: auto; height: 500px;">
+
+                        <div class="layui-carousel layadmin-carousel layadmin-backlog">
+                            <div>
+                                <table class="layui-hidden" id="treeTableInternal" lay-filter="treeTable"></table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="layui-col-md6">
+                <div class="layui-card">
+                    <div class="layui-card-header">国际疫情统计</div>
+                    <div class="layui-card-body" style="overflow: auto; height: 500px;">
+
+                        <div class="layui-carousel layadmin-carousel layadmin-backlog">
+                            <div>
+                                <table class="layui-hidden" id="treeTableForeign" lay-filter="treeTable"></table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
         </div>
     </div>
 {% endblock %}
@@ -157,8 +184,8 @@
         layui.config({
             base: '{% static 'layuiadmin/' %}' //静态资源所在路径
         }).extend({
-            index: '/lib/index' //主入口模块
-        }).use(['index', 'senior_wuhan2020'], function () {
+            index: 'lib/index' //主入口模块
+        }).use(['index', 'wuhan2020'], function () {
             var layer = layui.layer;
 
             {% if is_first_use %}
@@ -169,6 +196,6 @@
                         window.location.reload();
                     });
             {% endif %}
-        })
+        });
     </script>
 {% endblock %}

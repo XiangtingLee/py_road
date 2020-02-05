@@ -104,7 +104,7 @@ def visualization_view(requests):
         data["is_first_use"] = True
     last_record = DXYData.objects.order_by('id').last()
     last_record_json = json.loads(last_record.statistics)
-    for key in ["remark1", "remark2", "remark3", "remark4", "remark5", "note1", "note2", "note3"]:
+    for key in ["note1", "note2", "note3", "remark1", "remark2", "remark3", "remark4", "remark5"]:
         if last_record_json[key]:
             data["introduction"].append(last_record_json[key])
     data["introduction"] = ListProcess().sliceN(data["introduction"], 5)
@@ -120,6 +120,65 @@ def visualization_view(requests):
                            path='/wuhan2020/visualization/')
     return resp
 
+def __get_tree_table():
+    data = {"internal": [], "foreign": []}
+    latest_data = DXYData.objects.filter(is_available=1).last()
+    internal_data = latest_data.domestic_area
+    foreign_data = latest_data.foreign
+    try:
+        internal_json = json.loads(internal_data)
+        foreign_json = json.loads(foreign_data)
+    except:
+        return data
+    for province in internal_json:
+        province_data = {}
+        province_data["id"] = province["provinceShortName"]
+        province_data["confirmedCount"] = province["confirmedCount"]
+        province_data["deadCount"] = province["deadCount"]
+        province_data["curedCount"] = province["curedCount"]
+        province_data["children"] = []
+        for city in province.get("cities", []):
+            city_data = {}
+            city_data["id"] = city["cityName"]
+            city_data["confirmedCount"] = city["confirmedCount"]
+            city_data["deadCount"] = city["deadCount"]
+            city_data["curedCount"] = city["curedCount"]
+            city_data["children"] = []
+            province_data["children"].append(city_data)
+        data["internal"].append(province_data)
+    foreign_temp = []
+    columns = ["continents", "provinceName", "confirmedCount", "deadCount", "curedCount"]
+    for country in foreign_json:
+        continents = country["continents"]
+        provinceName = country["provinceName"]
+        confirmedCount = country["confirmedCount"]
+        deadCount = country["deadCount"]
+        curedCount = country["curedCount"]
+        foreign_temp.append((continents, provinceName, confirmedCount, deadCount, curedCount))
+    df = pd.DataFrame(foreign_temp, columns=columns)
+    grouped_df = df.groupby("continents")
+    grouped_sum = grouped_df.sum().sort_values(by=["confirmedCount"], ascending=False)
+    for continents_row in grouped_sum.itertuples():
+        continents_data = {}
+        continents_data["id"] = getattr(continents_row, "Index")
+        continents_data["confirmedCount"] = getattr(continents_row, "confirmedCount")
+        continents_data["deadCount"] = getattr(continents_row, "deadCount")
+        continents_data["curedCount"] = getattr(continents_row, "curedCount")
+        continents_data["children"] = []
+        group_data_df = grouped_df.get_group(continents_row[0])
+        # group_data_df.reset_index(group_data_df["provinceName"], inplace=True)
+        for country_row in group_data_df.itertuples():
+            country_data = {}
+            country_data["id"] = getattr(country_row, "provinceName")
+            country_data["confirmedCount"] = getattr(country_row, "confirmedCount")
+            country_data["deadCount"] = getattr(country_row, "deadCount")
+            country_data["curedCount"] = getattr(country_row, "curedCount")
+            country_data["children"] = []
+            continents_data["children"].append(country_data)
+        data["foreign"].append(continents_data)
+
+    return data
+
 
 @login_required
 @verify_sign("POST")
@@ -133,8 +192,8 @@ def visualization_data(request):
             "pneumonia_cd_incr": {"obj": __get_incr, "args": (sum_data.copy(), ("cured", "dead",),)},
             "pneumonia_cs_sum": {"obj": __get_sum, "args": (sum_data.copy(), True, True, ("confirmed", "suspected",),)},
             "pneumonia_cd_sum": {"obj": __get_sum, "args": (sum_data.copy(), False, True, ("cured", "dead",),)},
-            # "pneumonia_sum": {"obj": __get_pneumonia_sum, "args": (False, ("cured","dead"),)},
             "domestic_province": __get_domestic_province,
+            "tree_table": __get_tree_table,
         }
         for k, v in data_dict.items():
             if isinstance(v, dict):
