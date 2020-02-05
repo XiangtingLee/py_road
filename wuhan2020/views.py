@@ -21,8 +21,7 @@ def __get_sum_data(filter_fields:list or dict=None) -> dict:
             datetime.datetime.fromtimestamp(row_json["modifyTime"] / 1000).strftime("%Y-%m-%d")]))
     df = pd.DataFrame(temp, columns=[i for i in filter_fields] + ["modify_time"])
     grouped_df = df.groupby("modify_time").apply(
-        lambda i: i.sort_values(
-            by=[i for i in filter_fields]).iloc[-1] if len(i) > 1 else np.nan)
+        lambda i: i.sort_values(by=[i for i in filter_fields]).iloc[-1])
     data_dict = grouped_df.tail(20).to_dict()
     return data_dict
 
