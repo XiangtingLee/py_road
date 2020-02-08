@@ -178,11 +178,18 @@ def __get_tree_table():
 
     return data
 
+def __test1():
+    import requests
+    resp = requests.get("https://file1.dxycdn.com/2020/0130/492/3393874921745912795-115.json?")
+    all_data = json.loads(resp.text)["data"]
+
+    pass
 
 @login_required
 @verify_sign("POST")
 def visualization_data(request):
     if request.method == "POST":
+        __test1()
         data = {}
         threads = []
         sum_data = __get_sum_data()

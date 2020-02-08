@@ -23,10 +23,12 @@ app.conf.update(
         'pneumonia-task': {
             'task': 'public.tasks.run_schedule',
             'schedule':  timedelta(minutes=1),
+            'args': ("python3 /workspace/py_road/wuhan2020/spider/crawl_pneumonia.py", )
+        },
+        'timeline-task': {
+            'task': 'public.tasks.run_schedule',
+            'schedule':  timedelta(minutes=1),
+            'args': ("python3 /workspace/py_road/wuhan2020/spider/crawl_timeline.py", )
         }
     }
 )
-
-@app.task(bind=True)
-def debug_task(self):
-    print('Request: {0!r}'.format(self.request))
