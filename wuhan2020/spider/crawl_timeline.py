@@ -1,4 +1,5 @@
 import requests
+import datetime
 import django
 import sys
 import os
@@ -45,9 +46,9 @@ class CrawlTimeline(object):
                         if province.count() > 0:
                             kwargs["province"] = province[0]
                     kwargs["info_type"] = data["infoType"]
-                    kwargs["publish_time"] = str(int(data["pubDate"] // 1000))
-                    kwargs["create_time"] = str(int(data["createTime"] // 1000))
-                    kwargs["modify_time"] = str(int(data["modifyTime"] // 1000))
+                    kwargs["publish_time"] = datetime.datetime.fromtimestamp(int(data["pubDate"] // 1000))
+                    kwargs["create_time"] = datetime.datetime.fromtimestamp(int(data["createTime"] // 1000))
+                    kwargs["modify_time"] = datetime.datetime.fromtimestamp(int(data["modifyTime"] // 1000))
                     # 入库
                     try:
                         DXYTimeLine.objects.create(**kwargs)

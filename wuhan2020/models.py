@@ -34,9 +34,9 @@ class DXYTimeLine(models.Model):
     source_summary = models.TextField(null=True, blank=True, verbose_name="来源详情")
     province = models.ForeignKey(AdministrativeDiv,on_delete=models.CASCADE, null=True, blank=True, verbose_name="省份")
     info_type = models.IntegerField(null=True, blank=True, verbose_name="消息类型")
-    publish_time = models.TextField(null=True, blank=True, max_length=255, verbose_name="发布时间")
-    create_time = models.TextField(null=True, blank=True, max_length=255, verbose_name="采集时间")
-    modify_time = models.TextField(null=True, blank=True, max_length=255, verbose_name="最后修改时间")
+    publish_time = models.DateTimeField(verbose_name="发布时间")
+    create_time = models.DateTimeField(verbose_name="采集时间")
+    modify_time = models.DateTimeField(verbose_name="最后修改时间")
     is_available = models.BooleanField(default=True, verbose_name='是否可用')
     is_delete = models.BooleanField(default=False, verbose_name='是否删除')
 
