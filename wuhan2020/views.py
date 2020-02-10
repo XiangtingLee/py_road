@@ -5,7 +5,7 @@ import json
 import pandas as pd
 import numpy as np
 
-from wuhan2020.models import DXYData
+from wuhan2020.models import DXYData, DXYTimeLine
 from public.tools import *
 
 colors_dict = {"dead": "#5D7092", "cured": "#28B7A3", "confirmed": "#F74C31", "suspected": "#F78207", "serious": "#A25A4E"}
@@ -178,18 +178,11 @@ def __get_tree_table():
 
     return data
 
-def __test1():
-    import requests
-    resp = requests.get("https://file1.dxycdn.com/2020/0130/492/3393874921745912795-115.json?")
-    all_data = json.loads(resp.text)["data"]
-
-    pass
 
 @login_required
 @verify_sign("POST")
 def visualization_data(request):
     if request.method == "POST":
-        __test1()
         data = {}
         threads = []
         sum_data = __get_sum_data()
@@ -214,3 +207,36 @@ def visualization_data(request):
         return JsonResponse(data, json_dumps_params={'ensure_ascii': False})
     else:
         return JsonResponse({"msg": "访问太频繁，请稍后再试！"}, json_dumps_params={'ensure_ascii': False})
+
+
+@login_required
+def timeline_data(request):
+    if request.method == "POST":
+        query_dict = request.POST
+        page = int(query_dict.get("page", 0))
+        limit = int(query_dict.get("limit", 10))
+        data = {"status": "success", "success": True, "content": {}}
+        data["content"]["resultSize"] = limit
+        _data = list(DXYTimeLine.objects.filter(is_available=1).order_by("-publish_time").values("title", "source_url",
+                                                                    "publish_time", "source_summary", "source_info",))
+
+        data['count'] = total = _data.__len__()
+        _data[0]["latest"] = 1
+        if total:
+            last = (total - 1) // limit + 1
+            _data = _data[(page - 1) * limit: page * limit]
+            for i in _data:
+                i["pub_time_diff"] = DateProcess().get_time_difference_str(i["publish_time"])
+            if 1 <= page <= last:
+                data["content"]['result'] = _data
+        data["content"]["totalPage"] = total // limit + 1
+
+        return JsonResponse(data, json_dumps_params={'ensure_ascii': False})
+    else:
+        return JsonResponse({"msg": "访问太频繁，请稍后再试！"}, json_dumps_params={'ensure_ascii': False})
+
+def timeline_view(request):
+    resp = render(request, 'wuhan2020/timeline.html')
+    # resp.set_signed_cookie(key='sign', value=int(time.time()), salt=settings.SECRET_KEY,
+    #                        path='/wuhan2020/timeline/')
+    return resp

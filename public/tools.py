@@ -97,6 +97,28 @@ class DateProcess(object):
             months.append(new_date.strftime(format))
         return months[::-1]
 
+    def get_time_difference_str(self, time:datetime.datetime):
+        difference = datetime.datetime.now() - time
+        difference_day = difference.days
+        difference_hou = difference.seconds // 3600
+        # difference_min = difference.seconds // 60 // 100
+        # difference_sec = difference.seconds % 60
+        if abs(difference_day) <= 7:
+            if difference_day > 0:
+                out_start = "%s天"%abs(difference_day) if difference_day != 0 else ""
+            else:
+                out_start = "%s小时"%difference_hou if difference_hou != 0 else ""
+                # hou_str = "%s小时"%difference_hou if difference_hou != 0 else ""
+                # min_str = "%s分钟"%difference_min if difference_min != 0 else ""
+                # sec_str = "%s秒"%difference_sec if difference_sec != 0 else ""
+                # out_start = hou_str + min_str + sec_str
+            out_end = "后" if difference_day < 0 else "前"
+            return out_start+out_end
+        else:
+            return time.strftime('%m{m}%d{d} %H:%M').format(m='月', d='日')
+
+
+
 class ListProcess(object):
     '''
     list处理类
@@ -106,17 +128,3 @@ class ListProcess(object):
         将item按照count切割成多个list
         '''
         return [item[i:i + count] for i in range(0, len(item), count)]
-
-
-
-
-
-
-
-
-
-
-
-
-
-
