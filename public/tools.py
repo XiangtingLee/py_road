@@ -101,17 +101,19 @@ class DateProcess(object):
         difference = datetime.datetime.now() - time
         difference_day = difference.days
         difference_hou = difference.seconds // 3600
-        # difference_min = difference.seconds // 60 // 100
-        # difference_sec = difference.seconds % 60
+        difference_min = difference.seconds // 60
+        difference_sec = difference.seconds % 60
         if abs(difference_day) <= 7:
             if difference_day > 0:
                 out_start = "%s天"%abs(difference_day) if difference_day != 0 else ""
             else:
-                out_start = "%s小时"%difference_hou if difference_hou != 0 else ""
-                # hou_str = "%s小时"%difference_hou if difference_hou != 0 else ""
-                # min_str = "%s分钟"%difference_min if difference_min != 0 else ""
-                # sec_str = "%s秒"%difference_sec if difference_sec != 0 else ""
-                # out_start = hou_str + min_str + sec_str
+                if not difference_hou:
+                    if not difference_min:
+                        out_start = "%s秒" % difference_sec if difference_sec != 0 else ""
+                    else:
+                        out_start = "%s分钟"%difference_min if difference_min != 0 else ""
+                else:
+                    out_start = "%s小时"%difference_hou if difference_hou != 0 else ""
             out_end = "后" if difference_day < 0 else "前"
             return out_start+out_end
         else:
