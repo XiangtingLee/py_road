@@ -39,8 +39,10 @@
                                         {% for item in items %}
                                             <li class="layui-col-xs6">
                                                 <a href="#{{ item.href }}" class="layadmin-backlog-body">
-                                                    <h3>{{ item.name }} <span class="layui-badge"
-                                                                              style="background-color: {{ item.color }}">较昨日+{{ item.incr }}</span>
+                                                    <h3>{{ item.name }}
+                                                        {% if item.incr %}
+                                                            <span class="layui-badge" style="background-color: {{ item.color }}">较昨日+{{ item.incr }}</span>
+                                                        {% endif %}
                                                     </h3>
                                                     <p><cite style="color: {{ item.color }};">{{ item.count }}</cite>
                                                     </p>

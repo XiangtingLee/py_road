@@ -111,7 +111,7 @@ def visualization_view(requests):
     for key, name in {"confirmed": "确诊病例", "suspected": "疑似病例", "serious": "危重病例", "cured": "治愈人数",
                       "dead": "死亡人数"}.items():
         data["counter"].append({"name": name, "href":key, "color": colors_dict[key], "count": last_record_json[fields_dict[key]],
-                                "incr": last_record_json[key + "Incr"]})
+                                "incr": last_record_json.get(key + "Incr", "")})
 
     data["counter"] = ListProcess().sliceN(data["counter"], 4)
     resp = render(requests, 'wuhan2020/visualization.html', data)

@@ -79,26 +79,18 @@ layui.define(function (exports) {
                         // },
                         tooltip: {
                             trigger: 'item'
-                        },
-                        visualMap: {
-                            min: 0,
-                            max: data.domestic_province.range_max.cs,
-                            splitNumber: 5,
-                            color: ['#d94e5d','#eac736','#50a3ba'],
-                            textStyle: {
-                                color: '#fff'
-                            }
+
                         },
                         dataRange: {
-                            orient: 'horizontal',
-                            min: 0,
-                            max: data.domestic_province.range_max.cs,
-                            text: ['高', '低'],           // 文本，默认为数值文本
-                            splitNumber: 0,
-                            range: [0, data.domestic_province.range_max.cs],
-                            inverse: false,
-                            realtime: true,
-                            calculable: true,
+                            splitList: [
+                                {start: 10000,},
+                                {start: 1000, end: 10000},
+                                {start: 500, end: 999},
+                                {start: 100, end: 499},
+                                {start: 10,end: 99},
+                                {start: 1,end: 9},
+                            ],
+                            color: ['#4f070d', '#811c24', '#cb2a2f', '#e55a4e', '#f59e83', '#fdebcf']
                         },
                         series: [
                             {
@@ -110,7 +102,7 @@ layui.define(function (exports) {
                                 },
                                 selectedMode: 'multiple',
                                 itemStyle: {
-                                    normal: {label: {show: true}, borderColor: '#ffffff'},
+                                    normal: {label: {show: true, textStyle: {color: '#333'}}, borderColor: '#999'},
                                     emphasis: {label: {show: true}, shadowBlur: 10,}
                                 },
                                 label: {
@@ -138,25 +130,15 @@ layui.define(function (exports) {
                         tooltip: {
                             trigger: 'item'
                         },
-                        visualMap: {
-                            min: 0,
-                            max: data.domestic_province.range_max.cd,
-                            splitNumber: 5,
-                            color: ['#d94e5d','#eac736','#50a3ba'],
-                            textStyle: {
-                                color: '#fff'
-                            }
-                        },
                         dataRange: {
-                            orient: 'horizontal',
-                            min: 0,
-                            max: data.domestic_province.range_max.cd,
-                            text: ['高', '低'],           // 文本，默认为数值文本
-                            splitNumber: 0,
-                            range: [0, data.domestic_province.range_max.cd],
-                            inverse: false,
-                            realtime: true,
-                            calculable: true,
+                            splitList: [
+                                {start: 10000,},
+                                {start: 1000, end: 10000},
+                                {start: 500, end: 999},
+                                {start: 100, end: 499},
+                                {start: 10,end: 99},
+                                {start: 1,end: 9},
+                            ],
                         },
                         series: [
                             {
