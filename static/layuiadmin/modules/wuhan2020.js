@@ -41,14 +41,15 @@ layui.define(function (exports) {
             , carousel = layui.carousel
             , echarts = layui.echarts
             , treeTable = layui.treeTable
-            , node_list = ["DistributionCS", "DistributionCD", "pneumoniaCSIncr", "pneumoniaCSSum", "pneumoniaCDIncr", "pneumoniaCDSum"];
+            ,
+            node_list = ["DistributionCS", "DistributionCD", "pneumoniaCSIncr", "pneumoniaCSSum", "pneumoniaCDIncr", "pneumoniaCDSum"];
         for (var i = 0; i < node_list.length; i++) {
             var node_name = node_list[i]
                 , node_obj = $("#" + node_name).children('div');
-                if(node_obj[0]){
-                    var echars_obj = echarts.init(node_obj[0], layui.echartsTheme);
-                    echars_obj.showLoading({text: '正在加载数据'});
-                }
+            if (node_obj[0]) {
+                var echars_obj = echarts.init(node_obj[0], layui.echartsTheme);
+                echars_obj.showLoading({text: '正在加载数据'});
+            }
         }
 
         $.ajax({
@@ -62,7 +63,7 @@ layui.define(function (exports) {
                     for (var i = 0, l = params.length; i < l; i++) {
                         res += params[i]["seriesName"] + ' : ' + params[i]["data"] + '</br>'
                     }
-                    for (var sum = 0,i = 0, l = params.length; i < l; i++) {
+                    for (var sum = 0, i = 0, l = params.length; i < l; i++) {
                         sum += params[i].data;
                     }
                     res += 'total : ' + sum;
@@ -87,8 +88,8 @@ layui.define(function (exports) {
                                 {start: 1000, end: 10000},
                                 {start: 500, end: 999},
                                 {start: 100, end: 499},
-                                {start: 10,end: 99},
-                                {start: 1,end: 9},
+                                {start: 10, end: 99},
+                                {start: 1, end: 9},
                             ],
                             color: ['#4f070d', '#811c24', '#cb2a2f', '#e55a4e', '#f59e83', '#fdebcf']
                         },
@@ -136,8 +137,8 @@ layui.define(function (exports) {
                                 {start: 1000, end: 10000},
                                 {start: 500, end: 999},
                                 {start: 100, end: 499},
-                                {start: 10,end: 99},
-                                {start: 1,end: 9},
+                                {start: 10, end: 99},
+                                {start: 1, end: 9},
                             ],
                         },
                         series: [
@@ -171,11 +172,16 @@ layui.define(function (exports) {
                     },
                     //确诊/疑似日增趋势
                     "pneumoniaCSIncr": {
-                        timeline:0,
+                        timeline: 0,
                         tooltip: {trigger: "axis"},
                         legend: data.pneumonia_cs_incr.legend,
                         calculable: !0,
-                        xAxis: [{type: "category", axisLabel: {rotate: 45}, boundaryGap: !1, data: data.pneumonia_cs_incr.xAxis}],
+                        xAxis: [{
+                            type: "category",
+                            axisLabel: {rotate: 45},
+                            boundaryGap: !1,
+                            data: data.pneumonia_cs_incr.xAxis
+                        }],
                         yAxis: [{type: "value"}],
                         series: data.pneumonia_cs_incr.series
                     },
@@ -184,17 +190,27 @@ layui.define(function (exports) {
                         tooltip: {trigger: "axis", formatter: sum_func},
                         legend: data.pneumonia_cs_sum.legend,
                         calculable: !0,
-                        xAxis: [{type: "category", axisLabel: {rotate: 45}, boundaryGap: !1, data: data.pneumonia_cs_sum.xAxis}],
+                        xAxis: [{
+                            type: "category",
+                            axisLabel: {rotate: 45},
+                            boundaryGap: !1,
+                            data: data.pneumonia_cs_sum.xAxis
+                        }],
                         yAxis: [{type: "value"}],
                         series: data.pneumonia_cs_sum.series
                     },
                     //治愈/死亡日增趋势
                     "pneumoniaCDIncr": {
-                        timeline:0,
+                        timeline: 0,
                         tooltip: {trigger: "axis"},
                         legend: data.pneumonia_cd_incr.legend,
                         calculable: !0,
-                        xAxis: [{type: "category", axisLabel: {rotate: 45}, boundaryGap: !1, data: data.pneumonia_cd_incr.xAxis}],
+                        xAxis: [{
+                            type: "category",
+                            axisLabel: {rotate: 45},
+                            boundaryGap: !1,
+                            data: data.pneumonia_cd_incr.xAxis
+                        }],
                         yAxis: [{type: "value"}],
                         series: data.pneumonia_cd_incr.series
                     },
@@ -203,7 +219,12 @@ layui.define(function (exports) {
                         tooltip: {trigger: "axis"},
                         legend: data.pneumonia_cd_sum.legend,
                         calculable: !0,
-                        xAxis: [{type: "category", axisLabel: {rotate: 45}, boundaryGap: !1, data: data.pneumonia_cd_sum.xAxis}],
+                        xAxis: [{
+                            type: "category",
+                            axisLabel: {rotate: 45},
+                            boundaryGap: !1,
+                            data: data.pneumonia_cd_sum.xAxis
+                        }],
                         yAxis: [{type: "value"}],
                         series: data.pneumonia_cd_sum.series
                     }
@@ -212,12 +233,17 @@ layui.define(function (exports) {
                 for (var i = 0; i < node_list.length; i++) {
                     var node_name = node_list[i]
                         , node_obj = $("#" + node_name).children('div');
-                        if(node_obj[0]){
-                            var echars_obj = echarts.init(node_obj[0], layui.echartsTheme);
-                            echars_obj.setOption(node_data[node_name]);
-                            window.onresize = echars_obj.resize;
-                            echars_obj.hideLoading();
+                    if (node_obj[0]) {
+                        var echars_obj = echarts.init(node_obj[0], layui.echartsTheme);
+                        if (node_name.indexOf("Distribution") != -1) {
+                            echars_obj.on("click", function (ev) {
+                                getProvinceData(this, ev.seriesName.trim(), ev.name);
+                            })
                         }
+                        echars_obj.setOption(node_data[node_name]);
+                        window.onresize = echars_obj.resize;
+                        echars_obj.hideLoading();
+                    }
                 }
 
                 // 国内疫情
@@ -226,8 +252,8 @@ layui.define(function (exports) {
                     data: data.tree_table.internal,
                     tree: {
                         iconIndex: 0,
-                        getIcon: function(d) {  // 自定义图标
-                            if (d.children&&d.children.length>0) {  // 判断是否有子集
+                        getIcon: function (d) {  // 自定义图标
+                            if (d.children && d.children.length > 0) {  // 判断是否有子集
                                 return '<i class="layui-icon layui-icon-list"></i> ';
                             } else {
                                 return '<i class="layui-icon layui-icon-location"></i> ';
@@ -241,13 +267,13 @@ layui.define(function (exports) {
                         {field: 'curedCount', title: '治愈', align: "center"},
                     ],
                     style: 'margin-top:0; color: #fff;',
-                    getThead: function() {
+                    getThead: function () {
                         return '<tr>' +
-                                    '<td style="text-align: center; background-color:">地区</td>' +
-                                    '<td style="text-align: center; background-color: #f3bab0;">确诊</td>' +
-                                    '<td style="text-align: center; background-color: #b4c0d5;">死亡</td>' +
-                                    '<td style="text-align: center; background-color: #6c9;">治愈</td>' +
-                               '</tr>';
+                            '<td style="text-align: center; background-color:">地区</td>' +
+                            '<td style="text-align: center; background-color: #f3bab0;">确诊</td>' +
+                            '<td style="text-align: center; background-color: #b4c0d5;">死亡</td>' +
+                            '<td style="text-align: center; background-color: #6c9;">治愈</td>' +
+                            '</tr>';
                     }
                 });
 
@@ -257,8 +283,8 @@ layui.define(function (exports) {
                     data: data.tree_table.foreign,
                     tree: {
                         iconIndex: 0,
-                        getIcon: function(d) {  // 自定义图标
-                            if (d.children&&d.children.length>0) {  // 判断是否有子集
+                        getIcon: function (d) {  // 自定义图标
+                            if (d.children && d.children.length > 0) {  // 判断是否有子集
                                 return '<i class="layui-icon layui-icon-list"></i> ';
                             } else {
                                 return '<i class="layui-icon layui-icon-location"></i> ';
@@ -272,17 +298,88 @@ layui.define(function (exports) {
                         {field: 'curedCount', title: '治愈', align: "center"},
                     ],
                     style: 'margin-top:0; color: #fff;',
-                    getThead: function() {
+                    getThead: function () {
                         return '<tr>' +
-                                    '<td style="text-align: center; background-color:">地区</td>' +
-                                    '<td style="text-align: center; background-color: #f3bab0;">确诊</td>' +
-                                    '<td style="text-align: center; background-color: #b4c0d5;">死亡</td>' +
-                                    '<td style="text-align: center; background-color: #6c9;">治愈</td>' +
-                               '</tr>';
+                            '<td style="text-align: center; background-color:">地区</td>' +
+                            '<td style="text-align: center; background-color: #f3bab0;">确诊</td>' +
+                            '<td style="text-align: center; background-color: #b4c0d5;">死亡</td>' +
+                            '<td style="text-align: center; background-color: #6c9;">治愈</td>' +
+                            '</tr>';
                     }
                 });
             }
         });
     });
+
+    function getProvinceData(echars_obj, type_name, province_name) {
+        layui.use(['carousel', 'treeTable'], function () {
+            var $ = layui.$
+                , render_arr = {"治愈/死亡数量": "DistributionCD", "确诊/疑似数量": "DistributionCS"};
+            echars_obj.showLoading({text: '正在加载数据'});
+            $.ajax({
+                url: "/wuhan2020/visualization/data/province/",
+                data: {t_n: render_arr[type_name], p_n: province_name},
+                method: 'POST',
+                success: function (data) {
+
+                    var render_data = {
+                        tooltip: {
+                            trigger: 'item'
+
+                        },
+                        dataRange: {
+                            splitList: [
+                                {start: 10000,},
+                                {start: 1000, end: 10000},
+                                {start: 500, end: 999},
+                                {start: 100, end: 499},
+                                {start: 10, end: 99},
+                                {start: 1, end: 9},
+                            ]
+                        },
+                        series: [
+                            {
+                                name: type_name,
+                                type: 'map',
+                                mapType: province_name,
+                                mapLocation: {
+                                    x: 'center'
+                                },
+                                selectedMode: 'multiple',
+                                itemStyle: {
+                                    normal: {label: {show: true}},
+                                    emphasis: {label: {show: true}, shadowBlur: 10,}
+                                },
+                                label: {
+                                    normal: {
+                                        show: false
+                                    },
+                                    emphasis: {
+                                        show: false
+                                    }
+                                },
+                                data: data.result
+                                // {name: '广东', value: 53210.28(, selected: true)}
+
+                            }
+
+                        ],
+
+                    };
+                    if(type_name === "确诊/疑似数量"){
+                        render_data.dataRange.color = ['#4f070d', '#811c24', '#cb2a2f', '#e55a4e', '#f59e83', '#fdebcf']
+                        render_data.series[0].itemStyle.normal = {label: {show: true, textStyle: {color: '#333'}}, borderColor: '#999'}
+                    }
+                    if (data.result) {
+                        echars_obj.setOption(render_data);
+                        window.onresize = echars_obj.resize;
+                    }
+                }
+            });
+            echars_obj.hideLoading();
+
+        });
+    }
+
     exports('wuhan2020', {})
 });

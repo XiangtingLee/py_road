@@ -87,11 +87,6 @@ def __get_domestic_province():
         if province_name != "待明确地区":
             data["province_cs"].insert(data["province_cs"].__len__(), {"name": province_name, "value": province_cs})
             data["province_cd"].insert(data["province_cd"].__len__(), {"name": province_name, "value": province_cd})
-    province_cs_range_max = (max(
-        [i["value"] if i["name"] != "待明确地区" and i["name"] != "湖北" else 0 for i in data["province_cs"]]) // 100 + 2) * 100
-    province_cd_range_max = (max(
-        [i["value"] if i["name"] != "待明确地区" and i["name"] != "湖北" else 0 for i in data["province_cd"]]) // 100 + 2) * 100
-    data["range_max"] = {"cs": province_cs_range_max, "cd": province_cd_range_max}
     return data
 
 
@@ -178,6 +173,39 @@ def __get_tree_table():
 
     return data
 
+def _get_province_detail(province_name, type_name):
+    data = []
+    latest_data = DXYData.objects.filter(is_available=1).order_by('id').last()
+    internal_data = latest_data.domestic_area
+    try:
+        internal_json = json.loads(internal_data)
+    except:
+        return data
+    for province in internal_json:
+        if province_name == province["provinceShortName"]:
+            for area in province["cities"]:
+                area_name = area["cityName"] + "市" if  not area["cityName"].endswith(('洲', '区', '县')) else area[
+                    "cityName"]
+                area_value = area.get("confirmedCount", 0) + area.get("suspectedCount",
+                                                                      0) if type_name == "DistributionCS" else area.get(
+                    "curedCount", 0) + area.get("deadCount", 0)
+                data.append({'name': area_name, "value": area_value})
+            break
+    return data
+
+@login_required
+# @verify_sign("POST")
+def visualization_data_province(request):
+    if request.method == "POST":
+        data = {}
+        kwargs = request.POST
+        data_type = kwargs.get("t_n", "")
+        data_province = kwargs.get("p_n", "")
+        data["result"] =_get_province_detail(data_province, data_type)
+        print(data_type, data_province)
+        return JsonResponse(data, json_dumps_params={'ensure_ascii': False})
+    else:
+        return JsonResponse({"msg": "访问太频繁，请稍后再试！"}, json_dumps_params={'ensure_ascii': False})
 
 @login_required
 @verify_sign("POST")
