@@ -1,0 +1,36 @@
+{% extends 'lib/base.html' %}
+{% load static %}
+{% block title %}代码展示{% endblock %}
+{% block content %}
+    <div class="layui-fluid">
+        <div class="layui-card">
+            <div class="layui-card-body">
+            <pre class="layui-code" lay-title="Python">'''
+spider name: {{ name }}
+file path: {{ path }}
+'''
+
+{% for line in code %}{{ line }}{% endfor %}
+            </pre>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+{% block tail_include_after %}
+    <script>
+        layui.config({
+            base: '{% static 'layuiadmin/' %}' //静态资源所在路径
+        }).extend({
+            index: 'lib/index' //主入口模块
+        }).use(['index', 'code'], function () {
+
+            layui.code({
+                elem: 'pre'
+                , about: false
+            });
+
+        });
+    </script>
+{% endblock %}
+
+

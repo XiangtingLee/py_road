@@ -68,6 +68,10 @@ def verify_sign(method, key="sign"):
         return returned_wrapper
     return decorator
 
+def update_sign(resp, key="sign", salt=settings.SECRET_KEY, key_path='/'):
+    resp.set_signed_cookie(key=key, value=int(time.time()), salt=salt, path=key_path)
+    return resp
+
 class DateProcess(object):
     '''
     时间处理类

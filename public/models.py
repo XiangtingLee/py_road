@@ -71,7 +71,7 @@ class Spider(models.Model):
     name = models.CharField(max_length=100, verbose_name='爬虫名称', blank=True)
     path = models.CharField(max_length=255, verbose_name='爬虫路径')
     add_time = models.DateTimeField(verbose_name="添加时间")
-    update_time = models.DateTimeField(auto_now=True, verbose_name="更新时间")
+    update_time = models.DateTimeField(auto_now=False, verbose_name="更新时间")
     is_available = models.BooleanField(default=False, verbose_name='是否可用')
     is_delete = models.BooleanField(default=False, verbose_name='是否删除')
     remark = models.TextField(verbose_name="备注")

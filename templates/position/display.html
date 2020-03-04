@@ -30,7 +30,7 @@
                                 <div class="layui-inline">
                                     <label class="layui-form-label">职位类型</label>
                                     <div class="layui-input-inline">
-                                        <select name="position_type__name" lay-search>
+                                        <select name="position_type__name">
                                             <option value=""></option>
                                             {% for type in all_type %}
                                                 <option value="{{ type }}">{{ type }}</option>
@@ -117,6 +117,8 @@
                 , form = layui.form
                 , slider = layui.slider;
 
+            form.render();
+
             //开启范围选择
             slider.render({
                 elem: '#salaryRange'
@@ -140,7 +142,7 @@
                     $select.removeClass("layui-form-selected").find(".layui-select-title span").html(node.name).end()
                         .find("input:hidden[id='filter-"+ node.type+"']").val(node.name);
                 }
-                , nodes: {{ search_node|safe }}
+                , nodes: {{ search_node | safe }}
             });
             $(".downpanel").on("click", ".layui-select-title", function (e) {
                 $(".layui-form-select").not($(this).parents(".layui-form-select")).removeClass("layui-form-selected");

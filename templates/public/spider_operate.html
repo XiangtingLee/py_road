@@ -9,7 +9,7 @@
                 <div class="layui-card">
                     <div class="layui-card-header">爬虫操作</div>
                     <div class="layui-card-body">
-                        <form class="layui-form" action="{% url 'public:spider_run' %}" lay-filter="component-form-element"
+                        <form class="layui-form" action="{% url 'public:spider_operate_run' %}" lay-filter="component-form-element"
                               method="post">
                             {% csrf_token %}
                             <div class="layui-row layui-col-space10 layui-form-item">

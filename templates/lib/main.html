@@ -100,7 +100,7 @@
                     </li>
                     <li data-name="home" class="layui-nav-item">
                         <a href="javascript:;" lay-tips="用户操作" lay-direction="2">
-                            <i class="layui-icon layui-icon-home"></i>
+                            <i class="layui-icon layui-icon-group"></i>
                             <cite>用户操作</cite>
                         </a>
                         <dl class="layui-nav-child">
@@ -111,19 +111,25 @@
 
                     <li data-name="home" class="layui-nav-item">
                         <a href="javascript:;" lay-tips="公共模块" lay-direction="2">
-                            <i class="layui-icon layui-icon-home"></i>
+                            <i class="layui-icon layui-icon-app"></i>
                             <cite>公共模块</cite>
                         </a>
                         <dl class="layui-nav-child">
                             <dd data-name="administrativeDiv"><a lay-href="******">全国行政区划</a></dd>
-                            <dd data-name="spiderConsole"><a lay-href="{% url 'public:spider_view' %}">爬虫管理</a></dd>
+                            <dd data-name="grid">
+                                <a href="javascript:;">爬虫模块</a>
+                                <dl class="layui-nav-child">
+                                    <dd data-name="spiderManage"><a lay-href="{% url 'public:spider_manage_view' %}">爬虫管理</a></dd>
+                                    <dd data-name="spiderOperate"><a lay-href="{% url 'public:spider_operate_view' %}">爬虫操作</a></dd>
+                                </dl>
+                            </dd>
                             <dd data-name="proxyPool"><a lay-href="{% url 'public:proxy_view' %}">代理池</a></dd>
                         </dl>
                     </li>
 
                     <li data-name="home" class="layui-nav-item">
                         <a href="javascript:;" lay-tips="招聘数据" lay-direction="2">
-                            <i class="layui-icon layui-icon-home"></i>
+                            <i class="layui-icon layui-icon-console"></i>
                             <cite>招聘数据</cite>
                         </a>
                         <dl class="layui-nav-child">
@@ -141,7 +147,7 @@
 
                     <li data-name="come-on-wuhan" class="layui-nav-item">
                         <a href="javascript:;" lay-tips="加油武汉" lay-direction="2">
-                            <i class="layui-icon layui-icon-home"></i>
+                            <i class="layui-icon layui-icon-flag"></i>
                             <cite>加油武汉</cite>
                         </a>
                         <dl class="layui-nav-child">
