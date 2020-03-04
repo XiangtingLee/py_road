@@ -58,33 +58,6 @@
                                     </div>
                                 </div>
                             </div>
-                            {#                            <div class="layui-form-item">#}
-                            {#                                <label class="layui-form-label">兴趣爱好：</label>#}
-                            {#                                <div class="layui-input-block">#}
-                            {#                                    <input type="checkbox" name="interest[write]" title="写作">#}
-                            {#                                    <input type="checkbox" name="interest[read]" title="阅读">#}
-                            {#                                    <input type="checkbox" name="interest[code]" title="代码" checked>#}
-                            {#                                    <input type="checkbox" name="interest[dreaming]" title="做梦">#}
-                            {#                                </div>#}
-                            {#                            </div>#}
-                            {#                            <div class="layui-form-item">#}
-                            {#                                <label class="layui-form-label">是否婚姻：</label>#}
-                            {#                                <div class="layui-input-block">#}
-                            {#                                    <input type="checkbox" name="marriage" lay-skin="switch" lay-text="是|否">#}
-                            {#                                </div>#}
-                            {#                            </div>#}
-                            {#                            <div class="layui-form-item">#}
-                            {#                                <label class="layui-form-label">其它信息：</label>#}
-                            {#                                <div class="layui-input-block">#}
-                            {#                                    <textarea name="other" placeholder="" class="layui-textarea"></textarea>#}
-                            {#                                </div>#}
-                            {#                            </div>#}
-                            {#                            <div class="layui-form-item">#}
-                            {#                                <label class="layui-form-label"> </label>#}
-                            {#                                <div class="layui-input-block">#}
-                            {#                                    <input type="checkbox" name="agreement" title="同意" lay-skin="primary" checked>#}
-                            {#                                </div>#}
-                            {#                            </div>#}
                             <div class="layui-form-item">
                                 <div class="layui-input-block">
                                     <button class="layui-btn" lay-submit lay-filter="component-form-element">启动爬虫
@@ -121,9 +94,9 @@
 {% block tail_include_after %}
     <script>
         layui.config({
-            base: '{% static 'layuiadmin/' %}' //静态资源所在路径
+            base: '{% static 'layuiadmin/' %}'
         }).extend({
-            index: '/lib/index' //主入口模块
+            index: '/lib/index'
         }).use(['index', 'table'], function () {
             var admin = layui.admin;
             var table = layui.table;
@@ -145,9 +118,6 @@
                     , {field: 'start_time', title: '开始时间', width: 180, sort: true}
                     , {field: 'end_time', title: '结束时间', width: 180, sort: true}
                     , {field: 'remark', title: '备注', width: 180}
-                    //,{field:'email', title:'邮箱', width:150, templet: function(res){
-                    //  return '<em>'+ res.email +'</em>'
-                    //}}
                 ]]
                 , page: true
                 , id: 'runLogForm'

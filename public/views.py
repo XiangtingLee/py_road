@@ -3,6 +3,8 @@ import requests
 import datetime
 import time
 import os
+import re
+import json
 from uuid import uuid4
 from urllib.parse import quote
 from scrapyd_api import ScrapydAPI
@@ -237,7 +239,7 @@ def spider_manage_show(request, spider_id):
     resp.set_signed_cookie(key='sign', value=int(time.time()), salt=settings.SECRET_KEY, path='/public/spider/manage/')
     return resp
 
-import json
+
 @login_required
 def spider_manage_edit(request, spider_id):
     spider_id = int(spider_id)
@@ -296,7 +298,7 @@ def spider_manage_edit(request, spider_id):
             data = model_to_dict(Spider.objects.get(id=spider_id))
         return render(request, 'public/spider_manage_edit.html', data)
 
-import re
+
 @login_required
 def spider_manage_probe(request):
     if request.method == "POST":
@@ -317,10 +319,6 @@ def spider_manage_probe(request):
                             if not Spider.objects.filter(path=ret_path).exists():
                                 record.append({'path': ret_path})
         return render(request, 'public/spider_manage_probe.html', {"data": record})
-
-
-
-
 
 @login_required
 @verify_sign("POST")
@@ -354,6 +352,6 @@ def spider_operate_run(request):
         command = "python3 " + base_dir + spider_path + param
         sync_task = run_shell.delay(command)
         SpiderRunLog.objects.create(spider_name=spider_name, task_id=sync_task.id, param=param)
-        return HttpResponseRedirect('/public/spider/view/')
+        return HttpResponseRedirect('/public/spider/operate/view/')
     else:
         return JsonResponse({"status": "error", "maessage": "网络繁忙，请稍后再试！"}, json_dumps_params={'ensure_ascii': False})
