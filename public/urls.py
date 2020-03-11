@@ -1,7 +1,7 @@
-app_name = 'public'
-
 from django.conf.urls import url
 from . import views
+
+app_name = 'public'
 
 urlpatterns = [
     url('^proxy/view/$', views.proxy_view, name='proxy_view'),

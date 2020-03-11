@@ -3,11 +3,13 @@ import time
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 
+
 def get_nick_name():
     return "User%s" % int(time.time()*1000)
 
+
 class Menu(models.Model):
-    caption = models.CharField(max_length=32,verbose_name="菜单")
+    caption = models.CharField(max_length=32, verbose_name="菜单")
 
     class Meta:
         verbose_name = "菜单表"
@@ -18,8 +20,8 @@ class Menu(models.Model):
 
 
 class Group(models.Model):
-    title = models.CharField(max_length=32,verbose_name="组名称")
-    menu = models.ForeignKey(Menu, on_delete=models.CASCADE, verbose_name="组内菜单",blank=True)  #一个组下有多个菜单
+    title = models.CharField(max_length=32, verbose_name="组名称")
+    menu = models.ForeignKey(Menu, on_delete=models.CASCADE, verbose_name="组内菜单", blank=True)  # 一个组下有多个菜单
 
     class Meta:
         verbose_name = "权限组"
@@ -30,11 +32,12 @@ class Group(models.Model):
 
 
 class Permission(models.Model):
-    title = models.CharField(max_length=32,verbose_name="权限名")
-    url = models.CharField(max_length=32,verbose_name="带正则的url")
-    codes = models.CharField(max_length=32,verbose_name="代码")
-    group = models.ForeignKey(Group, on_delete=models.CASCADE, verbose_name="所属组",blank=True)  #组和权限是一对多的关系，一个组有多个权限
-    menu_gp = models.ForeignKey('self', on_delete=models.CASCADE, related_name='aaa',null=True,blank=True,verbose_name="组内菜单")
+    title = models.CharField(max_length=32, verbose_name="权限名")
+    url = models.CharField(max_length=32, verbose_name="带正则的url")
+    codes = models.CharField(max_length=32, verbose_name="代码")
+    group = models.ForeignKey(Group, on_delete=models.CASCADE, verbose_name="所属组", blank=True)  # 组和权限是一对多的关系，一个组有多个权限
+    menu_gp = models.ForeignKey('self', on_delete=models.CASCADE, related_name='aaa', null=True, blank=True,
+                                verbose_name="组内菜单")
 
     class Meta:
         verbose_name = "权限表"
@@ -62,7 +65,7 @@ class User(AbstractUser):
     qq = models.CharField(null=True, blank=True, max_length=11, verbose_name="qq号码")
     mobile = models.CharField(null=True, blank=True, max_length=11, verbose_name="手机号码")
     real_name = models.CharField(null=True, blank=True, max_length=50, verbose_name="真实姓名")
-    sex = models.IntegerField(default=2, choices=((0,"女"), (1, "男"), (2, "保密")), verbose_name="性别")
+    sex = models.IntegerField(default=2, choices=((0, "女"), (1, "男"), (2, "保密")), verbose_name="性别")
     birthday = models.DateField(null=True, blank=True, verbose_name="生日")
     id_card = models.CharField(null=True, blank=True, max_length=18, verbose_name='身份证号')
     last_login_ip = models.CharField(null=True, blank=True, max_length=255, verbose_name="最后登录IP")

@@ -1,7 +1,7 @@
-app_name = "user"
-
 from django.conf.urls import url
 from . import views
+
+app_name = "user"
 
 urlpatterns = [
     url('^info/view/$', views.info_view, name='info_view'),

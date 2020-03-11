@@ -1,6 +1,7 @@
 from django.db import models
 from public.models import AdministrativeDiv, CityBusinessZone
 
+
 # Create your models here.
 class CompanyScale(models.Model):
     name = models.CharField(max_length=20, verbose_name="规模名称")
@@ -96,6 +97,7 @@ class PositionType(models.Model):
 
     def __str__(self):
         return self.name
+
 
 class PositionNature(models.Model):
     name = models.CharField(max_length=20, verbose_name="类型名称")
@@ -199,7 +201,8 @@ class Company(models.Model):
     business_reg_capital = models.CharField(blank=True, null=True, max_length=20, verbose_name="工商-注册资本")
     business_reg_location = models.CharField(blank=True, null=True, max_length=255, verbose_name="工商-注册地点")
     business_legal_person_name = models.CharField(blank=True, null=True, max_length=255, verbose_name="工商-法人姓名")
-    business_reg_status = models.ForeignKey(CompanyRegStatus, on_delete=models.CASCADE, blank=True, null=True, verbose_name="工商-经营状态")
+    business_reg_status = models.ForeignKey(CompanyRegStatus, on_delete=models.CASCADE, blank=True, null=True,
+                                            verbose_name="工商-经营状态")
 
     is_effective = models.BooleanField(default=True, verbose_name="是否有效")
     warehouse_time = models.DateTimeField(verbose_name="入库时间")
@@ -221,13 +224,19 @@ class Position(models.Model):
     # 职位相关
     id = models.IntegerField(primary_key=True, verbose_name='职位id')
     position_name = models.CharField(blank=True, null=True, max_length=100, verbose_name="职位名称")
-    position_type = models.ForeignKey(PositionType, on_delete=models.CASCADE, blank=True, null=True, verbose_name="职位类型")
-    position_nature = models.ForeignKey(PositionNature, on_delete=models.CASCADE, blank=True, null=True, verbose_name="职位性质")
-    position_city = models.ForeignKey(AdministrativeDiv, on_delete=models.CASCADE, blank=True, null=True, verbose_name="工作所在城市", related_name="position_level1")
-    position_district = models.ForeignKey(AdministrativeDiv, on_delete=models.CASCADE, blank=True, null=True, verbose_name="工作所在区域", related_name="position_level2")
+    position_type = models.ForeignKey(PositionType, on_delete=models.CASCADE, blank=True, null=True,
+                                      verbose_name="职位类型")
+    position_nature = models.ForeignKey(PositionNature, on_delete=models.CASCADE, blank=True, null=True,
+                                        verbose_name="职位性质")
+    position_city = models.ForeignKey(AdministrativeDiv, on_delete=models.CASCADE, blank=True, null=True,
+                                      verbose_name="工作所在城市", related_name="position_level1")
+    position_district = models.ForeignKey(AdministrativeDiv, on_delete=models.CASCADE, blank=True, null=True,
+                                          verbose_name="工作所在区域", related_name="position_level2")
     position_business_zones = models.ManyToManyField(CityBusinessZone, verbose_name="工作所在商圈")
-    education = models.ForeignKey(PositionEducation, on_delete=models.CASCADE, blank=True, null=True, verbose_name="学历要求")
-    experience = models.ForeignKey(PositionExperience, on_delete=models.CASCADE, blank=True, null=True, verbose_name="工作经验")
+    education = models.ForeignKey(PositionEducation, on_delete=models.CASCADE, blank=True, null=True,
+                                  verbose_name="学历要求")
+    experience = models.ForeignKey(PositionExperience, on_delete=models.CASCADE, blank=True, null=True,
+                                   verbose_name="工作经验")
     salary_lower = models.IntegerField(verbose_name="薪水下限")
     salary_upper = models.IntegerField(verbose_name="薪水上限")
     welfare = models.ManyToManyField(PositionWelfares, verbose_name="福利待遇")
@@ -244,4 +253,4 @@ class Position(models.Model):
         verbose_name_plural = verbose_name
 
     def __str__(self):
-        return "[" + self.company.name + "]" +  self.position_name
+        return "[" + self.company.name + "]" + self.position_name

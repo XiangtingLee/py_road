@@ -1,6 +1,5 @@
 from django.db import models
 
-# Create your models here.
 
 class AdministrativeDiv(models.Model):
     code = models.IntegerField(verbose_name='地区编码')
@@ -8,9 +7,12 @@ class AdministrativeDiv(models.Model):
     pinyin = models.CharField(null=True, blank=True, max_length=100, verbose_name='拼音名')
     short_name = models.CharField(null=True, blank=True, max_length=100, verbose_name='简称')
     zip_code = models.IntegerField(null=True, blank=True, verbose_name='邮政编码')
-    province = models.ForeignKey('self', null=True, blank=True, verbose_name='省', on_delete=models.CASCADE, related_name="level1")
-    city = models.ForeignKey('self', null=True, blank=True, verbose_name='市', on_delete=models.CASCADE, related_name="level2")
-    area = models.ForeignKey('self', null=True, blank=True, verbose_name='区', on_delete=models.CASCADE, related_name="level3")
+    province = models.ForeignKey('self', null=True, blank=True, verbose_name='省', on_delete=models.CASCADE,
+                                 related_name="level1")
+    city = models.ForeignKey('self', null=True, blank=True, verbose_name='市', on_delete=models.CASCADE,
+                             related_name="level2")
+    area = models.ForeignKey('self', null=True, blank=True, verbose_name='区', on_delete=models.CASCADE,
+                             related_name="level3")
     lng_lat = models.CharField(null=True, blank=True, max_length=100, verbose_name='经纬度')
     add_time = models.DateTimeField(verbose_name="添加时间")
     update_time = models.DateTimeField(auto_now=True, verbose_name="更新时间")
@@ -26,11 +28,15 @@ class AdministrativeDiv(models.Model):
     def __str__(self):
         return self.name
 
+
 class CityBusinessZone(models.Model):
     name = models.CharField(max_length=100, verbose_name='商圈名称', blank=True)
-    province = models.ForeignKey(AdministrativeDiv, on_delete=models.CASCADE, null=True, blank=True, related_name="business_level1")
-    city = models.ForeignKey(AdministrativeDiv, on_delete=models.CASCADE, null=True, blank=True, related_name="business_level2")
-    area = models.ForeignKey(AdministrativeDiv, on_delete=models.CASCADE, null=True, blank=True, related_name="business_level3")
+    province = models.ForeignKey(AdministrativeDiv, on_delete=models.CASCADE, null=True, blank=True,
+                                 related_name="business_level1")
+    city = models.ForeignKey(AdministrativeDiv, on_delete=models.CASCADE, null=True, blank=True,
+                             related_name="business_level2")
+    area = models.ForeignKey(AdministrativeDiv, on_delete=models.CASCADE, null=True, blank=True,
+                             related_name="business_level3")
 
     add_time = models.DateTimeField(verbose_name="添加时间")
     update_time = models.DateTimeField(auto_now=True, verbose_name="更新时间")
@@ -45,6 +51,7 @@ class CityBusinessZone(models.Model):
 
     def __str__(self):
         return self.name
+
 
 class ProxyPool(models.Model):
     protocol = models.CharField(max_length=6, verbose_name='代理协议')

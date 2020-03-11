@@ -5,17 +5,17 @@ import time
 import os
 import re
 import json
-from uuid import uuid4
-from urllib.parse import quote
-from scrapyd_api import ScrapydAPI
+# from uuid import uuid4
+# from urllib.parse import quote
+# from scrapyd_api import ScrapydAPI
 
 # Django模块导入
 from django.shortcuts import render
 from django.forms.models import model_to_dict
 from django.http import JsonResponse, HttpResponseRedirect
 from django.contrib.auth.decorators import login_required
-from django.views.decorators.csrf import csrf_exempt
-from django.views.decorators.http import require_POST, require_http_methods
+# from django.views.decorators.csrf import csrf_exempt
+# from django.views.decorators.http import require_POST, require_http_methods
 
 # 项目内引用
 from .models import *
@@ -92,8 +92,8 @@ from django.conf import settings
 #         return JsonResponse({'status': status})
 
 
-def proxy_view(requests):
-    resp = render(requests, 'public/proxyPool.html')
+def proxy_view(request):
+    resp = render(request, 'public/proxyPool.html')
     resp.set_signed_cookie(key="sign", value=int(time.time()), salt=settings.SECRET_KEY, path="/public/proxy/")
     return resp
 
@@ -126,30 +126,30 @@ def proxy_upload(request):
     file_data = csv_file.read().decode("utf-8")
     file_name = csv_file.name.replace('.csv', '').replace('.CSV', '')
     lines = file_data.split("\n")
-    insList = []
+    ins_list = []
     for line in lines:
         fields = line.split(",")
-        insList.append(ProxyPool(type=file_name, protocol=fields[0], address=fields[1],
-                                 port=fields[2].replace('\n', '').replace('\r', '')))
-    if insList.__len__() > 7000:
+        ins_list.append(ProxyPool(type=file_name, protocol=fields[0], address=fields[1],
+                                  port=fields[2].replace('\n', '').replace('\r', '')))
+    if ins_list.__len__() > 7000:
         times = (len(lines) // 7000) + 1
-        for time in range(0, times):
-            if time == times - 1:
-                ProxyPool.objects.bulk_create(insList[7000 * time: insList.__len__() - 1])
+        for one in range(0, times):
+            if one == times - 1:
+                ProxyPool.objects.bulk_create(ins_list[7000 * one: ins_list.__len__() - 1])
             else:
-                ProxyPool.objects.bulk_create(insList[7000 * time: (7000 * time) + 7000])
+                ProxyPool.objects.bulk_create(ins_list[7000 * one: (7000 * one) + 7000])
     else:
-        ProxyPool.objects.bulk_create(insList)
+        ProxyPool.objects.bulk_create(ins_list)
     return JsonResponse({'status': 1}, json_dumps_params={'ensure_ascii': False})
 
 
 def proxy_change(request):
     data = {'status': 0, 'message': ''}
     if request.method == 'POST':
-        id = request.POST.get('id', '')
+        proxy_id = request.POST.get('id', '')
         is_available = True if request.POST.get('is_available', 'false') == 'true' else False
-        if id:
-            ProxyPool.objects.filter(id=id).update(is_available=is_available, updatetime=datetime.datetime.now())
+        if proxy_id:
+            ProxyPool.objects.filter(id=proxy_id).update(is_available=is_available, updatetime=datetime.datetime.now())
             data['status'] = 1
     return JsonResponse(data, json_dumps_params={'ensure_ascii': False})
 
@@ -163,27 +163,27 @@ def proxy_check(request):
         check_id = list(map(int, ids))
         if not check_id:
             for record in ProxyPool.objects.values('id', 'protocol', 'address', 'port'):
-                id = record['id']
+                proxy_id = record['id']
                 protocol = record['protocol']
                 address = record['address'] + ':' + record['port']
                 thread = MyThread(func=__proxy_judge, args=(protocol, address,))
-                thread.setName(str(id))
+                thread.setName(str(proxy_id))
                 threads.append(thread)
         else:
-            for id in check_id:
-                thread = MyThread(func=__proxy_judge, args=(id,))
-                thread.setName(str(id))
+            for proxy_id in check_id:
+                thread = MyThread(func=__proxy_judge, args=(proxy_id,))
+                thread.setName(str(proxy_id))
                 threads.append(thread)
         check_row = threads.__len__()
         if check_row > 5000:
             times = (check_row // 5000) + 1
-            for time in range(0, times):
-                if time == times - 1:
-                    print('cheking %s-%s' % (5000 * time, check_row - 1))
-                    start_check_thread = threads[5000 * time: check_row - 1]
+            for one in range(0, times):
+                if one == times - 1:
+                    print('cheking %s-%s' % (5000 * one, check_row - 1))
+                    start_check_thread = threads[5000 * one: check_row - 1]
                 else:
-                    print('cheking %s-%s' % (5000 * time, (5000 * time) + 5000))
-                    start_check_thread = threads[5000 * time: (5000 * time) + 5000]
+                    print('cheking %s-%s' % (5000 * one, (5000 * one) + 5000))
+                    start_check_thread = threads[5000 * one: (5000 * one) + 5000]
                 for thread in start_check_thread:
                     thread.start()
                 for thread in start_check_thread:
@@ -214,7 +214,7 @@ def __proxy_judge(protocol, address):
             return True
         else:
             return False
-    except Exception as e:
+    except TimeoutError:
         return False
 
 
@@ -223,6 +223,7 @@ def spider_manage_view(request):
     resp = render(request, 'public/spider_manage.html')
     resp.set_signed_cookie(key='sign', value=int(time.time()), salt=settings.SECRET_KEY, path='/public/spider/manage/')
     return resp
+
 
 @login_required
 def spider_manage_show(request, spider_id):
@@ -235,7 +236,8 @@ def spider_manage_show(request, spider_id):
             code = f.readlines()
     except Exception as e:
         code = [e]
-    resp = render(request, 'public/spider_manage_show.html', {'id': spider_id, 'name': name, 'path': full_path, 'code': code})
+    resp = render(request, 'public/spider_manage_show.html',
+                  {'id': spider_id, 'name': name, 'path': full_path, 'code': code})
     resp.set_signed_cookie(key='sign', value=int(time.time()), salt=settings.SECRET_KEY, path='/public/spider/manage/')
     return resp
 
@@ -253,16 +255,17 @@ def spider_manage_edit(request, spider_id):
                 if Spider.objects.filter(name=file_name).count():
                     ready.append(file_name)
             if ready:
-                return JsonResponse({'status': 'error', 'success': True, 'msg': "以下名称已存在，请修改。</br>" + "</br>".join(ready)})
+                return JsonResponse(
+                    {'status': 'error', 'success': True, 'msg': "以下名称已存在，请修改。</br>" + "</br>".join(ready)})
             else:
                 for one in add_list:
                     file_name = one.get("name", None)
                     now = datetime.datetime.now()
                     kwargs = {"name": file_name, "path": one["path"], "is_available": True, "is_delete": False,
-                          "add_time": now, "update_time": now}
+                              "add_time": now, "update_time": now}
                     result = Spider.objects.create(**kwargs)
                     if not result:
-                        return JsonResponse({'status': 'error', 'success': False, 'msg': "%s添加失败，请重试"%file_name})
+                        return JsonResponse({'status': 'error', 'success': False, 'msg': "%s添加失败，请重试" % file_name})
                 return update_sign(JsonResponse({'status': 'success', 'success': True, 'msg': "添加成功"}),
                                    key_path='/public/spider/manage/')
 
@@ -319,6 +322,7 @@ def spider_manage_probe(request):
                             if not Spider.objects.filter(path=ret_path).exists():
                                 record.append({'path': ret_path})
         return render(request, 'public/spider_manage_probe.html', {"data": record})
+
 
 @login_required
 @verify_sign("POST")

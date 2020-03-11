@@ -1,7 +1,8 @@
-app_name = 'position'
-
 from django.conf.urls import url
 from . import views
+
+app_name = 'position'
+
 
 urlpatterns = [
     url('^display/view/$', views.display_view, name='display_view'),

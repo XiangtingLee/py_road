@@ -5,11 +5,11 @@ import datetime
 import requests
 from copy import deepcopy
 
-from scrapy.http import Request, HtmlResponse
-from ..items import PyroadSpiderItem
+from scrapy.http import Request
+# from ..items import PyroadSpiderItem
 
 now = datetime.datetime.now()
-now_stamp = int(now.timestamp()*1000)
+now_stamp = int(now.timestamp() * 1000)
 now_time = datetime.datetime.strftime(now, "%Y%m%d%H%M%S")
 
 DEFAULT_REQUEST_HEADERS = {
@@ -20,14 +20,15 @@ DEFAULT_REQUEST_HEADERS = {
     # "Cookie": COOKIE,
     "Host": "www.lagou.com",
     "Upgrade-Insecure-Requests": "1",
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 Safari/537.36",
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) "
+                  "Chrome/71.0.3578.98 Safari/537.36",
 }
 
 
 class PositionLagouCompanySpider(scrapy.Spider):
     name = 'position_lagou_company'
     allowed_domains = ['lagou.com']
-    start_urls = ['https://www.lagou.com/gongsi/%s.html'%i for i in range(7,17)]
+    start_urls = ['https://www.lagou.com/gongsi/%s.html' % i for i in range(7, 17)]
     # start_urls = ['https://www.lagou.com/gongsi/7.html']
     custom_settings = {
         "DEFAULT_REQUEST_HEADERS": DEFAULT_REQUEST_HEADERS,
@@ -40,7 +41,8 @@ class PositionLagouCompanySpider(scrapy.Spider):
         # COOKIE['index_location_city'] = self.location
         super(PositionLagouCompanySpider, self).__init__(*args, **kwargs)
 
-    def update_cookie(self, url):
+    @staticmethod
+    def update_cookie(url):
         headers = deepcopy(DEFAULT_REQUEST_HEADERS)
         cookie = {
             '_ga': 'GA1.2.292537651.1561974582',
@@ -68,10 +70,10 @@ class PositionLagouCompanySpider(scrapy.Spider):
         return headers
 
     def start_requests(self):
-        '''
+        """
         重写start_requests，请求登录页面
         :return:
-        '''
+        """
         for url in self.start_urls:
             # headers = self.update_cookie(url)
             # print(headers["Cookie"]["user_trace_token"])
