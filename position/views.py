@@ -6,6 +6,7 @@ from django.core.cache import cache
 
 from .models import *
 from public.tools import *
+from log.models import SpiderRunLog
 
 import time
 import datetime
@@ -84,11 +85,11 @@ def _experience():
         except KeyError:
             temp[k[0]] = []
             temp[k[0]].append({"name": k[1], "value": v})
-    for type in all_type:
+    for one_type in all_type:
         data["series"].append({
-            "name": type,
+            "name": one_type,
             "type": 'bar',
-            "data": temp.get(type, []),
+            "data": temp.get(one_type, []),
             "markPoint": {"data": [{"type": "max", "name": "最大值"}, {"type": "min", "name": "最小值"}]},
             "markLine": {"data": [{"type": "average", "name": "平均值"}]}
         })
@@ -237,6 +238,7 @@ def _update_cache():
     for thread in threads:
         thread.join()
         data[thread.name] = thread.result
+    data["tid"] = SpiderRunLog.objects.filter(spider_name="lg_position", status=True).first().task_id
     cache.set("visualization_data", data, 3600)
 
 
@@ -247,6 +249,10 @@ def visualization_data(request):
         if not cache.get('visualization_data'):
             _update_cache()
         data = cache.get('visualization_data')
+        if data.get("tid", None) != SpiderRunLog.objects.filter(spider_name="lg_position", status=True).first().task_id:
+            cache.delete("visualization_data")
+            _update_cache()
+            data = cache.get('visualization_data')
         return JsonResponse(data, json_dumps_params={'ensure_ascii': False})
     else:
         return JsonResponse({"msg": "访问太频繁，请稍后再试！"}, json_dumps_params={'ensure_ascii': False})
