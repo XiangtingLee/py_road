@@ -237,7 +237,7 @@ layui.define(function (exports) {
                         var echars_obj = echarts.init(node_obj[0], layui.echartsTheme);
                         if (node_name.indexOf("Distribution") != -1) {
                             echars_obj.on("click", function (ev) {
-                                getProvinceData(this, ev.seriesName.trim(), ev.name);
+                                renderProvinceData(this, ev.seriesName.trim(), ev.name);
                             })
                         }
                         echars_obj.setOption(node_data[node_name]);
@@ -260,19 +260,22 @@ layui.define(function (exports) {
                             }
                         }
                     },
+                    totalRow: true,
                     cols: [
                         {field: 'id', title: '地区', width: 180},
-                        {field: 'confirmedCount', title: '确诊', align: "center"},
-                        {field: 'deadCount', title: '死亡', align: "center"},
-                        {field: 'curedCount', title: '治愈', align: "center"},
+                        {field: 'currentExistingCount', title: '现存确诊', align: "center", width: 83},
+                        {field: 'confirmedCount', title: '累计确诊', align: "center", width: 83},
+                        {field: 'deadCount', title: '死亡', align: "center", width: 83},
+                        {field: 'curedCount', title: '治愈', align: "center", width: 83},
                     ],
                     style: 'margin-top:0; color: #fff;',
                     getThead: function () {
                         return '<tr>' +
-                            '<td style="text-align: center; background-color:">地区</td>' +
-                            '<td style="text-align: center; background-color: #f3bab0;">确诊</td>' +
-                            '<td style="text-align: center; background-color: #b4c0d5;">死亡</td>' +
-                            '<td style="text-align: center; background-color: #6c9;">治愈</td>' +
+                            '<td style="padding: 9px 10px; text-align: center; background-color:"><b>地区</b></td>' +
+                            '<td style="padding: 9px 10px; text-align: center; background-color: #f3bab0;"><b>现存确诊</b></td>' +
+                            '<td style="padding: 9px 10px; text-align: center; background-color: #e69a8d;"><b>累计确诊</b></td>' +
+                            '<td style="padding: 9px 10px; text-align: center; background-color: #b4c0d5;"><b>死亡</b></td>' +
+                            '<td style="padding: 9px 10px; text-align: center; background-color: #6c9;"><b>治愈</b></td>' +
                             '</tr>';
                     }
                 });
@@ -293,17 +296,19 @@ layui.define(function (exports) {
                     },
                     cols: [
                         {field: 'id', title: '地区', width: 180},
-                        {field: 'confirmedCount', title: '确诊', align: "center"},
-                        {field: 'deadCount', title: '死亡', align: "center"},
-                        {field: 'curedCount', title: '治愈', align: "center"},
+                        {field: 'currentExistingCount', title: '现存确诊', align: "center", width: 83},
+                        {field: 'confirmedCount', title: '累计确诊', align: "center", width: 83},
+                        {field: 'deadCount', title: '死亡', align: "center", width: 83},
+                        {field: 'curedCount', title: '治愈', align: "center", width: 83},
                     ],
                     style: 'margin-top:0; color: #fff;',
                     getThead: function () {
                         return '<tr>' +
-                            '<td style="text-align: center; background-color:">地区</td>' +
-                            '<td style="text-align: center; background-color: #f3bab0;">确诊</td>' +
-                            '<td style="text-align: center; background-color: #b4c0d5;">死亡</td>' +
-                            '<td style="text-align: center; background-color: #6c9;">治愈</td>' +
+                            '<td style="padding: 9px 10px; text-align: center; background-color:"><b>地区</b></td>' +
+                            '<td style="padding: 9px 10px; text-align: center; background-color: #f3bab0;"><b>现存确诊</b></td>' +
+                            '<td style="padding: 9px 10px; text-align: center; background-color: #e69a8d;"><b>累计确诊</b></td>' +
+                            '<td style="padding: 9px 10px; text-align: center; background-color: #b4c0d5;"><b>死亡</b></td>' +
+                            '<td style="padding: 9px 10px; text-align: center; background-color: #6c9;"><b>治愈</b></td>' +
                             '</tr>';
                     }
                 });
@@ -311,13 +316,13 @@ layui.define(function (exports) {
         });
     });
 
-    function getProvinceData(echars_obj, type_name, province_name) {
+    function renderProvinceData(echars_obj, type_name, province_name) {
         layui.use(['carousel', 'treeTable'], function () {
             var $ = layui.$
                 , render_arr = {"治愈/死亡数量": "DistributionCD", "确诊/疑似数量": "DistributionCS"};
             echars_obj.showLoading({text: '正在加载数据'});
             $.ajax({
-                url: "/wuhan2020/visualization/data/province/",
+                url: "/wuhan2020/visualization/conversion/data/",
                 data: {t_n: render_arr[type_name], p_n: province_name},
                 method: 'POST',
                 success: function (data) {
@@ -325,7 +330,22 @@ layui.define(function (exports) {
                     var render_data = {
                         tooltip: {
                             trigger: 'item'
-
+                        },
+                        toolbox: {
+                            show: true,
+                            showTitle: true,
+                            x: "left",
+                            y: "top",
+                            feature: {
+                                myTool: {
+                                    show: true,
+                                    title: '返回',
+                                    icon: 'image://../back.svg',
+                                    onclick: function () {
+                                        renderCountryData(echars_obj, type_name)
+                                    }
+                                }
+                            }
                         },
                         dataRange: {
                             splitList: [
@@ -367,7 +387,75 @@ layui.define(function (exports) {
 
                     };
                     if(type_name === "确诊/疑似数量"){
-                        render_data.dataRange.color = ['#4f070d', '#811c24', '#cb2a2f', '#e55a4e', '#f59e83', '#fdebcf']
+                        render_data.dataRange.color = ['#4f070d', '#811c24', '#cb2a2f', '#e55a4e', '#f59e83', '#fdebcf'];
+                        render_data.series[0].itemStyle.normal = {label: {show: true, textStyle: {color: '#333'}}, borderColor: '#999'}
+                    }
+                    if (data.result) {
+                        echars_obj.setOption(render_data);
+                        window.onresize = echars_obj.resize;
+                    }
+                }
+            });
+            echars_obj.hideLoading();
+
+        });
+    }
+    function renderCountryData(echars_obj, type_name) {
+        layui.use(['carousel', 'treeTable'], function () {
+            var $ = layui.$
+                , render_arr = {"治愈/死亡数量": "DistributionCD", "确诊/疑似数量": "DistributionCS"};
+            echars_obj.showLoading({text: '正在加载数据'});
+            $.ajax({
+                url: "/wuhan2020/visualization/conversion/data/",
+                data: {t_n: render_arr[type_name]},
+                method: 'POST',
+                success: function (data) {
+
+                    var render_data = {
+                        tooltip: {
+                            trigger: 'item'
+                        },
+                        dataRange: {
+                            splitList: [
+                                {start: 10000,},
+                                {start: 1000, end: 10000},
+                                {start: 500, end: 999},
+                                {start: 100, end: 499},
+                                {start: 10, end: 99},
+                                {start: 1, end: 9},
+                            ]
+                        },
+                        toolbox: { show: false },
+                        series: [
+                            {
+                                name: type_name,
+                                type: 'map',
+                                mapType: 'china',
+                                mapLocation: {
+                                    x: 'center'
+                                },
+                                selectedMode: 'multiple',
+                                itemStyle: {
+                                    normal: {label: {show: true}},
+                                    emphasis: {label: {show: true}, shadowBlur: 10,}
+                                },
+                                label: {
+                                    normal: {
+                                        show: false
+                                    },
+                                    emphasis: {
+                                        show: false
+                                    }
+                                },
+                                data: data.result
+
+                            }
+
+                        ],
+
+                    };
+                    if(type_name === "确诊/疑似数量"){
+                        render_data.dataRange.color = ['#4f070d', '#811c24', '#cb2a2f', '#e55a4e', '#f59e83', '#fdebcf'];
                         render_data.series[0].itemStyle.normal = {label: {show: true, textStyle: {color: '#333'}}, borderColor: '#999'}
                     }
                     if (data.result) {

@@ -1,6 +1,16 @@
 {% extends 'lib/base.html' %}
 {% load static %}
 {% block title %}数据展示{% endblock %}
+{% block header_include_before %}
+    <style type="text/css">
+    {#chrome 和Safari#}
+    .no-scroll::-webkit-scrollbar { width: 0 !important }
+    {#IE 10+#}
+    .no-scroll { -ms-overflow-style: none; }
+    {#Firefox#}
+    .no-scroll { overflow: -moz-scrollbars-none; }
+    </style>
+{% endblock %}
 {% block content %}
     <div class="layui-fluid">
         <div class="layui-row layui-col-space15">
@@ -41,7 +51,7 @@
                                                 <a href="#{{ item.href }}" class="layadmin-backlog-body">
                                                     <h3>{{ item.name }}
                                                         {% if item.incr %}
-                                                            <span class="layui-badge" style="background-color: {{ item.color }}">较昨日+{{ item.incr }}</span>
+                                                            <span class="layui-badge" style="background-color: {{ item.color }}">较昨日{{ item.incr }}</span>
                                                         {% endif %}
                                                     </h3>
                                                     <p><cite style="color: {{ item.color }};">{{ item.count }}</cite>
@@ -152,7 +162,7 @@
             <div class="layui-col-md6">
                 <div class="layui-card">
                     <div class="layui-card-header">国内疫情统计</div>
-                    <div class="layui-card-body" style="overflow: auto; height: 500px;">
+                    <div class="layui-card-body no-scroll" style="overflow: auto; height: 500px;">
 
                         <div class="layui-carousel layadmin-carousel layadmin-backlog">
                             <div>
@@ -166,7 +176,7 @@
             <div class="layui-col-md6">
                 <div class="layui-card">
                     <div class="layui-card-header">国际疫情统计</div>
-                    <div class="layui-card-body" style="overflow: auto; height: 500px;">
+                    <div class="layui-card-body no-scroll" style="overflow: auto; height: 500px;">
 
                         <div class="layui-carousel layadmin-carousel layadmin-backlog">
                             <div>
@@ -187,17 +197,16 @@
             base: '{% static 'layuiadmin/' %}' //静态资源所在路径
         }).extend({
             index: 'lib/index' //主入口模块
-        }).use(['index', 'wuhan2020'], function () {
-            var layer = layui.layer;
-
-            {% if is_first_use %}
+        }).use(['index', 'wuhan2020']{% if is_first_use %}
+            , function () {
+                var layer = layui.layer;
                 layer.confirm('检测到系统为首次运行。为保证数据正常显示，请先前往"公共模块->爬虫管理"进行数据采集。',
                     {closeBtn: false, btn: ['确定', '刷新'], icon: 2, title: '提示'}, function (index) {
                         parent.layui.index.openTabsPage('{% url 'public:spider_view' %}', '爬虫管理');
                     }, function (index) {
                         window.location.reload();
                     });
-            {% endif %}
-        });
+            }
+            {% endif %});
     </script>
 {% endblock %}

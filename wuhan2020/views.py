@@ -1,4 +1,5 @@
 from django.shortcuts import render
+from django.http import HttpResponse
 from django.contrib.auth.decorators import login_required
 
 import json
@@ -11,6 +12,17 @@ colors_dict = {"dead": "#5D7092", "cured": "#28B7A3", "confirmed": "#F74C31", "s
                "serious": "#A25A4E"}
 fields_dict = {"confirmed": "confirmedCount", "suspected": "suspectedCount", "cured": "curedCount", "dead": "deadCount",
                "serious": "seriousCount"}
+
+
+def back_svg(request):
+    return HttpResponse("""<svg t="1584332941285" class="icon" viewBox="0 0 1050 1024" version="1.1" 
+    xmlns="http://www.w3.org/2000/svg" p-id="936" width="200" height="200"><path d="M959.538346 
+    738.076072v-0.197265H511.156146v179.729875h-0.219182l0.569875 106.062544L0.043837 
+    512.339733l0.460283-0.482202-0.460283-0.482202L511.506839 0.13151l-0.569875 
+    109.328367h0.219182v179.225754h538.400565v0.284938h0.197265v449.324686h-90.281385z 
+    m0-359.218648H511.156146v0.197265h-90.303302v-0.197265h-0.153428v-90.281384h0.175346V218.306043L127.279437 
+    511.835613l293.595325 293.52957v-67.486376h-0.175346v-90.281384h538.860849V378.857424z" fill="#2F3135" 
+    p-id="937"></path></svg>""", content_type="image/svg+xml")
 
 
 def _get_sum_data(filter_fields: list or dict = None) -> dict:
@@ -73,10 +85,13 @@ def _get_incr(sum_data, *fields, **kwargs):
     return data
 
 
-def _get_domestic_province():
+def _get_domestic_province(type=""):
     data = {"province_cs": [], "province_cd": []}
     all_province_data = DXYData.objects.filter(is_available=1).order_by('id').last().domestic_province
-    all_province_data_json = json.loads(all_province_data)
+    try:
+        all_province_data_json = json.loads(all_province_data)
+    except json.decoder.JSONDecodeError:
+        return data
     for one_province_data in all_province_data_json:
         province_name = one_province_data["provinceShortName"]
         province_cs = one_province_data["confirmedCount"] + one_province_data["suspectedCount"]
@@ -84,6 +99,10 @@ def _get_domestic_province():
         if province_name != "待明确地区":
             data["province_cs"].insert(data["province_cs"].__len__(), {"name": province_name, "value": province_cs})
             data["province_cd"].insert(data["province_cd"].__len__(), {"name": province_name, "value": province_cd})
+    if type == "DistributionCS":
+        return data["province_cs"]
+    if type == "DistributionCD":
+        return data["province_cd"]
     return data
 
 
@@ -99,11 +118,12 @@ def visualization_view(request):
             data["introduction"].append(last_record_json[key])
     data["introduction"] = ListProcess().slice_n(data["introduction"], 5)
     data["update_time"] = last_record.modify_time.strftime("%Y-%m-%d %H:%M:%S")
+    get_str = lambda x: "+" + str(x) if x > 0 else str(x)
     for key, name in {"confirmed": "确诊病例", "suspected": "疑似病例", "serious": "危重病例", "cured": "治愈人数",
                       "dead": "死亡人数"}.items():
         data["counter"].append(
             {"name": name, "href": key, "color": colors_dict[key], "count": last_record_json[fields_dict[key]],
-             "incr": last_record_json.get(key + "Incr", "")})
+             "incr": get_str(last_record_json.get(key + "Incr", 0))})
 
     data["counter"] = ListProcess().slice_n(data["counter"], 4)
     resp = render(request, 'wuhan2020/visualization.html', data)
@@ -120,25 +140,31 @@ def _get_tree_table():
     try:
         internal_json = json.loads(internal_data)
         foreign_json = json.loads(foreign_data)
-    except TypeError or AttributeError:
+    except TypeError or AttributeError or json.decoder.JSONDecodeError:
         return data
     for province in internal_json:
         province_data = {"id": province["provinceShortName"], "confirmedCount": province["confirmedCount"],
-                         "deadCount": province["deadCount"], "curedCount": province["curedCount"], "children": []}
+                         "deadCount": province["deadCount"], "curedCount": province["curedCount"],
+                         "currentExistingCount":
+                             province["confirmedCount"] - province["deadCount"] - province["curedCount"], "children": []
+                         }
         for city in province.get("cities", []):
             city_data = {"id": city["cityName"], "confirmedCount": city["confirmedCount"],
-                         "deadCount": city["deadCount"], "curedCount": city["curedCount"], "children": []}
+                         "deadCount": city["deadCount"], "curedCount": city["curedCount"], "currentExistingCount":
+                             city["confirmedCount"] - city["deadCount"] - city["curedCount"], "children": []
+                         }
             province_data["children"].append(city_data)
         data["internal"].append(province_data)
     foreign_temp = []
-    columns = ["continents", "provinceName", "confirmedCount", "deadCount", "curedCount"]
+    columns = ["continents", "provinceName", "confirmedCount", "deadCount", "curedCount", "currentExistingCount"]
     for country in foreign_json:
         continents = country["continents"]
         provinceName = country["provinceName"]
         confirmedCount = country["confirmedCount"]
         deadCount = country["deadCount"]
         curedCount = country["curedCount"]
-        foreign_temp.append((continents, provinceName, confirmedCount, deadCount, curedCount))
+        currentExistingCount = country["confirmedCount"] - country["deadCount"] - country["curedCount"]
+        foreign_temp.append((continents, provinceName, confirmedCount, deadCount, curedCount, currentExistingCount))
     df = pd.DataFrame(foreign_temp, columns=columns)
     grouped_df = df.groupby("continents")
     grouped_sum = grouped_df.sum().sort_values(by=["confirmedCount"], ascending=False)
@@ -146,14 +172,16 @@ def _get_tree_table():
         continents_data = {"id": getattr(continents_row, "Index"),
                            "confirmedCount": getattr(continents_row, "confirmedCount"),
                            "deadCount": getattr(continents_row, "deadCount"),
-                           "curedCount": getattr(continents_row, "curedCount"), "children": []}
+                           "curedCount": getattr(continents_row, "curedCount"),
+                           "currentExistingCount": getattr(continents_row, "currentExistingCount"), "children": []}
         group_data_df = grouped_df.get_group(continents_row[0])
         # group_data_df.reset_index(group_data_df["provinceName"], inplace=True)
         for country_row in group_data_df.itertuples():
             country_data = {"id": getattr(country_row, "provinceName"),
                             "confirmedCount": getattr(country_row, "confirmedCount"),
                             "deadCount": getattr(country_row, "deadCount"),
-                            "curedCount": getattr(country_row, "curedCount"), "children": []}
+                            "curedCount": getattr(country_row, "curedCount"),
+                            "currentExistingCount": getattr(country_row, "currentExistingCount"), "children": []}
             continents_data["children"].append(country_data)
         data["foreign"].append(continents_data)
 
@@ -166,7 +194,7 @@ def _get_province_detail(province_name, type_name):
     internal_data = latest_data.domestic_area
     try:
         internal_json = json.loads(internal_data)
-    except TypeError or AttributeError:
+    except TypeError or AttributeError or json.decoder.JSONDecodeError:
         return data
     for province in internal_json:
         if province_name == province["provinceShortName"]:
@@ -183,15 +211,19 @@ def _get_province_detail(province_name, type_name):
 
 @login_required
 # @verify_sign("POST")
-def visualization_data_province(request):
+def visualization_conversion_data(request):
     if request.method == "POST":
         data = {}
         kwargs = request.POST
         data_type = kwargs.get("t_n", "")
         data_province = kwargs.get("p_n", "")
-        data["result"] = _get_province_detail(data_province, data_type)
-        print(data_type, data_province)
+        if data_type and data_province:
+            data["result"] = _get_province_detail(data_province, data_type)
+            return JsonResponse(data, json_dumps_params={'ensure_ascii': False})
+        if data_type and not data_province:
+            data["result"] = _get_domestic_province(data_type)
         return JsonResponse(data, json_dumps_params={'ensure_ascii': False})
+
     else:
         return JsonResponse({"msg": "访问太频繁，请稍后再试！"}, json_dumps_params={'ensure_ascii': False})
 
