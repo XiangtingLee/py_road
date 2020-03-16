@@ -302,7 +302,6 @@ def display_filter(request):
                 pass
         elif v:
             filter_kwargs[k + "__contains" if k in ["company__name", "position_name"] else k] = v
-    first = 1
     page = int(request.POST.get('page', 1))
     limit = int(request.POST.get('limit', 10))
     _data = list(
@@ -311,12 +310,7 @@ def display_filter(request):
             'id', 'company__name', 'position_type__name', 'position_name', 'position_city__name',
             'position_district__name', 'education__name', 'experience__name', 'update_time', "salary")
     )
-    data['count'] = total = _data.__len__()
-    if total:
-        last = (total - 1) // limit + 1
-        _data = _data[(page - 1) * limit: page * limit]
-        if first <= page <= last:
-            data['data'] = _data
+    data['count'], data['data'] = ListProcess().pagination(_data, page, limit)
     return JsonResponse(data, json_dumps_params={'ensure_ascii': False})
 
 

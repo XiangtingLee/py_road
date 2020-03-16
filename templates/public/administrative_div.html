@@ -1,0 +1,60 @@
+{% extends 'lib/base.html' %}
+{% load static %}
+{% block title %}行政区划{% endblock %}
+{% block content %}
+    <div class="layui-fluid">
+        <div class="layui-row layui-col-space15">
+            <div class="layui-col-md12">
+                <div class="layui-card">
+                    <div class="layui-card-header">行政区划</div>
+                    <div class="layui-card-body">
+
+                        <table class="layui-table" id="record-table" lay-filter="record-table"></table>
+
+                        <script type="text/html" id="test-table-thead-barDemo">
+                            <a class="layui-btn layui-btn-primary layui-btn-xs" lay-event="detail">按钮1</a>
+                            <a class="layui-btn layui-btn-primary layui-btn-xs" lay-event="edit">按钮2</a>
+                        </script>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+{% block tail_include_after %}
+    <script>
+        layui.config({
+            base: '{% static 'layuiadmin/' %}' //静态资源所在路径
+        }).extend({
+            index: 'lib/index' //主入口模块
+        }).use(['index', 'table'], function () {
+            var table = layui.table;
+
+            table.render({
+                elem: '#record-table'
+                , url: '{% url 'public:administrative_div_data' %}'
+                , method: 'POST'
+                , cols: [[
+                    {checkbox: true, fixed: 'left', rowspan: 2}
+                    , {field: 'code', width: 90, rowspan: 2, title: '区划代码'}
+                    , {field: 'name', width: 150, rowspan: 2, title: '名称'}
+                    , {field: 'pinyin', width: 100, rowspan: 2, title: '全拼'}
+                    , {field: 'short_name', width: 150, rowspan: 2, title: '简称'}
+                    , {field: 'zip_code', width: 100, rowspan: 2, title: '邮政编码'}
+                    , {align: 'center', colspan: 3, title: "三级区划", PARENT_COL: true,}
+                    , {field: "lng_lat", width: 180, rowspan: 2, title: "经纬度"}
+                    , {field: 'add_time', width: 170, rowspan: 2, title: '添加时间', sort: true}
+                    , {field: 'update_time', width: 170, rowspan: 2, title: '修改时间', sort: true}
+                    {#, {width: 178, align: 'center', fixed: 'right', toolbar: '#table-operate', title: '操作'}#}
+                ], [
+                    {field: 'province_name', width: 100, title: '省级'}
+                    , {field: 'city_name', width: 100, title: '市级'}
+                    , {field: 'area_name', width: 100, title: '区县'}
+                ]]
+                , page: true
+                , id: 'record'
+            });
+
+        });
+    </script>
+{% endblock %}

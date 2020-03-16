@@ -148,3 +148,14 @@ class ListProcess(object):
         将item按照count切割成多个list
         """
         return [item[i:i + count] for i in range(0, len(item), count)]
+
+    @staticmethod
+    def pagination(data: list, page: int, limit: int) -> tuple:
+        total = data.__len__()
+        if total:
+            last = (total - 1) // limit + 1
+            data = data[(page - 1) * limit: page * limit]
+            if 1 <= page <= last:
+                return total, data
+            return total, []
+        return total, []

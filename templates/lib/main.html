@@ -3,7 +3,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>{% block title %}{% endblock %}</title>
+    <title>{% block title %}PyRoad{% endblock %}</title>
     <meta name="renderer" content="webkit">
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
     <meta name="viewport"
@@ -115,7 +115,7 @@
                             <cite>公共模块</cite>
                         </a>
                         <dl class="layui-nav-child">
-                            <dd data-name="administrativeDiv"><a lay-href="******">全国行政区划</a></dd>
+                            <dd data-name="administrativeDiv"><a lay-href="{% url 'public:administrative_div_view' %}">全国行政区划</a></dd>
                             <dd data-name="grid">
                                 <a href="javascript:;">爬虫模块</a>
                                 <dl class="layui-nav-child">

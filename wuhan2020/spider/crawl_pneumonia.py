@@ -27,9 +27,9 @@ class CrawlPneumonia(object):
             "getStatisticsService": self.statistics,
             "getIndexRumorList": self.rumor,
             "getTimelineService": self.timeline,
-            "getListByCountryTypeService1": self.domestic_province,
+            "getListByCountryTypeService1undefined": self.domestic_province,
             "getAreaStat": self.domestic_area,
-            "getListByCountryTypeService2": self.foreign,
+            "getListByCountryTypeService2true": self.foreign,
         }
 
     def statistics(self, data:dict):

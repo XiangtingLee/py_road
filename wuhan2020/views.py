@@ -239,16 +239,11 @@ def timeline_data(request):
                                                                                                  "source_summary",
                                                                                                  "source_info", ))
 
-        data['count'] = total = _data.__len__()
-        _data[0]["latest"] = 1
-        if total:
-            last = (total - 1) // limit + 1
-            _data = _data[(page - 1) * limit: page * limit]
-            for i in _data:
-                i["pub_time_diff"] = DateProcess().get_time_difference_str(i["publish_time"])
-            if 1 <= page <= last:
-                data["content"]['result'] = _data
-        data["content"]["totalPage"] = total // limit + 1
+        data['count'], _data = ListProcess().pagination(_data, page, limit)
+        for i in _data:
+            i["pub_time_diff"] = DateProcess().get_time_difference_str(i["publish_time"])
+        data["content"]['result'] = _data
+        data["content"]["totalPage"] = data['count'] // limit + 1
 
         return JsonResponse(data, json_dumps_params={'ensure_ascii': False})
     else:

@@ -10,6 +10,7 @@ import json
 # from scrapyd_api import ScrapydAPI
 
 # Django模块导入
+from django.db.models import F
 from django.shortcuts import render
 from django.forms.models import model_to_dict
 from django.http import JsonResponse, HttpResponseRedirect
@@ -22,7 +23,7 @@ from .models import *
 from log.models import *
 from .tasks import run_shell
 # from log.models import SpiderRunLog
-from .tools import MyThread, verify_sign, update_sign
+from .tools import MyThread, verify_sign, update_sign, ListProcess
 from django.conf import settings
 
 
@@ -106,12 +107,7 @@ def proxy_data(request):
             page = int(request.POST.get('page', 1))
             limit = int(request.POST.get('limit', 10))
             _data = list(ProxyPool.objects.filter(is_delete=0).values())
-            total = data['count'] = _data.__len__()
-            if total:
-                last = (total - 1) // limit + 1
-                _data = _data[(page - 1) * limit: page * limit]
-                if 1 <= page <= last:
-                    data['data'] = _data
+            data['count'], data['data'] = ListProcess().pagination(_data, page, limit)
         return JsonResponse(data, json_dumps_params={'ensure_ascii': False})
     else:
         return JsonResponse({"msg": "访问太频繁，请稍后再试！"}, json_dumps_params={'ensure_ascii': False})
@@ -328,7 +324,7 @@ def spider_manage_probe(request):
 @verify_sign("POST")
 def spider_manage_data(request):
     if request.method == "POST":
-        data = {"code": 0, "msg": "", "count": 1000, "data": []}
+        data = {"code": 0, "msg": "", "data": []}
         spiders = Spider.objects.all().order_by('id')
         data["data"] = [model_to_dict(spider) for spider in spiders]
         data["count"] = spiders.count()
@@ -357,5 +353,29 @@ def spider_operate_run(request):
         sync_task = run_shell.delay(command)
         SpiderRunLog.objects.create(spider_name=spider_name, task_id=sync_task.id, param=param)
         return HttpResponseRedirect('/public/spider/operate/view/')
+    else:
+        return JsonResponse({"status": "error", "maessage": "网络繁忙，请稍后再试！"}, json_dumps_params={'ensure_ascii': False})
+
+
+@login_required
+def administrative_div_view(request):
+    now = int(time.time())
+    resp = render(request, 'public/administrative_div.html')
+    resp.set_signed_cookie(key='sign', value=now, salt=settings.SECRET_KEY, path='/public/administrativeDiv/')
+    return resp
+
+
+@login_required
+def administrative_div_data(request):
+    if request.method == "POST":
+        data = {"code": 0, "msg": "", "data": []}
+        page = int(request.POST.get('page', 1))
+        limit = int(request.POST.get('limit', 10))
+        _data = AdministrativeDiv.objects.all().annotate(province_name=F("province__name"), city_name=F("city__name"),
+                                                         area_name=F("area__name")).values(
+            "code", "name", "pinyin", "short_name", "zip_code", "province_name", "city_name", "area_name", "lng_lat",
+            "add_time", "update_time").order_by('id')
+        data['count'], data['data'] = ListProcess().pagination(_data, page, limit)
+        return JsonResponse(data)
     else:
         return JsonResponse({"status": "error", "maessage": "网络繁忙，请稍后再试！"}, json_dumps_params={'ensure_ascii': False})
