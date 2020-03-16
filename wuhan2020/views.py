@@ -72,7 +72,7 @@ def _get_incr(sum_data, *fields, **kwargs):
         if field != "suspected" and field != "serious":
             type_num = [values for values in sum_data[field].values()]
             incr = [type_num[i] if not i else type_num[i] - type_num[i - 1] for i in range(type_num.__len__())]
-            # del incr[0]
+            del incr[0]
             series = {
                 "name": field,
                 "type": "line",
@@ -81,7 +81,7 @@ def _get_incr(sum_data, *fields, **kwargs):
             }
             data["series"].append(series)
             data["legend"]["data"].append(field)
-    # del data["xAxis"][0]
+    del data["xAxis"][0]
     return data
 
 

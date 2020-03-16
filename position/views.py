@@ -258,32 +258,43 @@ def visualization_data(request):
         return JsonResponse({"msg": "访问太频繁，请稍后再试！"}, json_dumps_params={'ensure_ascii': False})
 
 
+@login_required
 def display_view(request):
-    data = {"search_node": [], "all_type": PositionType.objects.values_list("name", flat=True)}
-    place_data = Position.objects.filter(is_effective=1).values_list("position_city__province__name",
-                                                                     "position_city__name", "position_district__name")
-    df = pd.DataFrame(list(place_data))
-    df.columns = ["province", "city", "district"]
-    df["district"] = df["district"].fillna("其它地区")
-    df = df.drop_duplicates(subset=["province", "city", "district"])
-    # 按照province过滤
-    province_node = [city for city in df.drop_duplicates(['province'])['province']]
-    for province in province_node:
-        # 按照city过滤
-        city_node = df[df['province'].str.contains(province)].drop_duplicates(['city'])['city']
-        all_city_data = []  # 一个city下所有的district
-        for city in city_node:
-            province_df = df[df['province'].str.contains(province)]
-            district_node = [{"name": place, "type": "district"} for place in
-                             province_df[province_df["city"].str.contains(city)].drop_duplicates(['district'])[
-                                 'district']]
-            # 构造city数据
-            all_city_data.append({"name": city, "type": "city", "children": district_node})
-        # 构造province数据
-        data["search_node"].append({"name": province, "type": "province", "children": all_city_data})
+    data = {"all_type": PositionType.objects.values_list("name", flat=True)}
     resp = render(request, 'position/display.html', data)
-    resp.set_signed_cookie(key='sign', value=int(time.time()), salt=settings.SECRET_KEY, path='/position/reveal/')
+    resp.set_signed_cookie(key='sign', value=int(time.time()), salt=settings.SECRET_KEY, path='/position/display/')
     return resp
+
+
+@login_required
+@verify_sign("POST")
+def node_data(request):
+    if request.method=="POST":
+        data = {"search_node": []}
+        place_data = Position.objects.filter(is_effective=1).values_list("position_city__province__name",
+                                                                         "position_city__name", "position_district__name")
+        df = pd.DataFrame(list(place_data))
+        df.columns = ["province", "city", "district"]
+        df["district"] = df["district"].fillna("其它地区")
+        df = df.drop_duplicates(subset=["province", "city", "district"])
+        # 按照province过滤
+        province_node = [city for city in df.drop_duplicates(['province'])['province']]
+        for province in province_node:
+            # 按照city过滤
+            city_node = df[df['province'].str.contains(province)].drop_duplicates(['city'])['city']
+            all_city_data = []  # 一个city下所有的district
+            for city in city_node:
+                province_df = df[df['province'].str.contains(province)]
+                district_node = [{"name": place, "type": "position_district__name"} for place in
+                                 province_df[province_df["city"].str.contains(city)].drop_duplicates(['district'])[
+                                     'district']]
+                # 构造city数据
+                all_city_data.append({"name": city, "type": "position_city__name", "children": district_node})
+            # 构造province数据
+            data["search_node"].append({"name": province, "type": "position_city__province__name", "children": all_city_data})
+        return JsonResponse(data["search_node"], json_dumps_params={'ensure_ascii': False}, safe=False)
+    else:
+        return JsonResponse({"msg": "访问太频繁，请稍后再试！"}, json_dumps_params={'ensure_ascii': False})
 
 
 @login_required

@@ -43,8 +43,18 @@
                     , {field: 'zip_code', width: 100, rowspan: 2, title: '邮政编码'}
                     , {align: 'center', colspan: 3, title: "三级区划", PARENT_COL: true,}
                     , {field: "lng_lat", width: 180, rowspan: 2, title: "经纬度"}
-                    , {field: 'add_time', width: 170, rowspan: 2, title: '添加时间', sort: true}
-                    , {field: 'update_time', width: 170, rowspan: 2, title: '修改时间', sort: true}
+                    , {
+                        field: 'add_time', width: 170, rowspan: 2, title: '添加时间', sort: true,
+                        templet: function (d) {
+                            return d.update_time.replace("T", "\t");
+                        }
+                    }
+                    , {
+                        field: 'update_time', width: 170, rowspan: 2, title: '修改时间', sort: true,
+                        templet: function (d) {
+                            return d.update_time.replace("T", " ");
+                        }
+                    }
                     {#, {width: 178, align: 'center', fixed: 'right', toolbar: '#table-operate', title: '操作'}#}
                 ], [
                     {field: 'province_name', width: 100, title: '省级'}

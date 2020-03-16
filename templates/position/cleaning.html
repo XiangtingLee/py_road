@@ -58,7 +58,11 @@
                     , {field: 'education__name', title: '学历要求', width: 100, sort: true}
                     , {field: 'experience__name', title: '经验要求', width: 120, sort: true}
                     , {field: 'salary', title: '薪资', width: 100, sort: true}
-                    , {field: 'update_time', title: '最后修改时间', width: 180, sort: true}
+                    , {
+                        field: 'update_time', title: '最后修改时间', width: 180, sort: true, templet: function (d) {
+                            return d.update_time.replace("T", "\t");
+                        }
+                    }
                     //,{field:'email', title:'邮箱', width:150, templet: function(res){
                     //  return '<em>'+ res.email +'</em>'
                     //}}

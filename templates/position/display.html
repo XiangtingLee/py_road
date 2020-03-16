@@ -3,9 +3,9 @@
 {% block title %}数据清洗{% endblock %}
 {% block header_include %}
     <style>
-    .layui-form-item .layui-input-inline{
-        width: 100px !important;
-    }
+        .layui-form-item .layui-input-inline {
+            width: 100px !important;
+        }
     </style>
 {% endblock header_include %}
 {% block content %}
@@ -23,7 +23,8 @@
                                 <div class="layui-inline">
                                     <label class="layui-form-label">ID</label>
                                     <div class="layui-input-inline">
-                                        <input class="layui-input" name="id" id="filterId" autocomplete="off" lay-verify="number">
+                                        <input class="layui-input" name="id" id="filterId" autocomplete="off"
+                                               lay-verify="number">
                                     </div>
                                 </div>
 
@@ -31,7 +32,7 @@
                                     <label class="layui-form-label">职位类型</label>
                                     <div class="layui-input-inline">
                                         <select name="position_type__name">
-                                            <option value=""></option>
+                                            <option value="">请选择职位类型</option>
                                             {% for type in all_type %}
                                                 <option value="{{ type }}">{{ type }}</option>
                                             {% endfor %}
@@ -64,41 +65,31 @@
                                     </div>
                                 </div>
 
-
                                 <div class="layui-inline">
-                                    <label class="layui-form-label">所在城市</label>
-                                    <div class="layui-input-inline layui-unselect layui-form-select downpanel">
-                                        <div class="layui-select-title">
-                                            <span class="layui-input layui-unselect" id="treeclass"
-                                                  style="padding-top: 10px;"></span>
-                                            <input type="hidden" id="filter-province" name="position_city__province__name"/>
-                                            <input type="hidden" id="filter-city" name="position_city__name"/>
-                                            <input type="hidden" id="filter-district" name="position_district__name"/>
-                                            <i class="layui-edge"></i>
-                                        </div>
-                                        <dl class="layui-anim layui-anim-upbit">
-                                            <dd>
-                                                <ul id="locationTree"></ul>
-                                            </dd>
-                                        </dl>
-                                    </div>
-                                </div>
+                                   <label class="layui-form-label">所在城市</label>
+                                   <div class="layui-input-inline">
+                                       <input type="text" name="position" id="filterLocation" lay-filter="filterLocation" class="layui-input">
+                                   </div>
+                               </div>
 
                             </div>
 
-                            <button class="layui-btn" id="filter-btn" data-type="filter" type="button"
+                            <button class="layui-btn" id="filter" data-type="filter" type="button"
                                     style="position: absolute; right: 25px; top: 10px;">筛选
+                            </button>
+                            <button type="reset" class="layui-btn layui-btn-primary"
+                                    style="position: absolute; right: 25px; top: 60px;">重置
                             </button>
 
                         </form>
                     </div>
 
-                        <table class="layui-hide" id="test-table-toolbar" lay-filter="list-filter"></table>
-                        <script type="text/html" id="barDemo">
-                            <a class="layui-btn layui-btn-xs" lay-event="detail">查看</a>
-{#                            <a class="layui-btn layui-btn-xs" lay-event="edit">编辑</a>#}
-{#                            <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>#}
-                        </script>
+                    <table class="layui-hide" id="test-table-toolbar" lay-filter="list-filter"></table>
+                    <script type="text/html" id="barDemo">
+                        <a class="layui-btn layui-btn-xs" lay-event="detail">查看</a>
+                        {#                            <a class="layui-btn layui-btn-xs" lay-event="edit">编辑</a>#}
+                        {#                            <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>#}
+                    </script>
                 </div>
 
             </div>
@@ -111,121 +102,109 @@
             base: '{% static 'layuiadmin/' %}' //静态资源所在路径
         }).extend({
             index: '/lib/index' //主入口模块
-        }).use(['tree', 'index', 'table', 'slider', "form"], function () {
+        }).use(['index', 'table', "form", 'tree', 'slider', 'treeSelect'], function () {
             var table = layui.table
                 , $ = layui.jquery
                 , form = layui.form
-                , slider = layui.slider;
+                , slider = layui.slider
+                , treeSelect = layui.treeSelect;
 
             form.render();
 
-            //开启范围选择
             slider.render({
                 elem: '#salaryRange'
-                , value: 100 //初始值
-                , range: true //范围选择
-                , setTips: function (value) { //自定义提示文本
-                    return value + 'K';
+                , value: 100
+                , range: true
+                , setTips: function (val) {
+                    return val + 'K';
                 }
-                , change: function (vals) {
-                    $('#filterSalary').val(vals[0] + "," + vals[1]);
+                , change: function (val) {
+                    $('#filterSalary').val(val[0] + "," + val[1]);
                 }
             });
-{#/*#}
-            layui.tree({
-                elem: '#locationTree' //指定元素
-                , click: function (node) { //点击节点回调
-                    var $select = $($(this)[0].elem).parents(".layui-form-select");
-                    $select.find("input:hidden[id='filter-province']").val('');
-                    $select.find("input:hidden[id='filter-city']").val('');
-                    $select.find("input:hidden[id='filter-district']").val('');
-                    $select.removeClass("layui-form-selected").find(".layui-select-title span").html(node.name).end()
-                        .find("input:hidden[id='filter-"+ node.type+"']").val(node.name);
-                }
-                , nodes: {{ search_node | safe }}
-            });
-            $(".downpanel").on("click", ".layui-select-title", function (e) {
-                $(".layui-form-select").not($(this).parents(".layui-form-select")).removeClass("layui-form-selected");
-                $(this).parents(".downpanel").toggleClass("layui-form-selected");
-                layui.stope(e);
-            }).on("click", "dl i", function (e) {
-                layui.stope(e);
-            });
-            $(document).on("click", function (e) {
-                $(".layui-form-select").removeClass("layui-form-selected");
-            });
-{#*/#}
-
-            //方法级渲染
-            table.render({
-                elem: '#test-table-toolbar'
-                , url: '{% url 'position:display_filter' %}'
-                , method: 'POST'
-                , title: '用户数据表'
-                , cols: [[
-                    {type: 'checkbox', fixed: 'left'}
-                    , {field: 'id', title: 'ID', width: 80, fixed: 'left', sort: true}
-                    , {field: 'company__name', title: '公司名称', width: 101, sort: true}
-                    , {field: 'position_type__name', title: '职位类型', width: 101, sort: true}
-                    , {field: 'position_name', title: '职位名称', width: 150, sort: true}
-                    , {field: 'position_city__name', title: '所在城市', width: 101, sort: true}
-                    , {field: 'position_district__name', title: '所在地点', width: 101, sort: true}
-                    , {field: 'education__name', title: '学历要求', width: 101, sort: true}
-                    , {field: 'experience__name', title: '经验要求', width: 120, sort: true}
-                    , {field: 'salary', title: '薪资', width: 100, sort: true}
-                    , {field: 'update_time', title: '最后修改时间', width: 180, sort: true}
-                    , {fixed: 'right', title: '操作', width: 80, align: 'center', toolbar: '#barDemo'}
-                ]]
-                , id: 'dataForm'
-                , page: true
-            });
-
-            var $ = layui.$, active = {
-                filter: function () {
-                    var filter = $('#filterData').serialize();
-                    var filterId = $('#filterId').val();
-                    var filterCompany = $('#filterCompany').val();
-                    var filterLocation = $('#filterLocation').val();
-
-                    //执行重载
-                    table.reload('dataForm', {
-                        url: "{% url "position:display_filter" %}?" + filter,
-                        page: {
-                            curr: 1 //重新从第 1 页开始
-                        }
-                        , where: {
-                            key: {
-                                id: filterId,
-                                company_name: filterCompany,
-                                job_city: filterLocation,
-                            }
-                        }
-                    }, 'data');
-                }
-            };
-
-            $('#filter-btn').on('click', function () {
-                var type = $(this).data('type');
-                active[type] ? active[type].call(this) : '';
-            });
-            //监听行工具事件
-            table.on('tool(list-filter)', function (obj) { //注：tool 是工具条事件名，test 是 table 原始容器的属性 lay-filter="对应的值"
-                var data = obj.data //获得当前行数据
-                    , layEvent = obj.event; //获得 lay-event 对应的值
-                if (layEvent === 'detail') {
-                    window.open("https://www.lagou.com/jobs/" + data.id + ".html");
-                } else if (layEvent === 'del') {
-                    layer.confirm('真的删除行么', function (index) {
-                        obj.del(); //删除对应行（tr）的DOM结构
-                        layer.close(index);
-                        //向服务端发送删除指令
-                    });
-                } else if (layEvent === 'edit') {
-                    layer.msg('编辑操作');
+            treeSelect.render({
+                elem: '#filterLocation',
+                data: '{% url 'position:node_data' %}',
+                type: 'post',
+                placeholder: '请选择所在城市',
+                search: true,
+                style: {
+                    folder: {
+                        enable: false
+                    },
+                    line: {
+                        enable: true
+                    }
+                },
+                click: function (d) {
+                    $('#filterLocation').val(d.current.name);
+                    $('#filterLocation').attr("name", d.current.type);
                 }
             });
 
+        //方法级渲染
+        table.render({
+            elem: '#test-table-toolbar'
+            , url: '{% url 'position:display_filter' %}'
+            , method: 'POST'
+            , title: '用户数据表'
+            , cols: [[
+                {type: 'checkbox', fixed: 'left'}
+                , {field: 'id', title: 'ID', width: 80, fixed: 'left', sort: true}
+                , {field: 'company__name', title: '公司名称', width: 101, sort: true}
+                , {field: 'position_type__name', title: '职位类型', width: 101, sort: true}
+                , {field: 'position_name', title: '职位名称', width: 150, sort: true}
+                , {field: 'position_city__name', title: '所在城市', width: 101, sort: true}
+                , {field: 'position_district__name', title: '所在地点', width: 101, sort: true}
+                , {field: 'education__name', title: '学历要求', width: 101, sort: true}
+                , {field: 'experience__name', title: '经验要求', width: 120, sort: true}
+                , {field: 'salary', title: '薪资', width: 100, sort: true}
+                , {
+                    field: 'update_time', title: '最后修改时间', width: 180, sort: true, templet: function (d) {
+                        return d.update_time.replace("T", "\t");
+                    }
+                }
+                , {fixed: 'right', title: '操作', width: 80, align: 'center', toolbar: '#barDemo'}
+            ]]
+            , id: 'dataForm'
+            , page: true
         });
+
+        var $ = layui.$, active = {
+            filter: function () {
+                const filter = $('#filterData').serialize();
+                //执行重载
+                table.reload('dataForm', {
+                    url: "{% url "position:display_filter" %}?" + filter
+                    , page: { curr: 1 }
+                    , where: {}
+                }, 'data');
+            }
+        };
+
+        $('#filter').on('click', function () {
+            const type = $(this).data('type');
+            active[type] ? active[type].call(this) : '';
+        });
+        //监听行工具事件
+        table.on('tool(list-filter)', function (obj) { //注：tool 是工具条事件名，test 是 table 原始容器的属性 lay-filter="对应的值"
+            const data = obj.data //获得当前行数据
+                , layEvent = obj.event; //获得 lay-event 对应的值
+            if (layEvent === 'detail') {
+                window.open("https://www.lagou.com/jobs/" + data.id + ".html");
+            } else if (layEvent === 'del') {
+                layer.confirm('真的删除行么', function (index) {
+                    obj.del(); //删除对应行（tr）的DOM结构
+                    layer.close(index);
+                    //向服务端发送删除指令
+                });
+            } else if (layEvent === 'edit') {
+                layer.msg('编辑操作');
+            }
+        });
+
+        })
+        ;
     </script>
 
 
