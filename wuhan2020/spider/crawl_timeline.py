@@ -47,8 +47,8 @@ class CrawlTimeline(object):
                             kwargs["province"] = province[0]
                     kwargs["info_type"] = data["infoType"]
                     kwargs["publish_time"] = datetime.datetime.fromtimestamp(int(data["pubDate"] // 1000))
-                    kwargs["create_time"] = datetime.datetime.fromtimestamp(int(data["createTime"] // 1000))
-                    kwargs["modify_time"] = datetime.datetime.fromtimestamp(int(data["modifyTime"] // 1000))
+                    kwargs["create_time"] = datetime.datetime.fromtimestamp(int(data["dataInfoTime"] // 1000))
+                    kwargs["modify_time"] = datetime.datetime.fromtimestamp(int(data["dataInfoTime"] // 1000))
                     # 入库
                     try:
                         DXYTimeLine.objects.create(**kwargs)
