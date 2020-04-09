@@ -24,21 +24,21 @@ app.conf.update(
         'position-task-python': {
             'task': 'public.tasks.run_cache_delay_spider',
             'schedule': crontab(minute=0, hour="10,14,18,22"),
-            'args': ("lg_position", {"location": "-全国","language":"-Python"},)
+            'args': ("lg_position", ("全国", "Python"),)
         },
         'position-task-java': {
             'task': 'public.tasks.run_cache_delay_spider',
             'schedule': crontab(minute=10, hour="10,14,18,22"),
-            'args': ("lg_position", {"location": "-全国","language":"-Java"},)
+            'args': ("lg_position", ("全国", "Java"),)
         },
         'pneumonia-task': {
             'task': 'public.tasks.run_delay_spider',
-            'schedule': timedelta(minutes=1),
+            'schedule': timedelta(minutes=5),
             'args': ("COVID_data",)
         },
         'timeline-task': {
             'task': 'public.tasks.run_delay_spider',
-            'schedule': timedelta(minutes=1),
+            'schedule': timedelta(minutes=30),
             'args': ("COVID_timeline",)
         }
     }
