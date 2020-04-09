@@ -22,24 +22,24 @@ app.autodiscover_tasks(settings.INSTALLED_APPS)
 app.conf.update(
     CELERYBEAT_SCHEDULE={
         'position-task-python': {
-            'task': 'public.tasks.run_shell',
-            'schedule': crontab(hour="10,14,18,22"),
-            'args': ("python3 /workspace/py_road/position/spider/crawl_position.py -全国 -Python",)
+            'task': 'public.tasks.run_cache_delay_spider',
+            'schedule': crontab(minute=0, hour="10,14,18,22"),
+            'args': ("lg_position", {"location": "-全国","language":"-Python"},)
         },
         'position-task-java': {
-            'task': 'public.tasks.run_shell',
+            'task': 'public.tasks.run_cache_delay_spider',
             'schedule': crontab(minute=10, hour="10,14,18,22"),
-            'args': ("python3 /workspace/py_road/position/spider/crawl_position.py -全国 -Java",)
+            'args': ("lg_position", {"location": "-全国","language":"-Java"},)
         },
         'pneumonia-task': {
-            'task': 'public.tasks.run_schedule',
+            'task': 'public.tasks.run_delay_spider',
             'schedule': timedelta(minutes=1),
-            'args': ("python3 /workspace/py_road/wuhan2020/spider/crawl_pneumonia.py",)
+            'args': ("COVID_data",)
         },
         'timeline-task': {
-            'task': 'public.tasks.run_schedule',
+            'task': 'public.tasks.run_delay_spider',
             'schedule': timedelta(minutes=1),
-            'args': ("python3 /workspace/py_road/wuhan2020/spider/crawl_timeline.py",)
+            'args': ("COVID_timeline",)
         }
     }
 )
