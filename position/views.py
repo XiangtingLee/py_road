@@ -217,7 +217,7 @@ def visualization_view(request):
     return resp
 
 
-def update_position_visualization_cache(task_id):
+def _update_cache():
     data = {}
     threads = []
     data_dict = {
@@ -238,6 +238,7 @@ def update_position_visualization_cache(task_id):
     for thread in threads:
         thread.join()
         data[thread.name] = thread.result
+    data["tid"] = SpiderRunLog.objects.filter(spider_name="lg_position", status=True).first().task_id
     cache.set("visualization_data", data, 3600)
 
 
@@ -245,12 +246,13 @@ def update_position_visualization_cache(task_id):
 @verify_sign("POST")
 def visualization_data(request):
     if request.method == "POST":
-        data = {"status": "success", "success": True, "content":{}, "msg":""}
-        read_cache = cache.get('visualization_data', None)
-        while not read_cache:
-            update_position_visualization_cache("")
-            read_cache = cache.get('visualization_data', None)
-        data["content"] = read_cache
+        if not cache.get('visualization_data'):
+            _update_cache()
+        data = cache.get('visualization_data')
+        if data.get("tid", None) != SpiderRunLog.objects.filter(spider_name="lg_position", status=True).first().task_id:
+            cache.delete("visualization_data")
+            _update_cache()
+            data = cache.get('visualization_data')
         return JsonResponse(data, json_dumps_params={'ensure_ascii': False})
     else:
         return JsonResponse({"msg": "访问太频繁，请稍后再试！"}, json_dumps_params={'ensure_ascii': False})
