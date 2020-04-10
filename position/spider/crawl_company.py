@@ -1,11 +1,11 @@
-import os
-import sys
-import json
-import time
-import django
-import datetime
 import requests
+import time
+import datetime
+import json
 from lxml import etree
+import sys
+import os
+import django
 from queue import Queue
 
 
@@ -197,28 +197,6 @@ class CrawlCompany(object):
 
 
 if __name__ == '__main__':
-    import getopt
-    try:
-        options, args = getopt.getopt(sys.argv[1:], "", ["cid=", "count=", "thread="])
-    except getopt.GetoptError:
-        sys.exit()
-    cid = None
-    count = 1
-    thread_count = count if count < 5 else 5
-    for name, value in options:
-        if name == "--cid":
-            cid = value
-        if name == "--count":
-            count = value
-        if name == "--thread":
-            thread_count = value
-    if not cid:
-        print("No cid received! Spider will choose a random cid to run.")
-        from random import randint
-        cid = randint(1, 767694)
-        while Company.objects.filter(id=cid).exists():
-            cid = randint(1, 767694)
-    print("crawl company id: %s\tcrawl count: %s\tcrawl thread: %s" % (cid, count, thread_count))
     spider = CrawlCompany()
-    spider.thread_count = thread_count
-    spider.run(start_id=cid, count=count)
+    spider.thread_count = 5
+    spider.run(start_id=1, count=10)

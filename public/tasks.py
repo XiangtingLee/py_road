@@ -15,12 +15,10 @@ import datetime
 import subprocess
 
 
-def delay_spider(spider_name, *args, **kwargs):
+def delay_spider(spider_name, *args):
     base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     spider_path = Spider.objects.get(name=spider_name).path
     param = " -" + " -".join(args) if args else ""
-    for k, v in kwargs.items():
-        param += " --" + k + "=" + v
     command = "python3 " + base_dir + spider_path + param
     sync_task = run_shell.delay(command)
     SpiderRunLog.objects.create(spider_name=spider_name, task_id=sync_task.id, param=param)
@@ -54,14 +52,9 @@ def run_schedule(command):
 
 
 @shared_task(base=MyTask)
-def run_delay_spider(spider_name, args=(), kwargs=None):
-    if kwargs is None:
-        kwargs = {}
-    delay_spider(spider_name, *args, **kwargs)
-
+def run_delay_spider(spider_name, args=()):
+    delay_spider(spider_name, *args)
 
 @shared_task(base=CacheTask)
-def run_cache_delay_spider(spider_name, args=(), kwargs=None):
-    if kwargs is None:
-        kwargs = {}
-    delay_spider(spider_name, *args, **kwargs)
+def run_cache_delay_spider(spider_name, args=()):
+    delay_spider(spider_name, *args)
