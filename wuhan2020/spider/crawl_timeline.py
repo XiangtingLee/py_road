@@ -45,9 +45,10 @@ class CrawlTimeline(object):
                         province = AdministrativeDiv.objects.filter(Q(name=data["provinceName"])|Q(short_name=data["provinceName"]))
                         if province.count() > 0:
                             kwargs["province"] = province[0]
+                    kwargs["info_type"] = data["infoType"]
                     kwargs["publish_time"] = datetime.datetime.fromtimestamp(int(data["pubDate"] // 1000))
-                    kwargs["create_time"] = datetime.datetime.now()
-                    kwargs["modify_time"] = datetime.datetime.now()
+                    kwargs["create_time"] = datetime.datetime.fromtimestamp(int(data["dataInfoTime"] // 1000))
+                    kwargs["modify_time"] = datetime.datetime.fromtimestamp(int(data["dataInfoTime"] // 1000))
                     # 入库
                     try:
                         DXYTimeLine.objects.create(**kwargs)
