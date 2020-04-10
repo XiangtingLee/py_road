@@ -2,7 +2,7 @@ from __future__ import absolute_import, unicode_literals
 import os
 from datetime import timedelta
 from celery import Celery
-# from celery.schedules import crontab
+from celery.schedules import crontab
 from django.conf import settings
 
 # set the default Django settings module for the 'celery' program.
@@ -21,15 +21,25 @@ app.autodiscover_tasks(settings.INSTALLED_APPS)
 
 app.conf.update(
     CELERYBEAT_SCHEDULE={
+        'position-task-python': {
+            'task': 'public.tasks.run_cache_delay_spider',
+            'schedule': crontab(minute=0, hour="10,14,18,22"),
+            'args': ("lg_position", (), {"city": "全国", "kd": "Python"},)
+        },
+        'position-task-java': {
+            'task': 'public.tasks.run_cache_delay_spider',
+            'schedule': crontab(minute=10, hour="10,14,18,22"),
+            'args': ("lg_position", (), {"city": "全国", "kd": "Java"},)
+        },
         'pneumonia-task': {
-            'task': 'public.tasks.run_schedule',
-            'schedule': timedelta(minutes=1),
-            'args': ("python3 /workspace/py_road/wuhan2020/spider/crawl_pneumonia.py",)
+            'task': 'public.tasks.run_delay_spider',
+            'schedule': timedelta(minutes=5),
+            'args': ("COVID_data",)
         },
         'timeline-task': {
-            'task': 'public.tasks.run_schedule',
-            'schedule': timedelta(minutes=1),
-            'args': ("python3 /workspace/py_road/wuhan2020/spider/crawl_timeline.py",)
+            'task': 'public.tasks.run_delay_spider',
+            'schedule': timedelta(minutes=30),
+            'args': ("COVID_timeline",)
         }
     }
 )

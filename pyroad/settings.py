@@ -15,7 +15,6 @@ import os
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/2.0/howto/deployment/checklist/
 
@@ -23,10 +22,9 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = '4_+7(vkl@)q)fckx6twd8-z73%)va(o1zd-v20o()zz4$yxa+('
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = ['*']
-
 
 # Application definition
 
@@ -75,7 +73,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'pyroad.wsgi.application'
 
-
 # Database
 # https://docs.djangoproject.com/en/2.0/ref/settings/#databases
 
@@ -88,7 +85,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'py_road',
         'USER': 'root',
-        'PASSWORD': 'Li63033.',
+        'PASSWORD': 'root',
         'HOST': '127.0.0.1',
         'PORT': '3306',
         'OPTIONS': {
@@ -103,11 +100,10 @@ CACHES = {
         'LOCATION': 'redis://127.0.0.1:6379/2',
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
-             # "PASSWORD": "yoursecret",
+            # "PASSWORD": "yoursecret",
         },
     },
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/2.0/ref/settings/#auth-password-validators
@@ -131,7 +127,6 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
 # Internationalization
 # https://docs.djangoproject.com/en/2.0/topics/i18n/
 
@@ -145,18 +140,17 @@ USE_L10N = True
 
 USE_TZ = False
 
-
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/2.0/howto/static-files/
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 STATIC_URL = '/static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+# STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
 # if DEBUG is False:
 #     STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 # else:
-#     STATICFILES_DIRS = (os.path.join(BASE_DIR, 'static'),)
+STATICFILES_DIRS = (os.path.join(BASE_DIR, 'static'),)
 
 ALLOW_REG = False

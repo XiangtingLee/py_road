@@ -59,8 +59,8 @@ layui.define(function (exports) {
                     //词云
                     'wdCloud': {
                         // title: {
-                        //     text: data.title,
-                        //     subtext: data.subtitle
+                        //     text: data.content.title,
+                        //     subtext: data.content.subtitle
                         // },
                         tooltip: {
                             trigger: 'item'
@@ -92,7 +92,7 @@ layui.define(function (exports) {
                                         shadowColor: '#333'
                                     }
                                 },
-                                data: data.word_cloud.values
+                                data: data.content.word_cloud.values
                             }
                         ]
 
@@ -100,8 +100,8 @@ layui.define(function (exports) {
                     //地图
                     "Distribution": {
                         // title: {
-                        //     text: data.title,
-                        //     subtext: data.subtitle
+                        //     text: data.content.title,
+                        //     subtext: data.content.subtitle
                         // },
                         tooltip: {
                             trigger: 'item'
@@ -109,10 +109,10 @@ layui.define(function (exports) {
                         dataRange: {
                             orient: 'horizontal',
                             min: 0,
-                            max: data.local.range_max,
+                            max: data.content.local.range_max,
                             text: ['高', '低'],           // 文本，默认为数值文本
                             splitNumber: 0,
-                            range: [0, data.local.range_max],
+                            range: [0, data.content.local.range_max],
                             inverse: false,
                             realtime: true,
                             calculable: true,
@@ -138,7 +138,7 @@ layui.define(function (exports) {
                                         show: false
                                     }
                                 },
-                                data: data.local.values
+                                data: data.content.local.values
                                 // {name: '广东', value: 53210.28(, selected: true)}
 
                             }
@@ -153,7 +153,7 @@ layui.define(function (exports) {
                             formatter: "{a} <br/>{b} : {c}个职位 ({d}%)"
                         },
                         legend: {
-                            data: data.education.xAxis
+                            data: data.content.education.xAxis
                         },
                         series: [
                             {
@@ -161,7 +161,7 @@ layui.define(function (exports) {
                                 type: 'pie',
                                 radius: '55%',
                                 center: ['50%', '60%'],
-                                data: data.education.values,
+                                data: data.content.education.values,
                                 itemStyle: {
                                     emphasis: {
                                         shadowBlur: 10,
@@ -175,10 +175,10 @@ layui.define(function (exports) {
                     //经验
                     "ExpNum": {
                         tooltip: {trigger: 'item', formatter: "{a} <br/>{b} : {c}个职位"},
-                        legend: {data: data.experience.legend.data},
-                        xAxis: [{type: 'category', axisLabel: {rotate: 45}, data: data.experience.xAxis}],
+                        legend: {data: data.content.experience.legend.data},
+                        xAxis: [{type: 'category', axisLabel: {rotate: 45}, data: data.content.experience.xAxis}],
                         yAxis: [{type: 'value'}],
-                        series: data.experience.series
+                        series: data.content.experience.series
                     },
                     //公司规模
                     "companyScale": {
@@ -193,7 +193,7 @@ layui.define(function (exports) {
                                 normal: {label: {show: true}, borderColor: '#ffffff'},
                                 emphasis: {label: {show: true, textStyle: {color: '#fff'}}, shadowBlur: 10,}
                             },
-                            data: data.company_scale.values
+                            data: data.content.company_scale.values
                         }]
                     },
                     //公司行业
@@ -221,21 +221,21 @@ layui.define(function (exports) {
                         },
                         yAxis: {
                             type: 'category',
-                            data: data.company_industry.xAxis
+                            data: data.content.company_industry.xAxis
                         },
                         series: [
                             {
                                 name: '全部公司',
                                 type: 'bar',
-                                data: data.company_industry.values
+                                data: data.content.company_industry.values
                             }
                         ]
                     },
                     //公司融资
                     "companyFinancing": {
                         // title: {
-                        //     text: data.title,
-                        //     subtext: data.subtitle
+                        //     text: data.content.title,
+                        //     subtext: data.content.subtitle
                         // },
                         tooltip: {
                             trigger: 'item',
@@ -244,7 +244,7 @@ layui.define(function (exports) {
                         legend: {
                             // orient: 'vertical',
                             top: 100,
-                            data: data.company_financing.xAxis
+                            data: data.content.company_financing.xAxis
                         },
                         series: [
                             {
@@ -253,7 +253,7 @@ layui.define(function (exports) {
                                 radius: '55%',
                                 center: ['50%', '60%'],
                                 roseType: 'area',
-                                data: data.company_financing.values,
+                                data: data.content.company_financing.values,
                                 itemStyle: {
                                     emphasis: {
                                         shadowBlur: 10,
@@ -269,26 +269,26 @@ layui.define(function (exports) {
                         tooltip: {
                             trigger: 'axis'
                         },
-                        legend: data.daily_num.legend,
+                        legend: data.content.daily_num.legend,
                         calculable: true,
                         xAxis: [
                             {
                                 type: 'category',
                                 boundaryGap: false,
-                                data: data.daily_num.xAxis
+                                data: data.content.daily_num.xAxis
                             }
                         ],
                         yAxis: [{type: 'value'}],
-                        series: data.daily_num.series
+                        series: data.content.daily_num.series
                     },
                     //薪资
                     "salary": {
                         tooltip: {trigger: "axis"},
-                        legend: data.type_salary.legend,
+                        legend: data.content.type_salary.legend,
                         calculable: !0,
-                        xAxis: [{type: "category", boundaryGap: !1, data: data.type_salary.xAxis}],
+                        xAxis: [{type: "category", boundaryGap: !1, data: data.content.type_salary.xAxis}],
                         yAxis: [{type: "value"}],
-                        series: data.type_salary.series
+                        series: data.content.type_salary.series
                     },
                 };
 
