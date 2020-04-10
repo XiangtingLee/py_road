@@ -16,33 +16,53 @@
                                 <div class="layui-col-lg12">
                                     <label class="layui-form-label">操作爬虫：</label>
                                     <div class="layui-input-block">
-                                        <select name="spider" lay-verify="required" lay-filter="selectSpider"
-                                                lay-search>
-                                            <option value="">请选择爬虫</option>
-                                            {% for spider in spiders %}
-                                                <option value="{{ spider.name }}">{{ spider.name }}({{ spider.remark }})</option>
-                                            {% endfor %}
-                                        </select>
+                                        <label>
+                                            <select name="spider" lay-verify="required" lay-filter="selectSpider"
+                                                    lay-search>
+                                                <option value="">请选择爬虫</option>
+                                                {% for spider in spiders %}
+                                                    <option value="{{ spider.name }}">{{ spider.name }}({{ spider.remark }})</option>
+                                                {% endfor %}
+                                            </select>
+                                        </label>
                                     </div>
                                 </div>
                             </div>
                             <div class="layui-form-item">
-                                <label class="layui-form-label">城市分站：</label>
                                 <div class="layui-input-block">
-                                    <input type="radio" name="location" value="全国" title="全国站" checked>
-                                    <input type="radio" name="location" value="上海" title="上海站">
-                                    <input type="radio" name="location" value="杭州" title="杭州站">
-                                    <input type="radio" name="location" value="深圳" title="深圳站">
-                                    <input type="radio" name="location" value="成都" title="成都站">
-                                    <input type="radio" name="location" value="武汉" title="武汉站">
-                                    <input type="radio" name="location" value="江苏" title="江苏站">
+                                    <button class="layui-btn" lay-submit lay-filter="component-form-element">启动爬虫
+                                    </button>
+                                    <button type="reset" class="layui-btn layui-btn-primary">重置</button>
                                 </div>
                             </div>
-                            <div class="layui-row layui-col-space10 layui-form-item">
+                        </form>
+
+                    <script type="text/html" id="lg_position_input">
+                        <div class="papers_input_content">
+                            <div class="layui-form-item">
+                                <label class="layui-form-label">城市分站：</label>
+                                <div class="layui-input-block">
+                                    <input type="radio" name="city" value="全国" title="全国站" checked>
+                                    <input type="radio" name="city" value="上海" title="上海站">
+                                    <input type="radio" name="city" value="杭州" title="杭州站">
+                                    <input type="radio" name="city" value="深圳" title="深圳站">
+                                    <input type="radio" name="city" value="成都" title="成都站">
+                                    <input type="radio" name="city" value="武汉" title="武汉站">
+                                    <input type="radio" name="city" value="江苏" title="江苏站">
+                                </div>
+                            </div>
+                            <div class="layui-form-item">
+                                <label class="layui-form-label">线程数量：</label>
+                                <div class="layui-input-block">
+                                    <div id="thread" style="padding-top: 15px;"></div>
+                                    <input name="thread" id="threadCount" type="hidden" value="20">
+                                </div>
+                            </div>
+                            <div class="layui-form-item layui-row layui-col-space10">
                                 <div class="layui-col-lg12">
                                     <label class="layui-form-label">爬取种类：</label>
                                     <div class="layui-input-block">
-                                        <select name="language" lay-verify="required" lay-filter="selectSpider" lay-search>
+                                        <select name="kd" lay-verify="required" lay-filter="selectLan" lay-search>
                                             <option value="">请选择语言</option>
                                             <option value="Python">Python</option>
                                             <option value="Java">Java</option>
@@ -58,14 +78,22 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="layui-form-item">
-                                <div class="layui-input-block">
-                                    <button class="layui-btn" lay-submit lay-filter="component-form-element">启动爬虫
-                                    </button>
-                                    <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+                        </div>
+                    </script>
+
+                    <script type="text/html" id="lg_company_input">
+                        <div class="papers_input_content">
+                            <div class="layui-form-item layui-row layui-col-space10">
+                                <label class="layui-form-label">公司id：</label>
+                                <div class="layui-input-inline">
+                                    <label>
+                                        <input name="cid" placeholder="请输入公司id" class="layui-input">
+                                    </label>
                                 </div>
                             </div>
-                        </form>
+                        </div>
+                    </script>
+
                     </div>
                 </div>
             </div>
@@ -75,7 +103,7 @@
                     <div class="layui-card-header">监听行事件</div>
                     <div class="layui-card-body">
 
-                        <div class="test-table-reload-btn" style="margin-bottom: 10px;">
+                        <div class="search" style="margin-bottom: 10px;">
                             搜索ID：
                             <div class="layui-inline">
                                 <input class="layui-input" name="id" id="searchData" autocomplete="off">
@@ -97,9 +125,12 @@
             base: '{% static 'layuiadmin/' %}'
         }).extend({
             index: '/lib/index'
-        }).use(['index', 'table'], function () {
-            var admin = layui.admin;
-            var table = layui.table;
+        }).use(['index', 'table', 'form', 'laytpl', 'slider'], function () {
+        var laytpl = layui.laytpl
+            , form = layui.form
+            , table = layui.table
+            , slider = layui.slider;
+
 
             table.render({
                 elem: '#spiderRunlogData'
@@ -142,13 +173,13 @@
             };
 
             //重载按钮
-            $('.test-table-reload-btn .layui-btn').on('click', function () {
+            $('.search .layui-btn').on('click', function () {
                 var type = $(this).data('type');
                 active[type] ? active[type].call(this) : '';
             });
 
-            //监听行单击事件（单击事件为：rowDouble）
-            table.on('row(spiderRunlogData)', function (obj) {
+            //监听行双击事件（单击事件为：row）
+            table.on('rowDouble(spiderRunlogData)', function (obj) {
                 var data = obj.data;
 
                 layer.alert(JSON.stringify(data), {
@@ -158,6 +189,25 @@
                 //标注选中样式
                 obj.tr.addClass('layui-table-click').siblings().removeClass('layui-table-click');
             });
+
+            //监听下拉框变化
+            form.on('select(selectSpider)', function (obj) {
+                var elem = obj.othis;
+                var itemElem = elem.closest('.layui-form-item');
+                itemElem.next('.papers_input_content').remove();
+                var value = obj.value;
+                var textTemp = $('#' + value + '_input').html();
+                if (textTemp) {
+                    $(laytpl(textTemp).render({})).insertAfter(itemElem);
+                    form.render();
+                    slider.render({
+                        elem: '#thread' ,min: 1 ,max: 30 ,value: 20
+                        , change: function (val) {
+                            $('#threadCount').val(val);
+                        }
+                    });
+                }
+            })
 
         });
     </script>

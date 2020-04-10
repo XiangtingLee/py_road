@@ -342,14 +342,17 @@ def spider_operate_view(request):
 
 def spider_operate_run(request):
     if request.method == "POST":
-        location = request.POST.get('location', None)
-        language = request.POST.get('language', None)
+        args = request.POST.getlist("args", None)
         spider_name = request.POST.get('spider', None)
-        delay_spider(spider_name, location=location, language=language)
+        kwargs = request.POST.dict()
+        del kwargs["csrfmiddlewaretoken"]
+        del kwargs["spider"]
+        if "args" in kwargs.keys():
+            del kwargs["args"]
+        delay_spider(spider_name, *tuple(args), **kwargs)
         return HttpResponseRedirect('/public/spider/operate/view/')
     else:
         return JsonResponse({"status": "error", "maessage": "网络繁忙，请稍后再试！"}, json_dumps_params={'ensure_ascii': False})
-
 
 
 @login_required

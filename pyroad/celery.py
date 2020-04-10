@@ -24,12 +24,12 @@ app.conf.update(
         'position-task-python': {
             'task': 'public.tasks.run_cache_delay_spider',
             'schedule': crontab(minute=0, hour="10,14,18,22"),
-            'args': ("lg_position", ("全国", "Python"),)
+            'args': ("lg_position", (), {"city": "全国", "kd": "Python"},)
         },
         'position-task-java': {
             'task': 'public.tasks.run_cache_delay_spider',
             'schedule': crontab(minute=10, hour="10,14,18,22"),
-            'args': ("lg_position", ("全国", "Java"),)
+            'args': ("lg_position", (), {"city": "全国", "kd": "Java"},)
         },
         'pneumonia-task': {
             'task': 'public.tasks.run_delay_spider',
