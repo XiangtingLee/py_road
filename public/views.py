@@ -20,7 +20,8 @@ from django.contrib.auth.decorators import login_required
 
 # 项目内引用
 from .models import *
-from .tasks import delay_spider
+from log.models import *
+from .tasks import run_shell
 # from log.models import SpiderRunLog
 from .tools import MyThread, verify_sign, update_sign, ListProcess
 from django.conf import settings
@@ -345,11 +346,15 @@ def spider_operate_run(request):
         location = request.POST.get('location', None)
         language = request.POST.get('language', None)
         spider_name = request.POST.get('spider', None)
-        delay_spider(spider_name, location=location, language=language)
+        base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        spider_path = Spider.objects.get(name=spider_name).path
+        param = " -" + location + " -" + language
+        command = "python3 " + base_dir + spider_path + param
+        sync_task = run_shell.delay(command)
+        SpiderRunLog.objects.create(spider_name=spider_name, task_id=sync_task.id, param=param)
         return HttpResponseRedirect('/public/spider/operate/view/')
     else:
         return JsonResponse({"status": "error", "maessage": "网络繁忙，请稍后再试！"}, json_dumps_params={'ensure_ascii': False})
-
 
 
 @login_required
