@@ -22,12 +22,12 @@ app.autodiscover_tasks(settings.INSTALLED_APPS)
 app.conf.update(
     CELERYBEAT_SCHEDULE={
         'position-task-python': {
-            'task': 'public.tasks.run_shell',
+            'task': 'public.tasks.run_schedule',
             'schedule': crontab(hour="10,14,18,22"),
             'args': ("python3 /workspace/py_road/position/spider/crawl_position.py -全国 -Python",)
         },
         'position-task-java': {
-            'task': 'public.tasks.run_shell',
+            'task': 'public.tasks.run_schedule',
             'schedule': crontab(minute=10, hour="10,14,18,22"),
             'args': ("python3 /workspace/py_road/position/spider/crawl_position.py -全国 -Java",)
         },
