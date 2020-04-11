@@ -43,7 +43,7 @@
                                 <div class="layui-inline">
                                     <label class="layui-form-label">公司名称</label>
                                     <div class="layui-input-inline">
-                                        <input class="layui-input" name="company__name" id="filterCompany"
+                                        <input class="layui-input" name="company__name__contains" id="filterCompany"
                                                autocomplete="off">
                                     </div>
                                 </div>
@@ -51,7 +51,7 @@
                                 <div class="layui-inline">
                                     <label class="layui-form-label">职位名称</label>
                                     <div class="layui-input-inline">
-                                        <input class="layui-input" name="position_name" id="filterPosition"
+                                        <input class="layui-input" name="position_name__contains" id="filterPosition"
                                                autocomplete="off">
                                     </div>
                                 </div>
@@ -146,7 +146,7 @@
         table.render({
             elem: '#test-table-toolbar'
             , url: '{% url 'position:display_filter' %}'
-            , method: 'POST'
+            , method: 'GET'
             , title: '用户数据表'
             , cols: [[
                 {type: 'checkbox', fixed: 'left'}
@@ -173,10 +173,10 @@
         var $ = layui.$, active = {
             filter: function () {
                 const filter = $('#filterData').serialize();
-                //执行重载
                 table.reload('dataForm', {
                     url: "{% url "position:display_filter" %}?" + filter
                     , page: { curr: 1 }
+                    , method: "GET"
                     , where: {}
                 }, 'data');
             }

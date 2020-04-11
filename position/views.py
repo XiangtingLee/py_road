@@ -296,23 +296,22 @@ def node_data(request):
 
 
 @login_required
-@verify_sign("GET")
+# @verify_sign("GET")
 def display_filter(request):
-    filter_data = request.GET
+    page = int(request.GET.get('page', 1))
+    limit = int(request.GET.get('limit', 10))
+    form = request.GET
     data = {'code': 0, 'count': 0, 'data': [], 'msg': ''}
     filter_kwargs = {'is_effective': 1}
-    for k in filter_data:
-        v = filter_data.get(k, "")
-        if v and k == 'salary':
-            try:
-                filter_kwargs["salary_lower__gte"] = int(filter_data["salary"].split(',')[0])
-                filter_kwargs["salary_lower__lte"] = int(filter_data["salary"].split(',')[1])
-            except IndexError:
-                pass
-        elif v:
-            filter_kwargs[k + "__contains" if k in ["company__name", "position_name"] else k] = v
-    page = int(request.POST.get('page', 1))
-    limit = int(request.POST.get('limit', 10))
+    filter_kwargs.update({key: form[key] for key in form if
+                     key not in ["csrfmiddlewaretoken", "page", "limit"] and form[key]})
+    if 'salary' in filter_kwargs.keys():
+        try:
+            filter_kwargs["salary_lower__gte"] = int(filter_kwargs["salary"].split(',')[0])
+            filter_kwargs["salary_upper__lte"] = int(filter_kwargs["salary"].split(',')[1])
+            del filter_kwargs["salary"]
+        except IndexError or TypeError:
+            del filter_kwargs["salary"]
     _data = list(
         Position.objects.filter(**filter_kwargs).annotate(salary=Concat("salary_lower", V("-"), "salary_upper", V("k"),
                                                                         output_field=CharField())).values(

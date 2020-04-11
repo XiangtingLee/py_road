@@ -100,16 +100,65 @@
 
             <div class="layui-col-md12">
                 <div class="layui-card">
-                    <div class="layui-card-header">监听行事件</div>
+                    <div class="layui-card-header">运行记录</div>
                     <div class="layui-card-body">
+                    <form id="filterData" class="layui-form" style="">
 
-                        <div class="search" style="margin-bottom: 10px;">
-                            搜索ID：
+                        <div class="layui-form-item" style="margin-bottom: 10px;">
                             <div class="layui-inline">
-                                <input class="layui-input" name="id" id="searchData" autocomplete="off">
+                                <label class="layui-form-label">ID：</label>
+                                <div class="layui-input-inline">
+                                    <input class="layui-input filter-form" name="id" autocomplete="off">
+                                </div>
                             </div>
-                            <button class="layui-btn" data-type="reload">搜索</button>
+
+                            <div class="layui-inline">
+                                <label class="layui-form-label">爬虫名称：</label>
+                                <div class="layui-input-inline">
+                                    <input class="layui-input filter-form" placeholder="支持模糊搜索" name="spider_name__contains" autocomplete="off">
+                                </div>
+                            </div>
+
+                            <div class="layui-inline">
+                                <label class="layui-form-label">运行状态</label>
+                                <div class="layui-input-inline">
+                                    <select name="status">
+                                        <option value="">请选择运行状态</option>
+                                        <option value="1">True</option>
+                                        <option value="0">False</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="layui-inline">
+                                <label class="layui-form-label">开始时间</label>
+                                  <div class="layui-input-inline">
+                                    <input type="text" name="start_time" placeholder="yyyy-MM-dd" autocomplete="off" class="layui-input date-range" lay-key="1">
+                                  </div>
+                            </div>
+
+                            <div class="layui-inline">
+                                <label class="layui-form-label">结束时间</label>
+                                  <div class="layui-input-inline">
+                                    <input type="text" name="end_time" placeholder="yyyy-MM-dd" autocomplete="off" class="layui-input date-range" lay-key="2">
+                                  </div>
+                            </div>
+
+                            <div class="layui-inline">
+                                <label class="layui-form-label">备注：</label>
+                                <div class="layui-input-inline">
+                                    <input class="layui-input filter-form" placeholder="支持模糊搜索" name="remark__contains" autocomplete="off">
+                                </div>
+                            </div>
+
+                            <button class="layui-btn" id="filter" data-type="filter" type="button"
+                                    style="position: absolute; right: 25px; top: 10px;">筛选
+                            </button>
+                            <button type="reset" class="layui-btn layui-btn-primary"
+                                    style="position: absolute; right: 25px; top: 60px;">重置
+                            </button>
                         </div>
+                    </form>
 
                         <table class="layui-hide" id="spiderRunlogData" lay-filter="spiderRunlogData"></table>
 
@@ -125,21 +174,28 @@
             base: '{% static 'layuiadmin/' %}'
         }).extend({
             index: '/lib/index'
-        }).use(['index', 'table', 'form', 'laytpl', 'slider'], function () {
-        var laytpl = layui.laytpl
-            , form = layui.form
+        }).use(['index', 'table', 'form', 'laytpl', 'slider', 'laydate'], function () {
+        var form = layui.form
             , table = layui.table
-            , slider = layui.slider;
+            , laytpl = layui.laytpl
+            , slider = layui.slider
+            , laydate = layui.laydate;
 
+            lay('.date-range').each(function () {
+                laydate.render({
+                    elem: this
+                    , type: 'datetime'
+                    , range: true
+                });
+            });
+
+            form.render();
 
             table.render({
                 elem: '#spiderRunlogData'
-                , url: '{% url 'log:log_spider' %}'
-                , method: 'POST'
-                , initSort: {
-                    field: 'id'
-                    , type: 'desc'
-                }
+                , url: '{% url 'log:spider_filter' %}'
+                , method: 'GET'
+                , initSort: {field: 'id', type: 'desc'}
                 , cols: [[
                     {field: 'id', title: 'ID', width: 80, fixed: 'left', unresize: true, sort: true}
                     , {field: 'spider_name', title: '爬虫名称', width: 100}
@@ -155,25 +211,20 @@
             });
 
             var $ = layui.$, active = {
-                reload: function () {
-                    var demoReload = $('#searchData');
-
-                    //执行重载
+                filter: function () {
+                    var filter = $('#filterData').serialize();
+                    console.log(filter);
                     table.reload('runLogForm', {
-                        page: {
-                            curr: 1 //重新从第 1 页开始
-                        }
-                        , where: {
-                            key: {
-                                id: demoReload.val()
-                            }
-                        }
-                    });
+                    url: "{% url "log:spider_filter" %}?" + filter
+                    , page: { curr: 1 }
+                    , method: "GET"
+                    , where: {}
+                });
                 }
             };
 
             //重载按钮
-            $('.search .layui-btn').on('click', function () {
+            $('#filter').on('click', function () {
                 var type = $(this).data('type');
                 active[type] ? active[type].call(this) : '';
             });
