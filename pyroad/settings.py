@@ -100,7 +100,7 @@ CACHES = {
         'LOCATION': 'redis://127.0.0.1:6379/2',
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
-             # "PASSWORD": "yoursecret",
+            # "PASSWORD": "yoursecret",
         },
     },
 }
@@ -128,6 +128,10 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+AUTHENTICATION_BACKENDS = [
+    'user.views.CustomBackend',
+]
+SESSION_SERIALIZER='django.contrib.sessions.serializers.PickleSerializer'
 
 # Internationalization
 # https://docs.djangoproject.com/en/2.0/topics/i18n/

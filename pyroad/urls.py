@@ -19,18 +19,21 @@ from django.conf import settings
 from django.contrib import admin
 from django.urls import path, include
 from django.conf.urls import url
+
+from user.views import login_act, logout_act, reg_act, reset_act
 from . import views
 
 urlpatterns = [
     path('site/', admin.site.urls),
-    url('^$', views.main, name='main'),
-    url('^index$', views.index, name='index'),
-    url('^login$', views.login_act, name='login'),
-    url('^logout$', views.logout_act, name='logout'),
-    url('^reg$', views.reg_act, name='reg'),
     path('log/', include('log.urls', namespace='log')),
     path('public/', include('public.urls', namespace='public')),
     path('user/', include('user.urls', namespace='user')),
     path('position/', include('position.urls', namespace='position')),
     path('wuhan2020/', include('wuhan2020.urls', namespace='wuhan2020')),
+    url('^$', views.main, name='main'),
+    url('^index$', views.index, name='index'),
+    url('^login$', login_act, name='login'),
+    url('^reset$', reset_act, name='reset'),
+    url('^logout$', logout_act, name='logout'),
+    url('^reg$', reg_act, name='reg'),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

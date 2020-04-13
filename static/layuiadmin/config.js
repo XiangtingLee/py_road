@@ -6,7 +6,7 @@
  @License：LPPL（layui付费产品协议）
     
  */
- 
+
 layui.define(['laytpl', 'layer', 'element', 'util'], function(exports){
   exports('setter', {
     container: 'LAY_app' //容器ID
@@ -40,6 +40,8 @@ layui.define(['laytpl', 'layer', 'element', 'util'], function(exports){
     
     //扩展的第三方模块
     ,extend: [
+      'supersized', //注册登录页全屏轮播
+      'reg_login', //注册登录页
       'echarts', //echarts 核心包
       'echartsTheme', //echarts 主题
       'treeTable', //折叠静态表格

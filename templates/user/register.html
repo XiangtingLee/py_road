@@ -1,0 +1,90 @@
+{% extends 'lib/base.html' %}
+{% load static %}
+{% block title %}用户注册{% endblock %}
+{% block header_include_after %}
+    <link rel="stylesheet" href="{% static "layuiadmin/style/login.css" %}"/>
+{% endblock %}
+{% block content %}
+    <div class="layadmin-user-login layadmin-user-display-show" id="LAY-user-login" style="display: none;">
+        <div class="layadmin-user-login-main">
+            <div class="layadmin-user-login-box layadmin-user-login-header">
+                <h2>用户注册</h2>
+                <p>More and more...</p>
+            </div>
+            <div class="layadmin-user-login-box layadmin-user-login-body layui-form">
+                <div class="layui-form-item">
+                    <label class="layadmin-user-login-icon layui-icon layui-icon-username"
+                           for="LAY-user-login-nickname"></label>
+                    <input type="text" name="username" id="LAY-user-login-nickname" lay-verify="username"
+                           placeholder="用户名"
+                           class="layui-input">
+                </div>
+                <div class="layui-form-item">
+                    <label class="layadmin-user-login-icon layui-icon layui-icon-password"
+                           for="pass"></label>
+                    <input type="password" name="password" id="pass" lay-verify="pass"
+                           placeholder="密码"
+                           class="layui-input">
+                </div>
+                <div class="layui-form-item">
+                    <label class="layadmin-user-login-icon layui-icon layui-icon-password"
+                           for="repass"></label>
+                    <input type="password" name="repass" id="repass" lay-verify="repass"
+                           placeholder="确认密码"
+                           class="layui-input">
+                </div>
+                <div class="layui-form-item">
+                    <label class="layadmin-user-login-icon layui-icon layui-icon-cellphone"
+                           for="LAY-user-login-cellphone"></label>
+                    <input type="text" name="mobile" id="LAY-user-login-cellphone" lay-verify="phone"
+                           placeholder="手机"
+                           class="layui-input">
+                </div>
+                <div class="layui-form-item">
+                    <div class="layui-row">
+                        <div class="layui-col-xs7">
+                            <label class="layadmin-user-login-icon layui-icon layui-icon-vercode"
+                                   for="LAY-user-login-vercode"></label>
+                            <input type="text" name="vercode" id="LAY-user-login-vercode" lay-verify="vercode"
+                                   placeholder="验证码" class="layui-input">
+                        </div>
+                        <div class="layui-col-xs5">
+                            <div style="margin-left: 10px;">
+                                <button type="button" class="layui-btn layui-btn-primary layui-btn-fluid"
+                                        id="LAY-user-getsmscode">获取验证码
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <input type="checkbox" name="agreement" lay-skin="primary" title="同意用户协议">
+                </div>
+                <div class="layui-form-item">
+                    <button class="layui-btn layui-btn-fluid" lay-submit lay-filter="act-form">注 册</button>
+                </div>
+                <div class="layui-trans layui-form-item layadmin-user-login-other">
+                    <label>社交账号注册</label>
+                    <a href="javascript:;"><i class="layui-icon layui-icon-login-qq"></i></a>
+                    <a href="javascript:;"><i class="layui-icon layui-icon-login-wechat"></i></a>
+                    <a href="javascript:;"><i class="layui-icon layui-icon-login-weibo"></i></a>
+
+                    <a href="login" class="layadmin-user-jump-change layui-hide-xs" style="color: #666;">用已有帐号登入</a>
+                </div>
+            </div>
+        </div>
+        <div class="layui-trans layadmin-user-login-footer" style="color: #fff;!important;">
+            <p>© 2019-2020 <a href="http://www.white-bird.cn/" target="_blank" style="color: #fff;">white-bird.cn</a>
+                <a href="http://beian.miit.gov.cn/publish/query/indexFirst.action" target="_blank" style="color: #fff;">冀ICP备17020076号</a>
+            </p>
+        </div>
+    </div>
+{% endblock %}
+{% block tail_include_after %}
+    <script>
+        layui.config({base: '{% static 'layuiadmin/' %}'}).extend({index: 'lib/index'
+        }).use(['index', 'form', 'reg_login'], function () {var reg_login = layui.reg_login;
+            reg_login.bg();reg_login.reg('{% url 'reg' %}');
+        });
+    </script>
+{% endblock %}
