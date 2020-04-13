@@ -18,7 +18,8 @@ app = Celery('pyroad', backend="redis", broker='redis://127.0.0.1:6379/1')
 app.config_from_object('django.conf:settings')
 # Load task modules from all registered Django app configs.
 app.autodiscover_tasks(settings.INSTALLED_APPS)
-
+# set timezone for the project
+app.conf.timezone = "Asia/Shanghai"
 app.conf.update(
     CELERYBEAT_SCHEDULE={
         'position-task-python': {
