@@ -1,0 +1,7 @@
+<div class="layui-trans layui-form-item layadmin-user-login-other">
+                    <label>社交账号{{ act_type }}</label>
+                    <a href="{% url 'social:begin' 'qq' %}"><i class="layui-icon layui-icon-login-qq"></i></a>
+                    <a href="{% url 'social:begin' 'weixin' %}"><i class="layui-icon layui-icon-login-wechat"></i></a>
+                    <a href="{% url 'social:begin' 'weibo' %}"><i class="layui-icon layui-icon-login-weibo"></i></a>
+                    <a href="{{ or_href }}" class="layadmin-user-jump-change" style="color: #666;">{{ or_act }}</a>
+                </div>

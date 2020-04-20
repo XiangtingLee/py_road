@@ -34,6 +34,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'social_django',
     'public',
     'user',
     'api',
@@ -65,6 +66,8 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'social_django.context_processors.backends',
+                'social_django.context_processors.login_redirect',
             ],
         },
     },
@@ -129,9 +132,15 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 AUTHENTICATION_BACKENDS = [
+    'social_core.backends.qq.QQOAuth2',
+    'social_core.backends.weixin.WeixinOAuth2',
+    'social_core.backends.weibo.WeiboOAuth2',
     'user.views.CustomBackend',
 ]
 SESSION_SERIALIZER='django.contrib.sessions.serializers.PickleSerializer'
+SOCIAL_AUTH_QQ_KEY = '101867835'
+SOCIAL_AUTH_QQ_SECRET = 'b606152f25662c8a157a825c3858e4f7'
+SOCIAL_AUTH_LOGIN_REDIRECT_URL = ''
 
 # Internationalization
 # https://docs.djangoproject.com/en/2.0/topics/i18n/

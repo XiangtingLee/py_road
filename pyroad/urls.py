@@ -30,6 +30,7 @@ urlpatterns = [
     path('user/', include('user.urls', namespace='user')),
     path('position/', include('position.urls', namespace='position')),
     path('wuhan2020/', include('wuhan2020.urls', namespace='wuhan2020')),
+    url('', include('social_django.urls', namespace='social'), name='social'),
     url('^$', views.main, name='main'),
     url('^index$', views.index, name='index'),
     url('^login$', login_act, name='login'),

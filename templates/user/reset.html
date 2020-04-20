@@ -2,7 +2,7 @@
 {% load static %}
 {% block title %}重置密码{% endblock %}
 {% block header_include_after %}
-    <link rel="stylesheet" href="{% static "layuiadmin/style/login.css" %}"/>
+    <link type="text/css" rel="stylesheet" href="{% static "layuiadmin/style/login.css" %}"/>
 {% endblock %}
 {% block content %}
     <div class="layadmin-user-login layadmin-user-display-show" id="LAY-user-login" style="display: none;">
@@ -56,20 +56,10 @@
                 <div class="layui-form-item">
                     <button class="layui-btn layui-btn-fluid" lay-submit lay-filter="act-form">重 置</button>
                 </div>
-                <div class="layui-trans layui-form-item layadmin-user-login-other">
-                    <label>社交账号登录</label>
-                    <a href="javascript:;"><i class="layui-icon layui-icon-login-qq"></i></a>
-                    <a href="javascript:;"><i class="layui-icon layui-icon-login-wechat"></i></a>
-                    <a href="javascript:;"><i class="layui-icon layui-icon-login-weibo"></i></a>
-                    <a href="login" class="layadmin-user-jump-change layui-hide-xs" style="color: #666;">用已有帐号登入</a>
-                </div>
+                {% include 'lib/thirdparty.html' with act_type="登录" or_act="用已有帐号登入" or_href="login" %}
             </div>
         </div>
-        <div class="layui-trans layadmin-user-login-footer" style="color: #fff;!important;">
-            <p>© 2019-2020 <a href="http://www.white-bird.cn/" target="_blank" style="color: #fff;">white-bird.cn</a>
-                <a href="http://beian.miit.gov.cn/publish/query/indexFirst.action" target="_blank" style="color: #fff;">冀ICP备17020076号</a>
-            </p>
-        </div>
+        {% include 'lib/footer.html' %}
     </div>
 {% endblock %}
 {% block tail_include_after %}
