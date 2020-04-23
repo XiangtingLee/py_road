@@ -1,8 +1,10 @@
+from hashids import Hashids
 from django.db.models import Q
 from django.urls import reverse
 from django.conf import settings
 from django.contrib import messages, auth
 from django.shortcuts import render, redirect
+from social_django.models import UserSocialAuth
 from django.http import JsonResponse, HttpResponse
 from django.contrib.auth.backends import ModelBackend
 from django.core.files.storage import FileSystemStorage
@@ -133,7 +135,7 @@ def info_upload(request):
 
 
 def password_view(request):
-    return render(request, 'user/password.html')
+    return render(request, 'user/forget.html')
 
 
 @login_required()
@@ -160,3 +162,30 @@ def password_change(request):
         except RuntimeError:
             messages.warning(request, "修改失败，请检查网络环境后重试")
             return redirect('user:password_view')
+
+
+@login_required
+def reg_guide(request):
+    if request.method == "POST":
+        # 头像接口分辨率分为40,100,140,160,240,640六种
+        kwargs = {}
+        req_args = request.POST
+        user_id = request.user.id
+        for i in req_args:
+            kwargs[i] = req_args[i]
+        del kwargs["csrfmiddlewaretoken"]
+        del kwargs["agreement"]
+        del kwargs["vercode"]
+        if User.objects.filter(nick_name=kwargs["nick_name"]):
+            return JsonResponse({"code": 0, "msg": "昵称已存在", "icon": 2})
+        if User.objects.filter(mobile=kwargs["mobile"]):
+            return JsonResponse({"code": 0, "msg": "手机号已被注册", "icon": 2})
+        User.objects.filter(id=user_id).update(**kwargs)
+        return JsonResponse({"code": 0, "msg": "保存成功", "next": '../', "icon": 1})
+    else:
+        data = {}
+        user = UserSocialAuth.objects.get(user=request.user)
+        data["username"] = user.provider + '_' + Hashids(salt=settings.SECRET_KEY, min_length=10).encode(user.id)
+        gender_dict = {"男": 1, "女": 0}
+        data["sex"] = gender_dict.get(user.extra_data["gender"], 2)
+        return render(request, 'user/reg_guide.html', data)

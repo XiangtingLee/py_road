@@ -35,6 +35,10 @@ layui.define(['jquery', 'admin', 'form', 'supersized'], function (exports) {
             verify();
             act(act_url, "注册");
         },
+        reg_guide: function (act_url) {
+            verify();
+            act(act_url, "继续");
+        },
         login: function (act_url) {
             act(act_url);
         },

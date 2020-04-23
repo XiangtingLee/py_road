@@ -65,7 +65,8 @@
                 </li>
                 <li class="layui-nav-item" lay-unselect>
                     <a href="javascript:;">
-                        <cite>{{ nick_name }}</cite>
+                        <img src="{{ face_img }}" class="layui-nav-img">
+                        {{ nick_name }}
                     </a>
                     <dl class="layui-nav-child">
                         <dd><a lay-href="{% url 'user:info_view' %}">基本资料</a></dd>

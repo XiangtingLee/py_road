@@ -20,7 +20,7 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf.urls import url
 
-from user.views import login_act, logout_act, reg_act, reset_act
+from user.views import login_act, logout_act, reg_act, reset_act, reg_guide
 from . import views
 
 urlpatterns = [
@@ -37,4 +37,6 @@ urlpatterns = [
     url('^reset$', reset_act, name='reset'),
     url('^logout$', logout_act, name='logout'),
     url('^reg$', reg_act, name='reg'),
-] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+    url('^reg/guide$', reg_guide, name='reg_guide'),
+] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)\
+  + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

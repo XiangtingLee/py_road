@@ -9,6 +9,7 @@ def main(request):
     data = {}
     user = User.objects.get(id=request.user.id)
     data["nick_name"] = user.nick_name
+    data["face_img"] = user.face_img if user.face_img else "/media/face_img/default.png"
     return render(request, 'lib/main.html', data)
 
 
