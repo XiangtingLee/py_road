@@ -183,9 +183,11 @@ def reg_guide(request):
         User.objects.filter(id=user_id).update(**kwargs)
         return JsonResponse({"code": 0, "msg": "保存成功", "next": '../', "icon": 1})
     else:
-        data = {}
-        user = UserSocialAuth.objects.get(user=request.user)
-        data["username"] = user.provider + '_' + Hashids(salt=settings.SECRET_KEY, min_length=10).encode(user.id)
-        gender_dict = {"男": 1, "女": 0}
-        data["sex"] = gender_dict.get(user.extra_data["gender"], 2)
-        return render(request, 'user/reg_guide.html', data)
+        if not request.user.mobile:
+            data = {}
+            user = UserSocialAuth.objects.get(user=request.user)
+            data["username"] = user.provider + '_' + Hashids(salt=settings.SECRET_KEY, min_length=10).encode(user.id)
+            gender_dict = {"男": 1, "女": 0}
+            data["sex"] = gender_dict.get(user.extra_data["gender"], 2)
+            return render(request, 'user/reg_guide.html', data)
+        return redirect('main')
