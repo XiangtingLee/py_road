@@ -25,6 +25,7 @@ from . import views
 
 urlpatterns = [
     path('site/', admin.site.urls),
+    path('captcha/', include('captcha.urls')),
     path('log/', include('log.urls', namespace='log')),
     path('public/', include('public.urls', namespace='public')),
     path('user/', include('user.urls', namespace='user')),

@@ -15,6 +15,9 @@ from .models import User
 
 import time
 import datetime
+from .forms import CaptchaForms
+from captcha.models import CaptchaStore
+from captcha.views import captcha_image_url
 
 
 class CustomBackend(ModelBackend):
@@ -30,6 +33,9 @@ class CustomBackend(ModelBackend):
 
 def login_act(request):
     if request.method == "POST":
+        cap = CaptchaForms(request.POST).is_valid()
+        if not cap:
+            return JsonResponse({"code": 0, "msg": "验证码错误", "icon": 2})
         username = request.POST.get('username')
         password = request.POST.get('password')
         next_url = request.POST.get("next_url", '')
@@ -52,9 +58,13 @@ def login_act(request):
         if request.user.is_authenticated:
             return redirect(reverse('main'))
         else:
+            hash_key = CaptchaStore.generate_key()
+            img_url = captcha_image_url(hash_key)
             next_url = request.GET.get("next", '')
             return render(request, "user/login.html", {
-                'next_url': next_url,
+                "next_url": next_url,
+                "hash_key": hash_key,
+                "img_url": img_url,
             })
 
 

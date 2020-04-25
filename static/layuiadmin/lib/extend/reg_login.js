@@ -1,10 +1,10 @@
 layui.define(['jquery', 'admin', 'form', 'supersized'], function (exports) {
-    var jQuery = layui.$
+    var $ = layui.$
         , admin = layui.admin
         , form = layui.form;
     var obj = {
         bg: function () {
-            jQuery.supersized({
+            $.supersized({
                 // 功能
                 slide_interval: 4000,    // 转换之间的长度
                 transition: 1,    // 0 - 无，1 - 淡入淡出，2 - 滑动顶，3 - 滑动向右，4 - 滑底，5 - 滑块向左，6 - 旋转木马右键，7 - 左旋转木马
@@ -40,11 +40,16 @@ layui.define(['jquery', 'admin', 'form', 'supersized'], function (exports) {
             act(act_url, "继续");
         },
         login: function (act_url) {
-            act(act_url);
+            act(act_url, "", true);
         },
         reset: function (act_url) {
             verify();
             act(act_url, "修改");
+        },
+        ref_cap: function (dom_id) {
+            $(document).on('click', "#" + dom_id, function () {
+                ref_cap(dom_id);
+            })
         }
     };
 
@@ -54,7 +59,7 @@ layui.define(['jquery', 'admin', 'form', 'supersized'], function (exports) {
             , pass: [/^.*(?=.{6,12})(?=.*\d)(?=.*[a-z])(?=.*[\.,;:"'!@#$%^&*?\/\\\|\[\]\{\}]).*$/,
                 '密码为6-12位，包括至少1个小写字母，1个数字，1个特殊字符']
             , repass: function (value) {
-                if (jQuery("#pass").val() !== jQuery("#repass").val()) {
+                if ($("#pass").val() !== $("#repass").val()) {
                     return '两次密码输入不一致';
                 }
             }
@@ -62,7 +67,7 @@ layui.define(['jquery', 'admin', 'form', 'supersized'], function (exports) {
         });
     }
 
-    function act(url, agree = '') {
+    function act(url, agree = '', has_cap=false) {
         form.on('submit(act-form)', function (obj) {
             const field = obj.field;
             if (agree !== '' && !field.agreement) {
@@ -81,12 +86,22 @@ layui.define(['jquery', 'admin', 'form', 'supersized'], function (exports) {
                         if (res.icon === 1) {
                             location.href = res.next;
                         }
+                        if(has_cap){
+                            ref_cap();
+                        }
                     });
 
                 }
             });
             return false;
         });
+    }
+
+    function ref_cap(){
+        $.getJSON("/captcha/refresh", function (data) {
+            $("#cap_key").attr("value", data.key);
+            $("#cap_img").attr("src", data.image_url);
+        })
     }
 
     exports('reg_login', obj);

@@ -142,6 +142,12 @@ SOCIAL_AUTH_QQ_KEY = '101867835'
 SOCIAL_AUTH_QQ_SECRET = 'b606152f25662c8a157a825c3858e4f7'
 SOCIAL_AUTH_LOGIN_REDIRECT_URL = '/reg/guide'
 
+# simple captcha
+CAPTCHA_IMAGE_SIZE = (129, 38)
+CAPTCHA_TIMEOUT = 1
+CAPTCHA_CHALLENGE_FUNCT = 'captcha.helpers.random_char_challenge'
+CAPTCHA_FOREGROUND_COLOR = "#009688"
+
 # Internationalization
 # https://docs.djangoproject.com/en/2.0/topics/i18n/
 
