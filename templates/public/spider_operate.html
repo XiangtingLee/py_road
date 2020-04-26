@@ -64,16 +64,9 @@
                                     <div class="layui-input-block">
                                         <select name="kd" lay-verify="required" lay-filter="selectLan" lay-search>
                                             <option value="">请选择语言</option>
-                                            <option value="Python">Python</option>
-                                            <option value="Java">Java</option>
-                                            <option value="Go">Go</option>
-                                            <option value="PHP">PHP</option>
-                                            <option value="C">C</option>
-                                            <option value="C++">C++</option>
-                                            <option value="C#">C#</option>
-                                            <option value=".NET">.NET</option>
-                                            <option value=""></option>
-                                            <option value=""></option>
+                                            {% for type in position_types %}
+                                            <option value="{{ type }}">{{ type }}</option>
+                                            {% endfor %}
                                         </select>
                                     </div>
                                 </div>

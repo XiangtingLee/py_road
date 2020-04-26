@@ -22,6 +22,7 @@ from django.contrib.auth.decorators import login_required
 from .models import *
 from .tasks import delay_spider
 # from log.models import SpiderRunLog
+from position.models import PositionType
 from .tools import MyThread, verify_sign, update_sign, ListProcess
 from django.conf import settings
 
@@ -335,7 +336,8 @@ def spider_manage_data(request):
 @login_required
 def spider_operate_view(request):
     spiders = Spider.objects.filter(is_available=1, is_delete=0).values("name", "remark").order_by('id')
-    data = {"spiders": [i for i in spiders]}
+    position_types = PositionType.objects.filter(is_effective=1).values_list("name", flat=True).order_by('id')
+    data = {"spiders": [i for i in spiders], "position_types": position_types}
     resp = render(request, 'public/spider_operate.html', data)
     return resp
 
