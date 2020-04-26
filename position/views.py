@@ -72,7 +72,8 @@ def _experience():
     """
     data = {"series": [], "legend": {"data": []}, "xAxis": []}
     all_data = Position.objects.filter(is_effective=1).values_list("position_type__name", "experience__name")
-    all_type = list(PositionType.objects.values_list("name", flat=True))
+    all_type = list(PositionType.objects.filter(is_effective=1).values_list("name", flat=True))
+    data["legend"]["data"] = all_type
     df = pd.DataFrame(list(all_data))
     df.columns = ["type", "name"]
     gdf = df.groupby(["type", "name"]).size().to_frame().sort_values(by="type", ascending=True)
@@ -91,7 +92,6 @@ def _experience():
             "type": 'bar',
             "data": temp.get(one_type, []),
             "markPoint": {"data": [{"type": "max", "name": "最大值"}, {"type": "min", "name": "最小值"}]},
-            "markLine": {"data": [{"type": "average", "name": "平均值"}]}
         })
     return data
 
@@ -148,7 +148,7 @@ def _get_daily_num():
     day = 7
     range_date_end = datetime.date.today()
     range_date_start = range_date_end - datetime.timedelta(days=day)
-    all_type = PositionType.objects.all()
+    all_type = PositionType.objects.filter(is_effective=1)
     type_count = {}
     while range_date_start <= range_date_end:
         end_date = range_date_start + datetime.timedelta(days=1)
@@ -181,7 +181,7 @@ def _get_position_type_salary():
     """
     data = {"xAxis": DateProcess().get_month_range_str(6, out_format="%Y-%m", include_this_month=True), "series": [],
             "legend": {"data": []}}
-    all_type = list(Position.objects.values_list("position_type__name", flat=True).distinct())
+    all_type = list(PositionType.objects.filter(is_effective=1).values_list("name", flat=True))
     data["legend"]["data"] = all_type
     a = Position.objects.filter(is_effective=1).values_list("position_type__name", "salary_lower", "salary_upper",
                                                             "warehouse_time")
@@ -201,6 +201,7 @@ def _get_position_type_salary():
             "name": one_type,
             "type": "line",
             "itemStyle": {"normal": {"areaStyle": {"type": "default"}}},
+            "markLine": {"data": [{"type": "average", "name": "平均值"}]},
             "data": type_num
         })
     return data
