@@ -27,6 +27,7 @@ urlpatterns = [
     path('site/', admin.site.urls),
     path('captcha/', include('captcha.urls')),
     path('log/', include('log.urls', namespace='log')),
+    path('api/', include('api.urls', namespace='api')),
     path('public/', include('public.urls', namespace='public')),
     path('user/', include('user.urls', namespace='user')),
     path('position/', include('position.urls', namespace='position')),
