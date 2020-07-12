@@ -11,6 +11,7 @@
     {% block header_include_before %}{% endblock %}
     <link type="text/css" rel="stylesheet" href="{% static 'layuiadmin/layui/css/layui.css' %}">
     <link type="text/css" rel="stylesheet" href="{% static 'layuiadmin/style/admin.css' %}">
+    <script src="{% static 'layuiadmin/layui/layui.js' %}"></script>
     {% block header_include_after %}{% endblock %}
 </head>
 
@@ -23,7 +24,6 @@
 
 {% block tail_include_before %}{% endblock %}
 
-<script src="{% static 'layuiadmin/layui/layui.js' %}"></script>
 {% block tail_js %}{% endblock %}
 <script>
 //主动加载jquery模块

@@ -40,7 +40,7 @@ layui.define(function (exports) {
         var $ = layui.$
             , carousel = layui.carousel
             , echarts = layui.echarts
-            , node_list = ["wdCloud", "Distribution", "EduNum", "ExpNum", "companyScale", "cpyIndustry", "companyFinancing", "dailyNum", "salary", "companyFinancing"];
+            , node_list = ["Distribution", "companyScale", "cpyIndustry", "companyFinancing", "companyFinancing"];
         for (var i = 0; i < node_list.length; i++) {
             var node_name = node_list[i]
                 , node_obj = $("#" + node_name).children('div');
@@ -56,47 +56,6 @@ layui.define(function (exports) {
 
                 //循环渲染节点
                 var node_data = {
-                    //词云
-                    'wdCloud': {
-                        // title: {
-                        //     text: data.content.title,
-                        //     subtext: data.content.subtitle
-                        // },
-                        tooltip: {
-                            trigger: 'item'
-                        },
-                        series: [
-                            {
-                                type: 'wordCloud',
-                                size: ['90%', '90%'],
-                                gridSize: 8,
-                                textPadding: 1,
-                                rotationRange: [-90, 90],
-                                shape: 'pentagon',
-                                autoSize: {
-                                    enable: true,
-                                    // minSize: 20
-                                },
-                                textStyle: {
-                                    normal: {
-                                        color: function () {
-                                            return 'rgb(' + [
-                                                Math.round(Math.random() * 255),
-                                                Math.round(Math.random() * 255),
-                                                Math.round(Math.random() * 255)
-                                            ].join(',') + ')';
-                                        }
-                                    },
-                                    emphasis: {
-                                        shadowBlur: 10,
-                                        shadowColor: '#333'
-                                    }
-                                },
-                                data: data.content.word_cloud.values
-                            }
-                        ]
-
-                    },
                     //地图
                     "Distribution": {
                         // title: {
@@ -145,40 +104,6 @@ layui.define(function (exports) {
 
                         ],
 
-                    },
-                    //学历
-                    "EduNum": {
-                        tooltip: {
-                            trigger: 'item',
-                            formatter: "{a} <br/>{b} : {c}个职位 ({d}%)"
-                        },
-                        legend: {
-                            data: data.content.education.xAxis
-                        },
-                        series: [
-                            {
-                                name: '职位学历要求',
-                                type: 'pie',
-                                radius: '55%',
-                                center: ['50%', '60%'],
-                                data: data.content.education.values,
-                                itemStyle: {
-                                    emphasis: {
-                                        shadowBlur: 10,
-                                        shadowOffsetX: 0,
-                                        shadowColor: 'rgba(0, 0, 0, 0.5)'
-                                    }
-                                }
-                            }
-                        ]
-                    },
-                    //经验
-                    "ExpNum": {
-                        tooltip: {trigger: 'item', formatter: "{a} <br/>{b} : {c}个职位"},
-                        legend: {data: data.content.experience.legend.data},
-                        xAxis: [{type: 'category', axisLabel: {rotate: 45}, data: data.content.experience.xAxis}],
-                        yAxis: [{type: 'value'}],
-                        series: data.content.experience.series
                     },
                     //公司规模
                     "companyScale": {
@@ -263,32 +188,6 @@ layui.define(function (exports) {
                                 }
                             }
                         ]
-                    },
-                    //入库量
-                    "dailyNum": {
-                        tooltip: {
-                            trigger: 'axis'
-                        },
-                        legend: data.content.daily_num.legend,
-                        calculable: true,
-                        xAxis: [
-                            {
-                                type: 'category',
-                                boundaryGap: false,
-                                data: data.content.daily_num.xAxis
-                            }
-                        ],
-                        yAxis: [{type: 'value'}],
-                        series: data.content.daily_num.series
-                    },
-                    //薪资
-                    "salary": {
-                        tooltip: {trigger: "axis"},
-                        legend: data.content.type_salary.legend,
-                        calculable: !0,
-                        xAxis: [{type: "category", boundaryGap: !1, data: data.content.type_salary.xAxis}],
-                        yAxis: [{type: "value"}],
-                        series: data.content.type_salary.series
                     },
                 };
 

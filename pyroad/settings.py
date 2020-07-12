@@ -178,3 +178,7 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 #     STATICFILES_DIRS = (os.path.join(BASE_DIR, 'static'),)
 
 ALLOW_REG = False
+
+# Pyecharts assets host
+from pyecharts.globals import CurrentConfig
+CurrentConfig.ONLINE_HOST = '/static/echarts/'

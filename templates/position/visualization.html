@@ -10,11 +10,8 @@
                 <div class="layui-card-header">职位标签词云</div>
                 <div class="layui-card-body">
 
-                    <div class="layui-carousel layadmin-carousel layadmin-dataview" data-anim="fade"
-                         lay-filter="wdCloud">
-                        <div carousel-item id="wdCloud">
-                            <div><i class="layui-icon layui-icon-loading1 layadmin-loading"></i></div>
-                        </div>
+                    <div class="layui-carousel layadmin-carousel layadmin-dataview" data-anim="fade">
+                        {{ render.word_cloud | safe }}
                     </div>
 
                 </div>
@@ -24,11 +21,8 @@
                 <div class="layui-card-header">职位平均薪资</div>
                 <div class="layui-card-body">
 
-                    <div class="layui-carousel layadmin-carousel layadmin-dataview" data-anim="fade"
-                         lay-filter="salary">
-                        <div carousel-item id="salary">
-                            <div><i class="layui-icon layui-icon-loading1 layadmin-loading"></i></div>
-                        </div>
+                    <div class="layui-carousel layadmin-carousel layadmin-dataview" data-anim="fade">
+                        {{ render.salary | safe }}
                     </div>
 
                 </div>
@@ -38,11 +32,8 @@
                 <div class="layui-card-header">职位学历要求</div>
                 <div class="layui-card-body">
 
-                    <div class="layui-carousel layadmin-carousel layadmin-dataview" data-anim="fade"
-                         lay-filter="EduNum">
-                        <div carousel-item id="EduNum">
-                            <div><i class="layui-icon layui-icon-loading1 layadmin-loading"></i></div>
-                        </div>
+                    <div class="layui-carousel layadmin-carousel layadmin-dataview" data-anim="fade">
+                        {{ render.education | safe }}
                     </div>
 
                 </div>
@@ -52,11 +43,8 @@
                 <div class="layui-card-header">每日入库量</div>
                 <div class="layui-card-body">
 
-                    <div class="layui-carousel layadmin-carousel layadmin-dataview" data-anim="fade"
-                         lay-filter="dailyNum">
-                        <div carousel-item id="dailyNum">
-                            <div><i class="layui-icon layui-icon-loading1 layadmin-loading"></i></div>
-                        </div>
+                    <div class="layui-carousel layadmin-carousel layadmin-dataview" data-anim="fade">
+                        {{ render.daily | safe }}
                     </div>
 
                 </div>
@@ -66,11 +54,8 @@
                 <div class="layui-card-header">公司融资情况</div>
                 <div class="layui-card-body">
 
-                    <div class="layui-carousel layadmin-carousel layadmin-dataview" data-anim="fade"
-                         lay-filter="companyFinancing">
-                        <div carousel-item id="companyFinancing">
-                            <div><i class="layui-icon layui-icon-loading1 layadmin-loading"></i></div>
-                        </div>
+                    <div class="layui-carousel layadmin-carousel layadmin-dataview" data-anim="fade">
+                        {{ render.company_financing | safe }}
                     </div>
 
                 </div>
@@ -110,11 +95,8 @@
                 <div class="layui-card-header">职位城市分布</div>
                 <div class="layui-card-body">
 
-                    <div class="layui-carousel layadmin-carousel layadmin-dataview" data-anim="fade"
-                         lay-filter="Distribution">
-                        <div carousel-item id="Distribution">
-                            <div><i class="layui-icon layui-icon-loading1 layadmin-loading"></i></div>
-                        </div>
+                    <div class="layui-carousel layadmin-carousel layadmin-dataview" data-anim="fade">
+                        {{ render.location | safe }}
                     </div>
 
                 </div>
@@ -124,11 +106,8 @@
                 <div class="layui-card-header">职位经验要求</div>
                 <div class="layui-card-body">
 
-                    <div class="layui-carousel layadmin-carousel layadmin-dataview" data-anim="fade"
-                         lay-filter="ExpNum">
-                        <div carousel-item id="ExpNum">
-                            <div><i class="layui-icon layui-icon-loading1 layadmin-loading"></i></div>
-                        </div>
+                    <div class="layui-carousel layadmin-carousel layadmin-dataview" data-anim="fade">
+                        {{ render.experience | safe }}
                     </div>
 
                 </div>
@@ -138,11 +117,8 @@
                 <div class="layui-card-header">公司规模</div>
                 <div class="layui-card-body">
 
-                    <div class="layui-carousel layadmin-carousel layadmin-dataview" data-anim="fade"
-                         lay-filter="companyScale">
-                        <div carousel-item id="companyScale">
-                            <div><i class="layui-icon layui-icon-loading1 layadmin-loading"></i></div>
-                        </div>
+                    <div class="layui-carousel layadmin-carousel layadmin-dataview" data-anim="fade">
+                        {{ render.company_scale | safe }}
                     </div>
 
                 </div>
@@ -152,11 +128,8 @@
                 <div class="layui-card-header">公司所属行业分布</div>
                 <div class="layui-card-body">
 
-                    <div class="layui-carousel layadmin-carousel layadmin-dataview" data-anim="fade"
-                         lay-filter="cpyIndustry">
-                        <div carousel-item id="cpyIndustry">
-                            <div><i class="layui-icon layui-icon-loading1 layadmin-loading"></i></div>
-                        </div>
+                    <div class="layui-carousel layadmin-carousel layadmin-dataview" data-anim="fade">
+                        {{ render.company_industry | safe }}
                     </div>
 
                 </div>
@@ -171,7 +144,7 @@
             base: '{% static 'layuiadmin/' %}' //静态资源所在路径
         }).extend({
             index: '/lib/index' //主入口模块
-        }).use(['index', 'senior_position'], function () {
+        }).use(['index'], function () {
             var layer = layui.layer;
 
             {% if is_first_use %}

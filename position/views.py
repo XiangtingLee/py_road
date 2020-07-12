@@ -2,16 +2,65 @@ from django.shortcuts import render
 from django.db.models import CharField, Value as V
 from django.db.models.functions import Concat
 from django.contrib.auth.decorators import login_required
-from django.core.cache import cache
 
 from .models import *
 from public.tools import *
-from log.models import SpiderRunLog
+from .tasks import long_time_def
 
 import time
+from redis.connection import ConnectionError as RedisConnectionError
 import datetime
 from lxml import etree
 import pandas as pd
+from pyecharts import options as opts
+from pyecharts.globals import ThemeType
+from pyecharts.charts import Bar, Line, Pie, WordCloud, Scatter, Funnel, Map
+
+PYECHARTS_INIT_OPTS = opts.InitOpts(width="100%", height="100%", theme=ThemeType.MACARONS)
+PYECHARTS_MARKPOINT_MIN = opts.MarkPointItem(type_="min", value_index=1)
+PYECHARTS_MARKPOINT_MAX = opts.MarkPointItem(type_="max", value_index=1)
+PYECHARTS_LINEPOINT_AVG = opts.MarkLineItem(type_="average", value_index=1)
+
+
+def _get_pie_render_data(data: list):
+    value_count = pd.value_counts(data).to_frame()
+    df = pd.DataFrame(value_count).reset_index()
+    df.columns = ['name', 'counts']
+    render_data = [(item[0], item[1]) for item in df.values]
+    return render_data
+
+
+def _company_financing():
+    """
+    获取公司融资情况
+    """
+    all_financing = Company.objects.filter(is_effective=1).values_list("financing__name", flat=True)
+    render_data = _get_pie_render_data(list(all_financing))
+    pie = Pie(init_opts=PYECHARTS_INIT_OPTS)
+    pie.add(series_name="公司融资情况", data_pair=render_data, rosetype="area")
+    return pie.render_embed()
+
+
+def _company_scale():
+    """
+    公司规模数据
+    """
+    all_scala = Company.objects.values_list("scale__name", flat=True)
+    render_data = _get_pie_render_data(list(all_scala))
+    pie = Pie(init_opts=PYECHARTS_INIT_OPTS)
+    pie.add(series_name="公司融资情况", data_pair=render_data, radius=["40%", "50%"])
+    return pie.render_embed()
+
+
+def _education():
+    """
+    获取学历要求
+    """
+    all_edu = Position.objects.filter(is_effective=1).values_list("education__name", flat=True)
+    render_data = _get_pie_render_data(list(all_edu))
+    pie = Pie(init_opts=PYECHARTS_INIT_OPTS)
+    pie.add(series_name="学历要求", data_pair=render_data, tooltip_opts=opts.TooltipOpts(formatter="{b}:{c}({d}%)"))
+    return pie.render_embed()
 
 
 def _word_cloud():
@@ -19,7 +68,6 @@ def _word_cloud():
     标签词云数据
     """
     temp = []
-    data = []
     all_label = PositionLabels.objects.all()
     for label in all_label:
         name = label.name
@@ -28,9 +76,29 @@ def _word_cloud():
     df = pd.DataFrame(temp)
     df.columns = ['name', 'count']
     df = df.sort_values(by="count", ascending=False)
-    for one in df.values:
-        data.append({"name": one[0], "value": one[1]})
-    return {"values": data}
+    render_data = [(item[0], item[1]) for item in df.values]
+    word_cloud = WordCloud(init_opts=PYECHARTS_INIT_OPTS)
+    word_cloud.add(series_name="词云统计", data_pair=render_data)
+    return word_cloud.render_embed()
+
+
+def _company_industry():
+    """
+    获取公司所属行业
+    """
+    temp = []
+    all_industry = CompanyIndustries.objects.all()
+    for industry in all_industry:
+        name = industry.name
+        count = industry.company_set.filter(is_effective=1).__len__()
+        temp.append((name, count))
+    df = pd.DataFrame(temp)
+    df.columns = ['name', 'count']
+    df = df.sort_values(by="count", ascending=False)[0:10]
+    render_data = [(item[0], item[1]) for item in df.values]
+    funnel = Funnel(init_opts=PYECHARTS_INIT_OPTS)
+    funnel.add(series_name="公司行业", data_pair=render_data)
+    return funnel.render_embed()
 
 
 def _local_distribution():
@@ -46,170 +114,127 @@ def _local_distribution():
     data["count"] = all_city.__len__()
     all_data = df_value_counts.values
     range_max = (df_value_counts["counts"].values[0] // 100 + 2) * 100
-    data["range_max"] = int(range_max)
-    data["values"] = [{"name": one[0], "value": one[1]} for one in all_data]
-    return data
-
-
-def _education():
-    """
-    获取学历要求
-    """
-    data = {}
-    all_edu = Position.objects.filter(is_effective=1).values_list("education__name", flat=True)
-    value_count = pd.value_counts(list(all_edu)).to_frame()
-    df = pd.DataFrame(value_count).reset_index()
-    df.columns = ['name', 'counts']
-    data['xAxis'] = df["name"].tolist()
-    data['values'] = [{"name": one[0], "value": one[1]} for one in df.values]
-    data['count'] = all_edu.__len__()
-    return data
+    render_data = [(item[0], item[1]) for item in all_data]
+    maps = Map(init_opts=PYECHARTS_INIT_OPTS)
+    maps.add(series_name="总览", data_pair=render_data, zoom=1.2, is_map_symbol_show=False,
+             itemstyle_opts=opts.series_options.ItemStyleOpts(area_color="#ddd", border_color="#eee",
+                                                              border_width=.5), ).set_global_opts(
+        visualmap_opts=opts.VisualMapOpts(max_=int(range_max)))
+    return maps.render_embed()
 
 
 def _experience():
     """
     获取经验要求
     """
-    data = {"series": [], "legend": {"data": []}, "xAxis": []}
+    xAxis = []
     all_data = Position.objects.filter(is_effective=1).values_list("position_type__name", "experience__name")
-    all_type = list(PositionType.objects.filter(is_effective=1).values_list("name", flat=True))
-    data["legend"]["data"] = all_type
     df = pd.DataFrame(list(all_data))
     df.columns = ["type", "name"]
-    gdf = df.groupby(["type", "name"]).size().to_frame().sort_values(by="type", ascending=True)
+    gdf = df.sort_values(by='name', ascending=False).groupby(["type", "name"]).size().to_frame()
     gdf.columns = ["count"]
-    temp = {}
+    render_data = {}
     for k, v in gdf.to_dict()["count"].items():
+        xAxis.append(k[1]) if k[1] not in xAxis else None
         try:
-            data["xAxis"].append(k[1]) if k[1] not in data["xAxis"] else None
-            temp[k[0]].append({"name": k[1], "value": v})
+            render_data[k[0]].append(v)
         except KeyError:
-            temp[k[0]] = []
-            temp[k[0]].append({"name": k[1], "value": v})
-    for one_type in all_type:
-        data["series"].append({
-            "name": one_type,
-            "type": 'bar',
-            "data": temp.get(one_type, []),
-            "markPoint": {"data": [{"type": "max", "name": "最大值"}, {"type": "min", "name": "最小值"}]},
-        })
-    return data
-
-
-def _company_scale():
-    """
-    公司规模数据
-    """
-    all_scala = Company.objects.values_list("scale__name", flat=True)
-    value_count = pd.value_counts(list(all_scala)).to_frame()
-    df_value_counts = pd.DataFrame(value_count).reset_index()
-    df_value_counts.columns = ['name', 'counts']
-    all_data = df_value_counts.values
-    values = [{"name": one[0], "value": one[1]} for one in all_data]
-    return {"values": values}
-
-
-def _company_industry():
-    """
-    获取公司所属行业
-    """
-    temp = []
-    all_industry = CompanyIndustries.objects.all()
-    for industry in all_industry:
-        name = industry.name
-        count = industry.company_set.filter(is_effective=1).__len__()
-        temp.append((name, count))
-    df = pd.DataFrame(temp)
-    df.columns = ['name', 'count']
-    df = df.sort_values(by="count", ascending=False)[0:11].sort_values(by="count", ascending=True)
-    xAxis = df["name"].tolist()
-    values = df["count"].tolist()
-    return {"xAxis": xAxis, "values": values}
-
-
-def _company_financing():
-    """
-    获取公司融资情况
-    """
-    all_financing = Company.objects.filter(is_effective=1).values_list("financing__name", flat=True)
-    value_count = pd.value_counts(list(all_financing)).to_frame()
-    df = pd.DataFrame(value_count).reset_index()
-    df.columns = ['name', 'count']
-    xAxis = df["name"].tolist()
-    values = [{"name": one[0], "value": one[1]} for one in df.values]
-    return {"xAxis": xAxis, "values": values}
+            render_data[k[0]] = []
+            render_data[k[0]].append(v)
+    bar = Bar(init_opts=PYECHARTS_INIT_OPTS)
+    bar.add_xaxis(xAxis)
+    bar.set_global_opts(xaxis_opts=opts.AxisOpts(axislabel_opts={"rotate": 45}))
+    for k, v in render_data.items():
+        bar.add_yaxis(k, v, markpoint_opts=opts.MarkPointOpts([PYECHARTS_MARKPOINT_MIN, PYECHARTS_MARKPOINT_MAX]))
+    return bar.render_embed()
 
 
 def _get_daily_num():
     """
     每日入库数据量统计
     """
-    data = {"xAxis": [], "legend": {"data": []}, "series": []}
+    xAxis = []
     day = 7
     range_date_end = datetime.date.today()
-    range_date_start = range_date_end - datetime.timedelta(days=day)
+    range_date_start = range_date_end - datetime.timedelta(days=day - 1)
     all_type = PositionType.objects.filter(is_effective=1)
-    type_count = {}
+    render_data = {}
     while range_date_start <= range_date_end:
         end_date = range_date_start + datetime.timedelta(days=1)
         date_str = range_date_start.strftime("%m-%d")
-        data["xAxis"].append(date_str)
+        xAxis.append(date_str)
         for one_type in all_type:
             daily_count = Position.objects.filter(position_type=one_type, warehouse_time__gte=range_date_start,
                                                   warehouse_time__lt=end_date).count()
             try:
-                type_count[one_type.name].append(daily_count)
+                render_data[one_type.name].append(daily_count)
             except KeyError:
-                type_count[one_type.name] = []
-                type_count[one_type.name].append(daily_count)
+                render_data[one_type.name] = []
+                render_data[one_type.name].append(daily_count)
         range_date_start = range_date_start + datetime.timedelta(days=1)
-    for k, v in type_count.items():
-        data["legend"]["data"].append(k)
-        data["series"].append({
-            "name": k,
-            "type": 'line',
-            "data": v,
-            "markPoint": {"data": [{"type": 'max', "name": '最大值'}, {"type": 'min', "name": '最小值'}]},
-            "markLine": {"data": [{"type": 'average', "name": '平均值'}]}
-        })
-    return data
+    line = Scatter(init_opts=PYECHARTS_INIT_OPTS)
+    line.add_xaxis(xAxis)
+    for k, v in render_data.items():
+        line.add_yaxis(k, v,
+                       markpoint_opts=opts.MarkPointOpts([PYECHARTS_MARKPOINT_MIN, PYECHARTS_MARKPOINT_MAX]),
+                       markline_opts=opts.MarkLineOpts(False, [PYECHARTS_LINEPOINT_AVG]))
+    return line.render_embed()
 
 
 def _get_position_type_salary():
     """
     获取行业薪资
     """
-    data = {"xAxis": DateProcess().get_month_range_str(6, out_format="%Y-%m", include_this_month=True), "series": [],
-            "legend": {"data": []}}
+    xAxis = DateProcess().get_month_range_str(6, out_format="%Y.%m", include_this_month=True)
     all_type = list(PositionType.objects.filter(is_effective=1).values_list("name", flat=True))
-    data["legend"]["data"] = all_type
     a = Position.objects.filter(is_effective=1).values_list("position_type__name", "salary_lower", "salary_upper",
                                                             "warehouse_time")
     df = pd.DataFrame(list(a), columns=["type", "salary_low", "salary_up", "date"])
     df["salary"] = (df["salary_low"] + df["salary_up"]) / 2
     df.drop(columns=["salary_low", "salary_up"], inplace=True)
-    df["date"] = [datetime.datetime.strftime(i, "%Y-%m") for i in df["date"]]
+    df["date"] = [datetime.datetime.strftime(i, "%Y.%m") for i in df["date"]]
+    render_data = {}
     for one_type in all_type:
-        type_num = []
-        for month in data["xAxis"]:
+        for month in xAxis:
             date_df = df[(df["type"] == one_type) & (df["date"] == month)]
             if date_df.empty:
                 date_df = pd.DataFrame([0], columns=["salary"])
             mean = date_df["salary"].mean()
-            type_num.append(round(mean, 2))
-        data["series"].append({
-            "name": one_type,
-            "type": "line",
-            "itemStyle": {"normal": {"areaStyle": {"type": "default"}}},
-            "markLine": {"data": [{"type": "average", "name": "平均值"}]},
-            "data": type_num
-        })
-    return data
+            try:
+                render_data[one_type].append(round(mean, 2))
+            except KeyError:
+                render_data[one_type] = []
+                render_data[one_type].append(round(mean, 2))
+    line = Line(init_opts=PYECHARTS_INIT_OPTS)
+    line.add_xaxis(xAxis)
+    for k, v in render_data.items():
+        line.add_yaxis(k, v, is_smooth=True,
+                       markline_opts=opts.MarkLineOpts(False, [PYECHARTS_LINEPOINT_AVG]),
+                       areastyle_opts=opts.AreaStyleOpts(.5))
+    return line.render_embed()
 
 
 @login_required
 def visualization_view(request):
-    data = {"is_first_use": False}
+    try:
+        render_data = cache.get('visualization_data', None)
+        if not render_data:
+            update_position_visualization_cache("")
+        render_data = cache.get('visualization_data', None)
+    except RedisConnectionError:
+        render_data = {
+            "word_cloud": _word_cloud,
+            "location": _local_distribution,
+            "education": _education,
+            "experience": _experience,
+            "company_scale": _company_scale,
+            "company_industry": _company_industry,
+            "company_financing": _company_financing,
+            "daily": _get_daily_num,
+            "salary": _get_position_type_salary
+        }
+    data = {"is_first_use": False,
+            "render": render_data}
     if Position.objects.count() == 0:
         data["is_first_use"] = True
     resp = render(request, 'position/visualization.html', data)
@@ -223,14 +248,14 @@ def update_position_visualization_cache(task_id):
     threads = []
     data_dict = {
         "word_cloud": _word_cloud,
-        "local": _local_distribution,
+        "location": _local_distribution,
         "education": _education,
         "experience": _experience,
         "company_scale": _company_scale,
         "company_industry": _company_industry,
         "company_financing": _company_financing,
-        "daily_num": _get_daily_num,
-        "type_salary": _get_position_type_salary
+        "daily": _get_daily_num,
+        "salary": _get_position_type_salary
     }
     for k, v in data_dict.items():
         threads.append(MyThread(func=v, name=k, args=()))
@@ -240,21 +265,6 @@ def update_position_visualization_cache(task_id):
         thread.join()
         data[thread.name] = thread.result
     cache.set("visualization_data", data, 3600)
-
-
-@login_required
-@verify_sign("POST")
-def visualization_data(request):
-    if request.method == "POST":
-        data = {"status": "success", "success": True, "content":{}, "msg":""}
-        read_cache = cache.get('visualization_data', None)
-        while not read_cache:
-            update_position_visualization_cache("")
-            read_cache = cache.get('visualization_data', None)
-        data["content"] = read_cache
-        return JsonResponse(data, json_dumps_params={'ensure_ascii': False})
-    else:
-        return JsonResponse({"msg": "访问太频繁，请稍后再试！"}, json_dumps_params={'ensure_ascii': False})
 
 
 @login_required
@@ -268,10 +278,11 @@ def display_view(request):
 @login_required
 @verify_sign("POST")
 def node_data(request):
-    if request.method=="POST":
+    if request.method == "POST":
         data = {"search_node": []}
         place_data = Position.objects.filter(is_effective=1).values_list("position_city__province__name",
-                                                                         "position_city__name", "position_district__name")
+                                                                         "position_city__name",
+                                                                         "position_district__name")
         df = pd.DataFrame(list(place_data))
         df.columns = ["province", "city", "district"]
         df["district"] = df["district"].fillna("其它地区")
@@ -290,7 +301,8 @@ def node_data(request):
                 # 构造city数据
                 all_city_data.append({"name": city, "type": "position_city__name", "children": district_node})
             # 构造province数据
-            data["search_node"].append({"name": province, "type": "position_city__province__name", "children": all_city_data})
+            data["search_node"].append(
+                {"name": province, "type": "position_city__province__name", "children": all_city_data})
         return JsonResponse(data["search_node"], json_dumps_params={'ensure_ascii': False}, safe=False)
     else:
         return JsonResponse({"msg": "访问太频繁，请稍后再试！"}, json_dumps_params={'ensure_ascii': False})
@@ -305,7 +317,7 @@ def display_filter(request):
     data = {'code': 0, 'count': 0, 'data': [], 'msg': ''}
     filter_kwargs = {'is_effective': 1}
     filter_kwargs.update({key: form[key] for key in form if
-                     key not in ["csrfmiddlewaretoken", "page", "limit"] and form[key]})
+                          key not in ["csrfmiddlewaretoken", "page", "limit"] and form[key]})
     if 'salary' in filter_kwargs.keys():
         try:
             filter_kwargs["salary_lower__gte"] = int(filter_kwargs["salary"].split(',')[0])
@@ -317,7 +329,7 @@ def display_filter(request):
         Position.objects.filter(**filter_kwargs).annotate(salary=Concat("salary_lower", V("-"), "salary_upper", V("k"),
                                                                         output_field=CharField())).values(
             'id', 'company__name', 'position_type__name', 'position_name', 'position_city__name',
-            'position_district__name', 'education__name', 'experience__name', 'update_time', "salary")
+            'position_district__name', 'education__name', 'experience__name', 'update_time', "salary").order_by('id')
     )
     data['count'], data['data'] = ListProcess().pagination(_data, page, limit)
     return JsonResponse(data, json_dumps_params={'ensure_ascii': False})

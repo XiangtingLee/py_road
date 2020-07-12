@@ -4,15 +4,22 @@ from django.contrib.auth.decorators import login_required
 
 import json
 import pandas as pd
+from pyecharts.charts import Line, Map
+from pyecharts import options as opts
+from pyecharts.globals import ThemeType
 
 from wuhan2020.models import DXYData, DXYTimeLine
 from public.tools import *
 
-colors_dict = {"dead": "#5D7092", "cured": "#28B7A3", "confirmed": "#F74C31", "suspected": "#F78207",
-               "serious": "#A25A4E"}
+colors_dict = {
+    "dead": "#5D7092", "cured": "#28B7A3", "confirmed": "#F74C31", "suspected": "#F78207", "serious": "#A25A4E"
+}
 fields_dict = {"confirmed": "confirmedCount", "suspected": "suspectedCount", "cured": "curedCount", "dead": "deadCount",
                "serious": "seriousCount"}
-
+PYECHARTS_INIT_OPTS = opts.InitOpts(width="100%", height="100%", theme=ThemeType.MACARONS)
+PYECHARTS_MARKPOINT_MIN = opts.MarkPointItem(type_="min", value_index=1)
+PYECHARTS_MARKPOINT_MAX = opts.MarkPointItem(type_="max", value_index=1)
+PYECHARTS_LINEPOINT_AVG = opts.MarkLineItem(type_="average", value_index=1)
 
 def back_svg(request):
     return HttpResponse("""<svg t="1584332941285" class="icon" viewBox="0 0 1050 1024" version="1.1" 
@@ -40,70 +47,103 @@ def _get_sum_data(filter_fields: list or dict = None) -> dict:
     return data_dict
 
 
-def _get_sum(sum_data, is_stack=False, is_accumulate=False, *fields, **kwargs):
+def _get_sum(sum_data, stack=None, is_accumulate=False, *fields, **kwargs):
     fields = fields[0] if fields else fields_dict.keys()
+    # pyecharts渲染
+    line = Line(init_opts=PYECHARTS_INIT_OPTS)
+    line.add_xaxis([i for i in sum_data["modify_time"].keys()])
     # 开始构造数据
-    data = {"xAxis": [i for i in sum_data["modify_time"].keys()], "series": [], "legend": {"data": []}}
     del sum_data["modify_time"]
     for field in fields:
         type_num = []
         for _, date_data in sum_data[field].items():
             type_num.append(date_data)
-        series = {"name": field, "type": "line", "data": type_num,
-                  "itemStyle": {"normal": {"color": colors_dict[field], "lineStyle": {"color": colors_dict[field]}}}}
-        if is_accumulate:
-            series["itemStyle"] = {"normal": {"areaStyle": {"type": "default"}, "color": colors_dict[field]}}
-        if is_stack:
-            series["stack"] = "总量"
-        else:
-            series["markPoint"] = {"data": [{"type": 'max', "name": '最大值'}, {"type": 'min', "name": '最小值'}]}
-            series["markLine"] = {"data": [{"type": 'average', "name": '平均值'}]}
-        data["series"].append(series)
-        data["legend"]["data"].append(field)
-    return data
+        line.add_yaxis(field, type_num, stack=stack, is_smooth=True,
+                       itemstyle_opts=opts.ItemStyleOpts(color=colors_dict[field]),
+                       linestyle_opts=opts.LineStyleOpts(color=colors_dict[field]),
+                       areastyle_opts=opts.AreaStyleOpts(.5, color=colors_dict[field]),
+                       markpoint_opts=opts.MarkPointOpts([PYECHARTS_MARKPOINT_MIN, PYECHARTS_MARKPOINT_MAX]),
+                       markline_opts=opts.MarkLineOpts(False, [PYECHARTS_LINEPOINT_AVG]))
+    return line.render_embed()
 
 
 def _get_incr(sum_data, *fields, **kwargs):
     fields = fields[0] if fields else fields_dict.keys()
+    # pyecharts渲染
+    line = Line(init_opts=PYECHARTS_INIT_OPTS)
+    line.add_xaxis([i for i in sum_data["modify_time"].keys()])
     # 开始构造数据
-    data = {"xAxis": [i for i in sum_data["modify_time"].keys()], "series": [], "legend": {"data": []}}
     del sum_data["modify_time"]
     for field in fields:
         if field != "suspected" and field != "serious":
             type_num = [values for values in sum_data[field].values()]
             incr = [type_num[i] if not i else type_num[i] - type_num[i - 1] for i in range(type_num.__len__())]
             del incr[0]
-            series = {
-                "name": field,
-                "type": "line",
-                "data": incr,
-                "itemStyle": {"normal": {"color": colors_dict[field], "lineStyle": {"color": colors_dict[field]}}}
-            }
-            data["series"].append(series)
-            data["legend"]["data"].append(field)
-    del data["xAxis"][0]
-    return data
+            line.add_yaxis(field, incr,
+                           itemstyle_opts=opts.ItemStyleOpts(color=colors_dict[field]),
+                           linestyle_opts=opts.LineStyleOpts(color=colors_dict[field]))
+    return line.render_embed()
 
 
 def _get_domestic_province(type=""):
-    data = {"province_cs": [], "province_cd": []}
+    render_data = []
+    type_info = {
+        "DistributionCS":
+            {
+                "font": "#eee",
+                "name": "确诊/疑似",
+                "range": ['#fdebcf', '#f59e83', '#e55a4e', '#cb2a2f', '#811c24', '#4f070d']
+            },
+        "DistributionCD":
+            {
+                "font": "#dc888e",
+                "name": "治愈/死亡",
+                "range": ['#e0ffff', '#009688']
+            }
+    }
+    sum_field = {"DistributionCS": ["confirmedCount", "suspectedCount"], "DistributionCD": ["curedCount", "deadCount"]}
     all_province_data = DXYData.objects.filter(is_available=1).order_by('id').last().domestic_area
     try:
         all_province_data_json = json.loads(all_province_data)
     except json.decoder.JSONDecodeError:
-        return data
+        return render_data
     for one_province_data in all_province_data_json:
         province_name = one_province_data["provinceShortName"]
-        province_cs = one_province_data["confirmedCount"] + one_province_data["suspectedCount"]
-        province_cd = one_province_data["curedCount"] + one_province_data["deadCount"]
+        count = one_province_data[sum_field[type][0]] + one_province_data[sum_field[type][1]]
         if province_name != "待明确地区":
-            data["province_cs"].insert(data["province_cs"].__len__(), {"name": province_name, "value": province_cs})
-            data["province_cd"].insert(data["province_cd"].__len__(), {"name": province_name, "value": province_cd})
-    if type == "DistributionCS":
-        return data["province_cs"]
-    if type == "DistributionCD":
-        return data["province_cd"]
-    return data
+            render_data.insert(render_data.__len__(), (province_name, count))
+    range_max = render_data[1][1] + render_data[1][1] * .3
+    maps = Map(init_opts=opts.InitOpts(width="100%", height="100%", theme=ThemeType.MACARONS, chart_id=type))
+    maps.add(
+        series_name=type_info[type]["name"], data_pair=render_data, zoom=1.2, is_map_symbol_show=False, is_roam=False,
+        itemstyle_opts=opts.series_options.ItemStyleOpts(area_color="#ddd", border_color="#eee", ),
+    ).set_global_opts(
+        visualmap_opts=opts.VisualMapOpts(max_=int(range_max), range_color=type_info[type]["range"]))
+    maps.add_js_funcs(
+        '''
+        layui.use(['jquery'], function () {
+            var $ = layui.$,
+            render_arr = {"治愈/死亡": "DistributionCD", "确诊/疑似": "DistributionCS"}
+            chart = $("#tag");
+            
+            chart_tag.on("click", function(params){
+                $.ajax({
+                    url: "/wuhan2020/visualization/conversion/data/",
+                    data: {t_n: render_arr[params.seriesName.trim()], p_n: params.name},
+                    method: 'POST',
+                    success: function (data) {
+                        console.log(data);
+                        update_tag(chart, data, params.name);
+                    }
+                });
+            });
+        });
+        function update_tag(ele, data, mapType){
+            alert("地图下钻待实现");
+        }
+        '''.replace("tag", type)
+    )
+    return maps.render_embed()
 
 
 @login_required
@@ -126,6 +166,16 @@ def visualization_view(request):
              "incr": get_str(last_record_json.get(key + "Incr", 0))})
 
     data["counter"] = ListProcess().slice_n(data["counter"], 4)
+    sum_data = _get_sum_data()
+    data["render"] = {
+        "incr_cs": _get_incr(sum_data.copy(), ("confirmed", "suspected",)),
+        "incr_cd": _get_incr(sum_data.copy(), ("cured", "dead",)),
+        "sum_cs": _get_sum(sum_data.copy(), "总量", True, ("confirmed", "suspected",)),
+        "sum_cd": _get_sum(sum_data.copy(), "总量", True, ("cured", "dead",)),
+        "distribution_cs": _get_domestic_province("DistributionCS"),
+        "distribution_cd": _get_domestic_province("DistributionCD"),
+        # "tree_table": _get_tree_table,
+    }
     resp = render(request, 'wuhan2020/visualization.html', data)
     resp.set_signed_cookie(key='sign', value=int(time.time()), salt=settings.SECRET_KEY,
                            path='/wuhan2020/visualization/')
@@ -236,11 +286,7 @@ def visualization_data(request):
         threads = []
         sum_data = _get_sum_data()
         data_dict = {
-            "pneumonia_cs_incr": {"obj": _get_incr, "args": (sum_data.copy(), ("confirmed",),)},
-            "pneumonia_cd_incr": {"obj": _get_incr, "args": (sum_data.copy(), ("cured", "dead",),)},
-            "pneumonia_cs_sum": {"obj": _get_sum, "args": (sum_data.copy(), True, True, ("confirmed", "suspected",),)},
-            "pneumonia_cd_sum": {"obj": _get_sum, "args": (sum_data.copy(), False, True, ("cured", "dead",),)},
-            "domestic_province": _get_domestic_province,
+            # "domestic_province": _get_domestic_province,
             "tree_table": _get_tree_table,
         }
         for k, v in data_dict.items():

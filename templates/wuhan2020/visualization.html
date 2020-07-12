@@ -72,11 +72,8 @@
                     <div class="layui-card-header">确诊/疑似城市分布</div>
                     <div class="layui-card-body">
 
-                        <div class="layui-carousel layadmin-carousel layadmin-dataview" data-anim="fade"
-                             lay-filter="DistributionCS">
-                            <div carousel-item id="DistributionCS">
-                                <div><i class="layui-icon layui-icon-loading1 layadmin-loading"></i></div>
-                            </div>
+                        <div class="layui-carousel layadmin-carousel layadmin-dataview" data-anim="fade">
+                            {{ render.distribution_cs | safe }}
                         </div>
 
                     </div>
@@ -88,11 +85,8 @@
                     <div class="layui-card-header">治愈/死亡城市分布</div>
                     <div class="layui-card-body">
 
-                        <div class="layui-carousel layadmin-carousel layadmin-dataview" data-anim="fade"
-                             lay-filter="DistributionCD">
-                            <div carousel-item id="DistributionCD">
-                                <div><i class="layui-icon layui-icon-loading1 layadmin-loading"></i></div>
-                            </div>
+                        <div class="layui-carousel layadmin-carousel layadmin-dataview" data-anim="fade">
+                            {{ render.distribution_cd | safe }}
                         </div>
 
                     </div>
@@ -104,11 +98,8 @@
                     <div class="layui-card-header">疫情确诊/疑似日增趋势</div>
                     <div class="layui-card-body">
 
-                        <div class="layui-carousel layadmin-carousel layadmin-dataview" data-anim="fade"
-                             lay-filter="pneumoniaCSIncr">
-                            <div carousel-item id="pneumoniaCSIncr">
-                                <div><i class="layui-icon layui-icon-loading1 layadmin-loading"></i></div>
-                            </div>
+                        <div class="layui-carousel layadmin-carousel layadmin-dataview" data-anim="fade">
+                            {{ render.incr_cs | safe }}
                         </div>
 
                     </div>
@@ -118,25 +109,19 @@
                     <div class="layui-card-header">疫情确诊/疑似总量趋势</div>
                     <div class="layui-card-body">
 
-                        <div class="layui-carousel layadmin-carousel layadmin-dataview" data-anim="fade"
-                             lay-filter="pneumoniaCSSum">
-                            <div carousel-item id="pneumoniaCSSum">
-                                <div><i class="layui-icon layui-icon-loading1 layadmin-loading"></i></div>
-                            </div>
+                        <div class="layui-carousel layadmin-carousel layadmin-dataview" data-anim="fade">
+                            {{ render.sum_cs | safe }}
                         </div>
 
                     </div>
                 </div>
 
                 <div class="layui-card" id="c_s">
-                    <div class="layui-card-header">疫情确诊/疑似日增趋势</div>
+                    <div class="layui-card-header">疫情治愈/死亡日增趋势</div>
                     <div class="layui-card-body">
 
-                        <div class="layui-carousel layadmin-carousel layadmin-dataview" data-anim="fade"
-                             lay-filter="pneumoniaCDIncr">
-                            <div carousel-item id="pneumoniaCDIncr">
-                                <div><i class="layui-icon layui-icon-loading1 layadmin-loading"></i></div>
-                            </div>
+                        <div class="layui-carousel layadmin-carousel layadmin-dataview" data-anim="fade">
+                            {{ render.incr_cd | safe }}
                         </div>
 
                     </div>
@@ -146,11 +131,8 @@
                     <div class="layui-card-header">疫情治愈/死亡总量趋势</div>
                     <div class="layui-card-body">
 
-                        <div class="layui-carousel layadmin-carousel layadmin-dataview" data-anim="fade"
-                             lay-filter="pneumoniaCDSum">
-                            <div carousel-item id="pneumoniaCDSum">
-                                <div><i class="layui-icon layui-icon-loading1 layadmin-loading"></i></div>
-                            </div>
+                        <div class="layui-carousel layadmin-carousel layadmin-dataview" data-anim="fade">
+                            {{ render.sum_cd | safe }}
                         </div>
 
                     </div>
