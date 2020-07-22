@@ -105,7 +105,7 @@
                             <cite>用户操作</cite>
                         </a>
                         <dl class="layui-nav-child">
-                            <dd data-name="console"><a lay-href="******">信息管理</a></dd>
+                            <dd data-name="console"><a lay-href="{% url 'user:manage_view' %}">用户管理</a></dd>
                             <dd data-name="console"><a lay-href="******">权限管理</a></dd>
                         </dl>
                     </li>
@@ -155,6 +155,13 @@
                             <dd data-name="visualization"><a lay-href="{% url 'wuhan2020:visualization_view' %}">可视化展示</a></dd>
                             <dd data-name="visualization"><a lay-href="{% url 'wuhan2020:timeline_view' %}">发展时间线</a></dd>
                         </dl>
+                    </li>
+
+                    <li data-name="home" class="layui-nav-item layui-nav-itemed">
+                        <a href="{% url 'position:run_view' %}" lay-tips="demo" lay-direction="2">
+                            <i class="layui-icon layui-icon-home"></i>
+                            <cite>demo</cite>
+                        </a>
                     </li>
 
 

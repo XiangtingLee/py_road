@@ -10,8 +10,10 @@ from django.contrib.auth.backends import ModelBackend
 from django.core.files.storage import FileSystemStorage
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import login, authenticate, logout
+from django.forms.models import model_to_dict
 
 from .models import User
+from public.tools import ListProcess
 
 import time
 import datetime
@@ -201,3 +203,40 @@ def reg_guide(request):
             data["sex"] = gender_dict.get(user.extra_data["gender"], 2)
             return render(request, 'user/reg_guide.html', data)
         return redirect('main')
+
+
+@login_required
+def manage_view(request):
+    ip = request.META.get('HTTP_X_FORWARDED_FOR', request.META["REMOTE_ADDR"])
+    return render(request, 'user/manage.html')
+
+@login_required
+def manage_filter(request):
+    if request.method == "GET":
+        data = {'code': 0, 'count': 0, 'data': [], 'msg': ''}
+        page = int(request.GET.get('page', 1))
+        limit = int(request.GET.get('limit', 10))
+        form = request.GET
+        filter_kwargs = {key: form[key] for key in form if
+                              key not in ["csrfmiddlewaretoken", "page", "limit"] and form[key]}
+        _data = list(
+            User.objects.filter(**filter_kwargs).values("id", "username", "nick_name", "face_img", "mobile", "email", "sex",
+                                                        "last_login_ip", "date_joined", "is_active").order_by('id')
+        )
+        data['count'], data['data'] = ListProcess().pagination(_data, page, limit)
+        return JsonResponse(data, json_dumps_params={'ensure_ascii': False})
+
+@login_required
+def manage_edit(request, uid):
+    if request.method == "POST":
+        form = request.POST
+        print(request.POST)
+        filter_kwargs = {key: form[key] for key in form if
+                              key not in ["csrfmiddlewaretoken", "page", "limit"] and form[key]}
+        User.objects.filter(id=uid).update(**filter_kwargs)
+        return JsonResponse({'status': 'success', 'success': True, 'msg': "操作成功"})
+    else:
+        data = {}
+        if uid:
+            data = model_to_dict(User.objects.get(id=uid))
+        return render(request, 'user/manage_edit.html', data)

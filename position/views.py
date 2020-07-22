@@ -6,6 +6,7 @@ from django.contrib.auth.decorators import login_required
 from .models import *
 from public.tools import *
 from .tasks import long_time_def
+from django.core.cache import cache
 
 import time
 from redis.connection import ConnectionError as RedisConnectionError
