@@ -3,11 +3,11 @@
  */
 
 layui.config({
-    base: '/static/cropper/' //layui自定义layui组件目录
+    base: '/static/layuiadmin/lib/extend/cropper/' //layui自定义layui组件目录
 }).define(['jquery','layer','cropper'],function (exports) {
     var $ = layui.jquery
         ,layer = layui.layer;
-    var html = "<link rel=\"stylesheet\" href=\"/static/cropper/cropper.css\">\n" +
+    var html = "<link rel=\"stylesheet\" href=\"/static/layuiadmin/lib/extend/cropper/cropper.css\">\n" +
         "<div class=\"layui-fluid showImgEdit\" style=\"display: none\">\n" +
         "    <div class=\"layui-form-item\">\n" +
         "        <div class=\"layui-input-inline layui-btn-container\" style=\"width: auto;\">\n" +

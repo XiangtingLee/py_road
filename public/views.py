@@ -366,16 +366,35 @@ def administrative_div_view(request):
 
 
 @login_required
-def administrative_div_data(request):
-    if request.method == "POST":
+def administrative_div_filter(request):
+    if request.method == "GET":
         data = {"code": 0, "msg": "", "data": []}
-        page = int(request.POST.get('page', 1))
-        limit = int(request.POST.get('limit', 10))
-        _data = AdministrativeDiv.objects.all().annotate(province_name=F("province__name"), city_name=F("city__name"),
-                                                         area_name=F("area__name")).values(
-            "code", "name", "pinyin", "short_name", "zip_code", "province_name", "city_name", "area_name", "lng_lat",
+        form = request.GET
+        page = int(form.get('page', 1))
+        limit = int(form.get('limit', 10))
+        filter_kwargs = {key: form[key] for key in form if
+                         key not in ["city-picker", "csrfmiddlewaretoken", "page", "limit"] and form[key]}
+        _data = AdministrativeDiv.objects.filter(**filter_kwargs).annotate(province_name=F("province__name"),
+                                                                           city_name=F("city__name"),
+                                                                           area_name=F("area__name")).values(
+            "id", "code", "name", "pinyin", "short_name", "zip_code", "province_name", "city_name", "area_name",
+            "lng_lat",
             "add_time", "update_time").order_by('id')
         data['count'], data['data'] = ListProcess().pagination(_data, page, limit)
         return JsonResponse(data)
     else:
         return JsonResponse({"status": "error", "maessage": "网络繁忙，请稍后再试！"}, json_dumps_params={'ensure_ascii': False})
+
+
+@login_required
+def administrative_div_edit(request, div_id):
+    if request.method == "POST":
+        kwargs = {request.POST["k"]: None if not request.POST["d"] else request.POST["d"]}
+        kwargs["update_time"] = datetime.datetime.now()
+        try:
+            update_count = AdministrativeDiv.objects.filter(id=div_id).update(**kwargs)
+            return JsonResponse({'code': 10000, "count": update_count, "msg": "修改成功"})
+        except:
+            return JsonResponse({'code': 10003, "count": 0, "msg": "修改失败"})
+    else:
+        return JsonResponse({"code": 10004, "msg": "网络繁忙，请稍后再试"}, json_dumps_params={'ensure_ascii': False})

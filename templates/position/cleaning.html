@@ -6,7 +6,6 @@
         <div class="layui-row layui-col-space15">
             <div class="layui-col-md12">
                 <div class="layui-card">
-                    <div class="layui-card-header">数据清洗</div>
                     <div class="layui-card-body">
                         <table class="layui-hide" id="test-table-toolbar" lay-filter="test-table-toolbar"></table>
 
@@ -38,7 +37,6 @@
         }).extend({
             index: '/lib/index' //主入口模块
         }).use(['index', 'table'], function () {
-            var admin = layui.admin;
             var table = layui.table;
 
             table.render({

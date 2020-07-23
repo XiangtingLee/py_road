@@ -7,7 +7,6 @@
         <div class="layui-row layui-col-space15">
             <div class="layui-col-md12">
                 <div class="layui-card">
-                    <div class="layui-card-header">设置我的资料</div>
                     <div class="layui-card-body" pad15>
                         <form class="layui-form" lay-filter="info_change" action="{% url 'user:info_change' %}" method="post">
                             {% csrf_token %}
@@ -117,6 +116,7 @@
             base: '{% static 'layuiadmin/' %}' //静态资源所在路径
         }).extend({
             index: '/lib/index' //主入口模块
+            , croppers: '../lib/extend/cropper/croppers'
         }).use(['index', 'set', 'croppers'], function () {
             var table = layui.table
                 , form = layui.form

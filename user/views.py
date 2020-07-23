@@ -214,9 +214,9 @@ def manage_view(request):
 def manage_filter(request):
     if request.method == "GET":
         data = {'code': 0, 'count': 0, 'data': [], 'msg': ''}
-        page = int(request.GET.get('page', 1))
-        limit = int(request.GET.get('limit', 10))
         form = request.GET
+        page = int(form.get('page', 1))
+        limit = int(form.get('limit', 10))
         filter_kwargs = {key: form[key] for key in form if
                               key not in ["csrfmiddlewaretoken", "page", "limit"] and form[key]}
         _data = list(

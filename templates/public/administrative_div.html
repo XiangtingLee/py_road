@@ -6,7 +6,48 @@
         <div class="layui-row layui-col-space15">
             <div class="layui-col-md12">
                 <div class="layui-card">
-                    <div class="layui-card-header">行政区划</div>
+                    <form class="layui-form layui-card-header layuiadmin-card-header-auto" id="filter-form">
+                        <div class="layui-form-item">
+                            <div class="layui-inline">
+                                <label class="layui-form-label">区划代码</label>
+                                <div class="layui-input-block">
+                                    <input type="text" name="code" placeholder="请输入区划代码" autocomplete="off"
+                                           class="layui-input">
+                                </div>
+                            </div>
+                            <div class="layui-inline">
+                                <label class="layui-form-label">名称</label>
+                                <div class="layui-input-block">
+                                    <input type="text" name="name__contains" placeholder="支持模糊搜索" autocomplete="off"
+                                           class="layui-input">
+                                </div>
+                            </div>
+                            <div class="layui-inline">
+                                <label class="layui-form-label">全拼</label>
+                                <div class="layui-input-block">
+                                    <input type="text" name="pinyin__contains" placeholder="支持模糊搜索" autocomplete="off"
+                                           class="layui-input">
+                                </div>
+                            </div>
+
+                            <div class="layui-inline">
+                                <label class="layui-form-label width_auto text-r" style="margin-top:2px">省市县</label>
+                                <div class="layui-input-block" style="width:400px">
+                                    <input type="text" autocomplete="on" class="layui-input" id="city-picker"
+                                           readonly="readonly" data-toggle="city-picker"
+                                           placeholder="请选择地区">
+                                </div>
+                            </div>
+
+                            <button class="layui-btn" type="button" id="filter"
+                                    style="position: absolute; right: 25px; top: 10px;">筛选
+                            </button>
+                            <button type="reset" class="layui-btn layui-btn-primary"
+                                    style="position: absolute; right: 25px; top: 60px;">重置
+                            </button>
+                        </div>
+                    </form>
+
                     <div class="layui-card-body">
 
                         <table class="layui-table" id="record-table" lay-filter="record-table"></table>
@@ -22,48 +63,84 @@
     </div>
 {% endblock %}
 {% block tail_include_after %}
+    <script src="/static/layuiadmin/lib/extend/city-picker/city-picker.data.js"></script>
+    <link href="/static/layuiadmin/lib/extend/city-picker/city-picker.css" rel="stylesheet"/>
     <script>
         layui.config({
             base: '{% static 'layuiadmin/' %}' //静态资源所在路径
         }).extend({
-            index: 'lib/index' //主入口模块
-        }).use(['index', 'table'], function () {
-            var table = layui.table;
+            index: 'lib/index' //主入口模块\
+            , citypicker: '../lib/extend/city-picker/city-picker'
+        }).use(['index', 'table', 'citypicker'], function () {
+            var $ = layui.$
+                , table = layui.table
+                , cityPicker = layui.citypicker;
 
             table.render({
                 elem: '#record-table'
-                , url: '{% url 'public:administrative_div_data' %}'
-                , method: 'POST'
+                , url: '/public/administrativeDiv/filter/'
+                , method: 'GET'
+                , toolbar: 'default'
                 , cols: [[
                     {checkbox: true, fixed: 'left', rowspan: 2}
-                    , {field: 'code', width: 90, rowspan: 2, title: '区划代码'}
-                    , {field: 'name', width: 150, rowspan: 2, title: '名称'}
-                    , {field: 'pinyin', width: 100, rowspan: 2, title: '全拼'}
-                    , {field: 'short_name', width: 150, rowspan: 2, title: '简称'}
-                    , {field: 'zip_code', width: 100, rowspan: 2, title: '邮政编码'}
+                    , {field: 'id', width: 90, rowspan: 2, title: 'ID', hide: true}
+                    , {field: 'code', width: 90, rowspan: 2, title: '区划代码', edit: 'text'}
+                    , {field: 'name', width: 100, rowspan: 2, title: '名称', edit: 'text'}
+                    , {field: 'pinyin', width: 100, rowspan: 2, title: '全拼', edit: 'text'}
+                    , {field: 'short_name', width: 100, rowspan: 2, title: '简称', edit: 'text'}
+                    , {field: 'zip_code', width: 100, rowspan: 2, title: '邮政编码', edit: 'text'}
                     , {align: 'center', colspan: 3, title: "三级区划", PARENT_COL: true,}
-                    , {field: "lng_lat", width: 180, rowspan: 2, title: "经纬度"}
+                    , {field: "lng_lat", width: 180, rowspan: 2, title: "经纬度", edit: 'text'}
                     , {
                         field: 'add_time', width: 170, rowspan: 2, title: '添加时间', sort: true,
-                        templet: function (d) {
-                            return d.update_time.replace("T", "\t");
-                        }
+                        templet: function (d) {return d.add_time.replace("T", "\t");}
                     }
                     , {
                         field: 'update_time', width: 170, rowspan: 2, title: '修改时间', sort: true,
-                        templet: function (d) {
-                            return d.update_time.replace("T", " ");
-                        }
+                        templet: function (d) {return d.update_time.replace("T", " ");}
                     }
-                    {#, {width: 178, align: 'center', fixed: 'right', toolbar: '#table-operate', title: '操作'}#}
                 ], [
                     {field: 'province_name', width: 100, title: '省级'}
                     , {field: 'city_name', width: 100, title: '市级'}
                     , {field: 'area_name', width: 100, title: '区县'}
                 ]]
                 , page: true
-                , id: 'record'
+                , id: 'dataForm'
             });
+
+            //监听单元格编辑
+            table.on('edit(record-table)', function (obj) {
+                $.ajax({
+                    url: '/public/administrativeDiv/edit/' + obj.data.id + '/'
+                    , method: 'get'
+                    , data: {k: obj.field, d: obj.value}
+                    , success: function (d) {
+                        if (d.code !== 10000) {
+                            table.reload('dataForm', {
+                                where: {}
+                            }, 'data');
+                            layer.msg(d.msg, {icon: 5});
+                        }
+                    }
+                });
+            });
+
+            $('#filter').on('click', function () {
+                table.reload('dataForm', {
+                    url: "{% url 'public:administrative_div_filter' %}?" + $('#filter-form').serialize()
+                    , page: {curr: 1}
+                    , method: "GET"
+                    , where: {}
+                }, 'data');
+            });
+
+            var currentPicker = new cityPicker("#city-picker", {
+                provincename: "province_id__code",
+                cityname: "city_id__code",
+                districtname: "area_id__code",
+                level: 'districtId',// 级别
+            });
+            {#currentPicker.setValue("北京市/北京市/东城区");#}
 
         });
     </script>

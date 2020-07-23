@@ -19,5 +19,6 @@ urlpatterns = [
     url('^spider/operate/run/$', views.spider_operate_run, name='spider_operate_run'),
 
     url('^administrativeDiv/view/$', views.administrative_div_view, name='administrative_div_view'),
-    url('^administrativeDiv/data/$', views.administrative_div_data, name='administrative_div_data'),
+    url('^administrativeDiv/filter/$', views.administrative_div_filter, name='administrative_div_filter'),
+    url('^administrativeDiv/edit/(?P<div_id>[0-9]+)/$', views.administrative_div_edit, name='administrative_div_edit'),
 ]
