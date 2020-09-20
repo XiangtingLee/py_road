@@ -132,8 +132,4 @@ dmypy.json
 /media/
 
 # migrations
-/COVID19/migrations/
-/log/migrations/
-/position/migrations/
-/public/migrations/
-/user/migrations/
+migrations/
