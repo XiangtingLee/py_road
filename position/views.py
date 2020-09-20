@@ -77,7 +77,7 @@ def _word_cloud():
     df = pd.DataFrame(temp)
     df.columns = ['name', 'count']
     df = df.sort_values(by="count", ascending=False)
-    render_data = [(item[0], item[1]) for item in df.values]
+    render_data = [(item[0], item[1]) for item in df.values][:100]
     word_cloud = WordCloud(init_opts=PYECHARTS_INIT_OPTS)
     word_cloud.add(series_name="词云统计", data_pair=render_data)
     return word_cloud.render_embed()
@@ -284,7 +284,7 @@ def node_data(request):
         place_data = Position.objects.filter(is_effective=1).values_list("position_city__province__name",
                                                                          "position_city__name",
                                                                          "position_district__name")
-        df = pd.DataFrame(list(place_data))
+        df = pd.DataFrame(list(place_data)).fillna("其它地区")
         df.columns = ["province", "city", "district"]
         df["district"] = df["district"].fillna("其它地区")
         df = df.drop_duplicates(subset=["province", "city", "district"])
@@ -326,6 +326,12 @@ def display_filter(request):
             del filter_kwargs["salary"]
         except IndexError or TypeError:
             del filter_kwargs["salary"]
+    if filter_kwargs.__contains__("position_city__province__name"):
+        filter_kwargs["position_city__province__name"] = None if filter_kwargs["position_city__province__name"] == "其它地区" else filter_kwargs["position_city__province__name"]
+    if filter_kwargs.__contains__("position_city__name"):
+        filter_kwargs["position_city__name"] = None if filter_kwargs["position_city__name"] == "其它地区" else filter_kwargs["position_city__name"]
+    if filter_kwargs.__contains__("position_district__name"):
+        filter_kwargs["position_district__name"] = None if filter_kwargs["position_district__name"] == "其它地区" else filter_kwargs["position_district__name"]
     _data = list(
         Position.objects.filter(**filter_kwargs).annotate(salary=Concat("salary_lower", V("-"), "salary_upper", V("k"),
                                                                         output_field=CharField())).values(

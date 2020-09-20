@@ -126,7 +126,7 @@ def proxy_upload(request):
     for line in lines:
         fields = line.split(",")
         ins_list.append(ProxyPool(type=file_name, protocol=fields[0], address=fields[1],
-                                  port=fields[2].replace('\n', '').replace('\r', '')))
+                                  port=fields[2].replace('\n', '').replace('\r', ''), add_time=datetime.datetime.now()))
     if ins_list.__len__() > 7000:
         times = (len(lines) // 7000) + 1
         for one in range(0, times):
@@ -136,7 +136,7 @@ def proxy_upload(request):
                 ProxyPool.objects.bulk_create(ins_list[7000 * one: (7000 * one) + 7000])
     else:
         ProxyPool.objects.bulk_create(ins_list)
-    return JsonResponse({'status': 1}, json_dumps_params={'ensure_ascii': False})
+    return update_sign(JsonResponse({'status': 1}, json_dumps_params={'ensure_ascii': False}), key_path="/public/proxy/")
 
 
 def proxy_change(request):
@@ -145,7 +145,7 @@ def proxy_change(request):
         proxy_id = request.POST.get('id', '')
         is_available = True if request.POST.get('is_available', 'false') == 'true' else False
         if proxy_id:
-            ProxyPool.objects.filter(id=proxy_id).update(is_available=is_available, updatetime=datetime.datetime.now())
+            ProxyPool.objects.filter(id=proxy_id).update(is_available=is_available, update_time=datetime.datetime.now())
             data['status'] = 1
     return JsonResponse(data, json_dumps_params={'ensure_ascii': False})
 
@@ -157,19 +157,14 @@ def proxy_check(request):
         ids = request.POST.getlist('ids[]', None)
         judge_result = {'valid': [], 'invalid': []}
         check_id = list(map(int, ids))
-        if not check_id:
-            for record in ProxyPool.objects.values('id', 'protocol', 'address', 'port'):
-                proxy_id = record['id']
-                protocol = record['protocol']
-                address = record['address'] + ':' + record['port']
-                thread = MyThread(func=__proxy_judge, args=(protocol, address,))
-                thread.setName(str(proxy_id))
-                threads.append(thread)
-        else:
-            for proxy_id in check_id:
-                thread = MyThread(func=__proxy_judge, args=(proxy_id,))
-                thread.setName(str(proxy_id))
-                threads.append(thread)
+        kwargs = {"is_delete": False}
+        if check_id:
+            kwargs["id__in"] = check_id
+        for record in ProxyPool.objects.filter(**kwargs).values('id', 'protocol', 'address', 'port'):
+            address = record['address'] + ':' + record['port']
+            thread = MyThread(func=__proxy_judge, args=(record['protocol'], address,))
+            thread.setName(str(record['id']))
+            threads.append(thread)
         check_row = threads.__len__()
         if check_row > 5000:
             times = (check_row // 5000) + 1
@@ -184,17 +179,26 @@ def proxy_check(request):
                     thread.start()
                 for thread in start_check_thread:
                     thread.join()
-                thread_result = [{'id': i.name, 'result': i.get_result()} for i in start_check_thread]
+                thread_result = [{'id': i.name, 'result': i.run_result()} for i in start_check_thread]
                 for result in thread_result:
                     judge_result['valid'].append(int(result['id'])) if result['result'] else judge_result[
                         'invalid'].append(int(result['id']))
+        else:
+            for thread in threads:
+                thread.start()
+            for thread in threads:
+                thread.join()
+            thread_result = [{"id": i.name, "result": i.run_result()} for i in threads]
+            for result in thread_result:
+                judge_result['valid'].append(int(result['id'])) if result['result'] else judge_result[
+                    'invalid'].append(int(result['id']))
         ProxyPool.objects.filter(id__in=judge_result['valid']).update(is_available=1,
-                                                                      updatetime=datetime.datetime.now())
+                                                                      update_time=datetime.datetime.now())
         ProxyPool.objects.filter(id__in=judge_result['invalid']).update(is_available=0,
-                                                                        updatetime=datetime.datetime.now())
+                                                                        update_time=datetime.datetime.now())
         data['result'] = {'count': check_id.__len__(), 'valid': judge_result['valid'].__len__(),
                           'invalid': judge_result['invalid'].__len__()}
-        return JsonResponse(data, json_dumps_params={'ensure_ascii': False})
+        return update_sign(JsonResponse(data, json_dumps_params={'ensure_ascii': False}), key_path="/public/proxy/")
     else:
         return JsonResponse({"status": "error", "maessage": "网络繁忙，请稍后再试！"}, json_dumps_params={'ensure_ascii': False})
 
@@ -210,7 +214,7 @@ def __proxy_judge(protocol, address):
             return True
         else:
             return False
-    except TimeoutError:
+    except requests.exceptions.ConnectTimeout or requests.exceptions.ReadTimeout:
         return False
 
 
@@ -315,9 +319,9 @@ def spider_manage_probe(request):
                         if name.endswith('.py'):
                             file_path = os.path.join(root, name)
                             ret_path = re.sub('(.*?road).*?', '', file_path)
-                            if not Spider.objects.filter(path=ret_path).exists():
+                            if not Spider.objects.filter(path__in=[ret_path.replace("/", "\\"), ret_path.replace("\\", "/")]).exists():
                                 record.append({'path': ret_path})
-        return render(request, 'public/spider_manage_probe.html', {"data": record})
+        return render(request, 'public/spider_manage_probe.html', {"file": record})
 
 
 @login_required

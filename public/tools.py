@@ -7,6 +7,7 @@ from functools import wraps
 from django.http import JsonResponse
 
 from django.conf import settings
+from django.core.cache import cache
 
 REQUEST_HEADERS = {
     # 'Cookie': COOKIE,
@@ -34,7 +35,7 @@ class MyThread(threading.Thread):
         else:
             self.func(*self.args)
 
-    def get_result(self):
+    def run_result(self):
         try:
             return self.result
         except RuntimeError:
