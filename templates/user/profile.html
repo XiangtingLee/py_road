@@ -8,7 +8,7 @@
             <div class="layui-col-md12">
                 <div class="layui-card">
                     <div class="layui-card-body" pad15>
-                        <form class="layui-form" lay-filter="info_change" action="{% url 'user:info_change' %}" method="post">
+                        <form class="layui-form" lay-filter="profile_change" action="{% url 'user:profile_update' %}" method="post">
                             {% csrf_token %}
 
                             <div class="layui-form-item">
@@ -118,9 +118,7 @@
             index: '/lib/index' //主入口模块
             , croppers: '../lib/extend/cropper/croppers'
         }).use(['index', 'set', 'croppers'], function () {
-            var table = layui.table
-                , form = layui.form
-                , $ = layui.jquery
+            var $ = layui.jquery
                 , croppers = layui.croppers;
 
             croppers.render({
@@ -129,7 +127,7 @@
                 , saveH: 150
                 , mark: 1 / 1    //选取比例
                 , area: '900px'  //弹窗宽度
-                , url: "{% url 'user:info_upload' %}"  //图片上传接口返回和（layui 的upload 模块）返回的JOSN一样
+                , url: "{% url 'user:profile_upload' %}"  //图片上传接口返回和（layui 的upload 模块）返回的JOSN一样
                 , done: function (url) { //上传完毕回调
                     $("#inputimgurl").val(url);
                     $("#srcimgurl").attr('src', url);

@@ -71,85 +71,58 @@
                 <div class="layui-card">
                     <div class="layui-card-header">确诊/疑似城市分布</div>
                     <div class="layui-card-body">
-
-                        <div class="layui-carousel layadmin-carousel layadmin-dataview" data-anim="fade">
-                            {{ render.distribution_cs | safe }}
-                        </div>
-
+                        <div class="layadmin-dataview">{{ render.distribution_cs | safe }}</div>
                     </div>
-
                 </div>
             </div>
+
             <div class="layui-col-md6">
                 <div class="layui-card">
                     <div class="layui-card-header">治愈/死亡城市分布</div>
                     <div class="layui-card-body">
-
-                        <div class="layui-carousel layadmin-carousel layadmin-dataview" data-anim="fade">
-                            {{ render.distribution_cd | safe }}
-                        </div>
-
+                        <div class="layadmin-dataview">{{ render.distribution_cd | safe }}</div>
                     </div>
                 </div>
             </div>
+
             <div class="layui-col-md12">
 
                 <div class="layui-card" id="c_s">
                     <div class="layui-card-header">疫情确诊/疑似日增趋势</div>
                     <div class="layui-card-body">
-
-                        <div class="layui-carousel layadmin-carousel layadmin-dataview" data-anim="fade">
-                            {{ render.incr_cs | safe }}
-                        </div>
-
+                        <div class="layadmin-dataview">{{ render.incr_cs | safe }}</div>
                     </div>
                 </div>
 
                 <div class="layui-card">
                     <div class="layui-card-header">疫情确诊/疑似总量趋势</div>
                     <div class="layui-card-body">
-
-                        <div class="layui-carousel layadmin-carousel layadmin-dataview" data-anim="fade">
-                            {{ render.sum_cs | safe }}
-                        </div>
-
+                        <div class="layadmin-dataview">{{ render.sum_cs | safe }}</div>
                     </div>
                 </div>
 
                 <div class="layui-card" id="c_s">
                     <div class="layui-card-header">疫情治愈/死亡日增趋势</div>
                     <div class="layui-card-body">
-
-                        <div class="layui-carousel layadmin-carousel layadmin-dataview" data-anim="fade">
-                            {{ render.incr_cd | safe }}
-                        </div>
-
+                        <div class="layadmin-dataview">{{ render.incr_cd | safe }}</div>
                     </div>
                 </div>
 
                 <div class="layui-card" id="c_d">
                     <div class="layui-card-header">疫情治愈/死亡总量趋势</div>
                     <div class="layui-card-body">
-
-                        <div class="layui-carousel layadmin-carousel layadmin-dataview" data-anim="fade">
-                            {{ render.sum_cd | safe }}
-                        </div>
-
+                        <div class="layadmin-dataview">{{ render.sum_cd | safe }}</div>
                     </div>
                 </div>
 
             </div>
 
-
             <div class="layui-col-md6">
                 <div class="layui-card">
                     <div class="layui-card-header">国内疫情统计</div>
                     <div class="layui-card-body no-scroll" style="overflow: auto; height: 500px;">
-
-                        <div class="layui-carousel layadmin-carousel layadmin-backlog">
-                            <div>
-                                <table class="layui-hidden" id="treeTableInternal" lay-filter="treeTable"></table>
-                            </div>
+                        <div>
+                            <table class="layui-hidden" id="treeTableInternal" lay-filter="treeTable"></table>
                         </div>
                     </div>
                 </div>
@@ -159,11 +132,8 @@
                 <div class="layui-card">
                     <div class="layui-card-header">国际疫情统计</div>
                     <div class="layui-card-body no-scroll" style="overflow: auto; height: 500px;">
-
-                        <div class="layui-carousel layadmin-carousel layadmin-backlog">
-                            <div>
-                                <table class="layui-hidden" id="treeTableForeign" lay-filter="treeTable"></table>
-                            </div>
+                        <div>
+                            <table class="layui-hidden" id="treeTableForeign" lay-filter="treeTable"></table>
                         </div>
                     </div>
                 </div>
@@ -172,15 +142,17 @@
 
         </div>
     </div>
+    <input id="data-internal" type="hidden" data-internal="{{ render.tree_table.internal }}">
+    <input id="data-foreign" type="hidden" data-foreign="{{ render.tree_table.foreign }}">
 {% endblock %}
 {% block tail_js %}
     <script>
         layui.config({
-            base: '{% static 'layuiadmin/' %}' //静态资源所在路径
+            base: '{% static 'layuiadmin/' %}'
         }).extend({
-            index: 'lib/index' //主入口模块
-        }).use(['index', 'wuhan2020']{% if is_first_use %}
-            , function () {
+            index: 'lib/index',
+            visualization: 'COVID19/visualization'
+        }).use(['index', 'visualization']{% if is_first_use %}, function () {
                 var layer = layui.layer;
                 layer.confirm('检测到系统为首次运行。为保证数据正常显示，请先前往"公共模块->爬虫管理"进行数据采集。',
                     {closeBtn: false, btn: ['确定', '刷新'], icon: 2, title: '提示'}, function (index) {
@@ -188,7 +160,6 @@
                     }, function (index) {
                         window.location.reload();
                     });
-            }
-            {% endif %});
+            }{% endif %});
     </script>
 {% endblock %}

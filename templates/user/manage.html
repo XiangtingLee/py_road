@@ -67,9 +67,8 @@
     layui.config({
         base: '{% static 'layuiadmin/' %}' //静态资源所在路径
     }).extend({
-        index: 'lib/index' //主入口模块
-    }).use(['index', 'useradmin'], function () {
-
-    });
+        index: 'lib/index',
+        user_admin: 'user/user_admin'
+    }).use(['index', 'user_admin']);
 </script>
 {% endblock %}

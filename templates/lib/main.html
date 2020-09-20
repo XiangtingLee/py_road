@@ -1,6 +1,6 @@
 {% load static %}
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh">
 <head>
     <meta charset="utf-8">
     <title>{% block title %}PyRoad{% endblock %}</title>
@@ -69,7 +69,7 @@
                         {{ nick_name }}
                     </a>
                     <dl class="layui-nav-child">
-                        <dd><a lay-href="{% url 'user:info_view' %}">基本资料</a></dd>
+                        <dd><a lay-href="{% url 'user:profile_view' %}">基本资料</a></dd>
                         <dd><a lay-href="{% url 'user:password_view' %}">修改密码</a></dd>
                         <hr>
                         <dd layadmin-event="logout" style="text-align: center;"><a>退出</a></dd>
@@ -152,8 +152,8 @@
                             <cite>加油武汉</cite>
                         </a>
                         <dl class="layui-nav-child">
-                            <dd data-name="visualization"><a lay-href="{% url 'wuhan2020:visualization_view' %}">可视化展示</a></dd>
-                            <dd data-name="visualization"><a lay-href="{% url 'wuhan2020:timeline_view' %}">发展时间线</a></dd>
+                            <dd data-name="visualization"><a lay-href="{% url 'COVID19:visualization_view' %}">可视化展示</a></dd>
+                            <dd data-name="visualization"><a lay-href="{% url 'COVID19:timeline_view' %}">发展时间线</a></dd>
                         </dl>
                     </li>
 

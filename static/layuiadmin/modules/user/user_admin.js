@@ -78,7 +78,7 @@ layui.define(['table', 'form'], function (exports) {
             if(obj.event === 'deban'){tips = '确认要解封？';form.is_active = 1}
             layer.confirm(tips, function (index) {
                 $.ajax({
-                    url: "./edit/" + data.id + "/",
+                    url: "./profile/" + data.id + "/",
                     method: "post",
                     data: form,
                     success: function (data) {
@@ -98,7 +98,7 @@ layui.define(['table', 'form'], function (exports) {
             layer.open({
                 type: 2
                 , title: '编辑信息'
-                , content: './edit/' + data.id + '/'
+                , content: './profile/' + data.id + '/'
                 , shadeClose: true
                 , area: ['425px', '535px']
             });
@@ -226,5 +226,5 @@ layui.define(['table', 'form'], function (exports) {
         }
     });
 
-    exports('useradmin', {})
+    exports('user_admin', {})
 });

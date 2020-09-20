@@ -13,7 +13,7 @@ sys.path.append(BASE_DIR)
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'pyroad.settings')
 django.setup()
 
-from wuhan2020.models import DXYTimeLine
+from COVID19.models import DXYTimeLine
 from public.models import AdministrativeDiv
 from public.tools import get_session_request
 

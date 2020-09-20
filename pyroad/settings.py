@@ -41,7 +41,7 @@ INSTALLED_APPS = [
     'api',
     'position',
     'log',
-    'wuhan2020',
+    'COVID19',
 ]
 
 MIDDLEWARE = [

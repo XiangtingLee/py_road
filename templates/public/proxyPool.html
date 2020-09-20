@@ -11,7 +11,6 @@
                         {% csrf_token %}
                         <script type="text/html" id="proxy-toolbar">
                             <div class="layui-btn-container">
-                                <button type="button" class="layui-btn layui-btn-sm" id="upload"><i class="layui-icon"></i>导入</button>
                                 <button class="layui-btn layui-btn-sm" lay-event="verify">验证可用性</button>
                             </div>
                         </script>
@@ -53,12 +52,12 @@
                 , cols: [[
                     {type: 'checkbox', fixed: 'left'}
                     , {field: 'id', title: 'ID', width: 80, fixed: 'left', sort: true}
-                    , {field: 'type', title: '代理类型'}
+                    , {field: 'type', title: '代理类型', minWidth: 200}
                     , {field: 'protocol', title: '代理协议', width: 90}
                     , {field: 'address', title: '代理地址', width: 150}
                     , {field: 'port', title: '端口号', width: 100}
-                    , {field: 'warehousetime', title: '入库时间', width: 170, sort: true}
-                    , {field: 'updatetime', title: '更新时间', width: 170, sort: true}
+                    , {field: 'add_time', title: '入库时间', minWidth: 180, sort: true, templet: function(d){return d.add_time.replace("T", "\t");}}
+                    , {field: 'update_time', title: '更新时间', minWidth: 180, sort: true, templet: function(d){return d.update_time.replace("T", "\t");}}
                     , {field: 'is_available', title: '是否有效', width: 100, templet: '#test-table-switchTpl', unresize: true, sort: true}
                     {#, {field: 'lock', title: '是否锁定', width: 110, templet: '#test-table-checkboxTpl', unresize: true}#}
                 ]]
@@ -77,45 +76,48 @@
                             layer.msg('请选择需要验证的数据', {icon: 5, time: 2000});
                         } else {
                         */
-                            for (var i = 0; i < verifyData.length; i++) {
-                                validityids.push(verifyData[i].id);
-                            }
-                            layer.confirm('即将执行验证操作，是否继续？', function () {
-                                layer.msg('正在验证', {icon: 16, time: 500}, function () {
-                                    verify(validityids, table);
-                                });
+                        for (var i = 0; i < verifyData.length; i++) {
+                            validityids.push(verifyData[i].id);
+                        }
+                        layer.confirm('即将执行验证操作，是否继续？', function () {
+                            layer.msg('正在验证', {icon: 16, time: 500}, function () {
+                                verify(validityids, table);
                             });
+                        });
                         //}
                         break;
                 }
             });
-
-            upload.render({ //允许上传的文件后缀
-                elem: '#upload'
-                , url: '{% url 'public:proxy_upload' %}'
-                , accept: 'file' //普通文件
-                , exts: 'csv' //只允许上传csv文件
-                , data: {
-                    'csrfmiddlewaretoken': function () {
-                        //return $(":input:first").val();
-                        return $("input[name='csrfmiddlewaretoken']").attr('value');
+            var initUpload = function () {
+                $(".layui-btn-container").append('<button type="button" class="layui-btn layui-btn-sm" id="upload"><i class="layui-icon"></i>导入</button>');
+                upload.render({ //允许上传的文件后缀
+                    elem: '#upload'
+                    , url: '{% url 'public:proxy_upload' %}'
+                    , accept: 'file' //普通文件
+                    , exts: 'csv' //只允许上传csv文件
+                    , data: {
+                        'csrfmiddlewaretoken': function () {
+                            //return $(":input:first").val();
+                            return $("input[name='csrfmiddlewaretoken']").attr('value');
+                        }
                     }
-                }
-                , done: function (res) {
-                    if(res.status===1){
-                        layer.msg('上传成功', {icon: 1}, function () {
-                            table.reload('proxyForm', {
-                                page: {
-                                    curr: 1 //重新从第 1 页开始
-                                }
-                                , where: {key: {}}
-                            }, 'data');
-                        });
-                    }else if(res.status===0){
-                        layer.msg('上传失败，' + res.message, {icon: 2});
+                    , done: function (res) {
+                        if (res.status === 1) {
+                            layer.msg('上传成功', {icon: 1}, function () {
+                                table.reload('proxyForm', {
+                                    page: {
+                                        curr: 1 //重新从第 1 页开始
+                                    }
+                                    , where: {key: {}}
+                                }, 'data');
+                            });
+                        } else if (res.status === 0) {
+                            layer.msg('上传失败，' + res.message, {icon: 2});
+                        }
                     }
-                }
-            });
+                });
+            };
+            initUpload();
 
             //监听修改有效性操作
             form.on('switch(test-table-sexDemo)', function (obj) {

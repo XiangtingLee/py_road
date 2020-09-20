@@ -114,12 +114,12 @@ def reset_act(request):
         return render(request, 'user/reset.html')
 
 
-def info_view(request):
+def profile_view(request):
     data = {"user": request.user}
-    return render(request, 'user/info.html', data)
+    return render(request, 'user/profile.html', data)
 
 
-def info_change(request):
+def profile_update(request):
     kwargs = {}
     req_args = request.POST
     user_id = request.user.id
@@ -130,10 +130,10 @@ def info_change(request):
     del kwargs["role"]
     User.objects.filter(id=user_id).update(**kwargs)
     messages.success(request, "修改成功")
-    return redirect('user:info_view')
+    return redirect('user:profile_view')
 
 
-def info_upload(request):
+def profile_upload(request):
     if request.method == 'POST' and request.FILES['file']:
         uid = request.user.id
         file = request.FILES['file']
@@ -227,7 +227,7 @@ def manage_filter(request):
         return JsonResponse(data, json_dumps_params={'ensure_ascii': False})
 
 @login_required
-def manage_edit(request, uid):
+def manage_profile(request, uid):
     if request.method == "POST":
         form = request.POST
         print(request.POST)
@@ -239,4 +239,4 @@ def manage_edit(request, uid):
         data = {}
         if uid:
             data = model_to_dict(User.objects.get(id=uid))
-        return render(request, 'user/manage_edit.html', data)
+        return render(request, 'user/manage_profile.html', data)
