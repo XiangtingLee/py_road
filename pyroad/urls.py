@@ -34,11 +34,11 @@ urlpatterns = [
     path('COVID19/', include('COVID19.urls', namespace='COVID19')),
     url('', include('social_django.urls', namespace='social'), name='social'),
     url('^$', views.main, name='main'),
-    url('^index$', views.index, name='index'),
-    url('^login$', login_act, name='login'),
-    url('^reset$', reset_act, name='reset'),
-    url('^logout$', logout_act, name='logout'),
-    url('^reg$', reg_act, name='reg'),
-    url('^reg/guide$', reg_guide, name='reg_guide'),
+    url('^index/$', views.index, name='index'),
+    url('^login/$', login_act, name='login'),
+    url('^reset/$', reset_act, name='reset'),
+    url('^logout/$', logout_act, name='logout'),
+    url('^reg/$', reg_act, name='reg'),
+    url('^reg/guide/$', reg_guide, name='reg_guide'),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)\
   + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

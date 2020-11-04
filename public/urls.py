@@ -4,8 +4,8 @@ from . import views
 app_name = 'public'
 
 urlpatterns = [
-    url('^proxy/view/$', views.proxy_view, name='proxy_view'),
-    url('^proxy/data/$', views.proxy_data, name='proxy_data'),
+    url('^proxy/$', views.proxy_view, name='proxy_view'),
+    url('^proxy/filter/$', views.proxy_filter, name='proxy_filter'),
     url('^proxy/upload/$', views.proxy_upload, name='proxy_upload'),
     url('^proxy/change/$', views.proxy_change, name='proxy_change'),
     url('^proxy/check/$', views.proxy_check, name='proxy_check'),
@@ -18,7 +18,7 @@ urlpatterns = [
     url('^spider/operate/view/$', views.spider_operate_view, name='spider_operate_view'),
     url('^spider/operate/run/$', views.spider_operate_run, name='spider_operate_run'),
 
-    url('^administrativeDiv/view/$', views.administrative_div_view, name='administrative_div_view'),
+    url('^administrativeDiv/$', views.administrative_div_view, name='administrative_div_view'),
     url('^administrativeDiv/filter/$', views.administrative_div_filter, name='administrative_div_filter'),
     url('^administrativeDiv/edit/(?P<div_id>[0-9]+)/$', views.administrative_div_edit, name='administrative_div_edit'),
 ]

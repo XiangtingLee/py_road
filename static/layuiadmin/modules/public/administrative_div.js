@@ -47,7 +47,7 @@ layui.define('form', function (exports) {
         table.on('edit(record-table)', function (obj) {
             $.ajax({
                 url: '/public/administrativeDiv/edit/' + obj.data.id + '/'
-                , method: 'get'
+                , method: 'post'
                 , data: {k: obj.field, d: obj.value}
                 , success: function (d) {
                     if (d.code !== 10000) {

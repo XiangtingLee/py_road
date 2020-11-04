@@ -30,7 +30,7 @@ layui.define('form', function (exports) {
                     }
                 }
                 $.ajax({
-                    url: "{% url 'public:spider_manage_edit' spider_id=0 %}",
+                    url: "/public/spider/manage/edit/0/",
                     type: 'post',
                     data: {'data': JSON.stringify(data)},
                     beforeSend: function () {
@@ -66,5 +66,5 @@ layui.define('form', function (exports) {
             active[type] ? active[type].call(this) : '';
         });
     });
-    exports('administrative_div', {})
+    exports('spider_manage_probe', {})
 });

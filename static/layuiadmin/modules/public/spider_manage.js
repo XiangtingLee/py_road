@@ -6,7 +6,7 @@ layui.define('form', function (exports) {
         table.render({
             elem: '#record-table'
             , url: '/public/spider/manage/data/'
-            , method: 'POST'
+            , method: 'GET'
             , cols: [[
                 {type: 'numbers', title: '序号', fixed: 'left'}
                 , {field: 'name', minWidth: 120, title: '名称'}
@@ -90,5 +90,5 @@ layui.define('form', function (exports) {
             active[type] ? active[type].call(this) : '';
         });
     });
-    exports('administrative_div', {})
+    exports('spider_manage', {})
 });

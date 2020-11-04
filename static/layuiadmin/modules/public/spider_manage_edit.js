@@ -56,5 +56,5 @@ layui.define('form', function (exports) {
                 });
             });
     });
-    exports('administrative_div', {})
+    exports('spider_manage_edit', {})
 });

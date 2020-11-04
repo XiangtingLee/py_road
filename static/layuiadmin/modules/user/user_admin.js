@@ -17,7 +17,7 @@ layui.define(['table', 'form'], function (exports) {
     $('#filter').on('click', function () {
         const filter = $('#filter-form').serialize();
         table.reload('user-list', {
-            url: "./filter/?" + filter
+            url: "/user/manage/filter/?" + filter
             , page: { curr: 1 }
             , method: "GET"
             , where: {}
@@ -27,7 +27,7 @@ layui.define(['table', 'form'], function (exports) {
     //用户管理
     table.render({
         elem: '#user-list'
-        , url: './filter/' //模拟接口
+        , url: '/user/manage/filter/' //模拟接口
         , method: 'get'
         , cols: [[
             {type: 'checkbox', fixed: 'left'}
@@ -78,7 +78,7 @@ layui.define(['table', 'form'], function (exports) {
             if(obj.event === 'deban'){tips = '确认要解封？';form.is_active = 1}
             layer.confirm(tips, function (index) {
                 $.ajax({
-                    url: "./profile/" + data.id + "/",
+                    url: "/user/manage/profile/" + data.id + '/',
                     method: "post",
                     data: form,
                     success: function (data) {
@@ -98,7 +98,7 @@ layui.define(['table', 'form'], function (exports) {
             layer.open({
                 type: 2
                 , title: '编辑信息'
-                , content: './profile/' + data.id + '/'
+                , content: '/user/manage/profile/' + data.id + '/'
                 , shadeClose: true
                 , area: ['425px', '535px']
             });

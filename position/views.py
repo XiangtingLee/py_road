@@ -2,6 +2,7 @@ from django.shortcuts import render
 from django.db.models import CharField, Value as V
 from django.db.models.functions import Concat
 from django.contrib.auth.decorators import login_required
+from django.views.decorators.http import require_http_methods
 
 from .models import *
 from public.tools import *
@@ -216,6 +217,7 @@ def _get_position_type_salary():
 
 
 @login_required
+@require_http_methods(["GET"])
 def visualization_view(request):
     try:
         render_data = cache.get('visualization_data', None)
@@ -269,6 +271,7 @@ def update_position_visualization_cache(task_id):
 
 
 @login_required
+@require_http_methods(["GET"])
 def display_view(request):
     data = {"all_type": PositionType.objects.values_list("name", flat=True)}
     resp = render(request, 'position/display.html', data)
@@ -278,39 +281,38 @@ def display_view(request):
 
 @login_required
 @verify_sign("POST")
+@require_http_methods(["POST"])
 def node_data(request):
-    if request.method == "POST":
-        data = {"search_node": []}
-        place_data = Position.objects.filter(is_effective=1).values_list("position_city__province__name",
-                                                                         "position_city__name",
-                                                                         "position_district__name")
-        df = pd.DataFrame(list(place_data)).fillna("其它地区")
-        df.columns = ["province", "city", "district"]
-        df["district"] = df["district"].fillna("其它地区")
-        df = df.drop_duplicates(subset=["province", "city", "district"])
-        # 按照province过滤
-        province_node = [city for city in df.drop_duplicates(['province'])['province']]
-        for province in province_node:
-            # 按照city过滤
-            city_node = df[df['province'].str.contains(province)].drop_duplicates(['city'])['city']
-            all_city_data = []  # 一个city下所有的district
-            for city in city_node:
-                province_df = df[df['province'].str.contains(province)]
-                district_node = [{"name": place, "type": "position_district__name"} for place in
-                                 province_df[province_df["city"].str.contains(city)].drop_duplicates(['district'])[
-                                     'district']]
-                # 构造city数据
-                all_city_data.append({"name": city, "type": "position_city__name", "children": district_node})
-            # 构造province数据
-            data["search_node"].append(
-                {"name": province, "type": "position_city__province__name", "children": all_city_data})
-        return JsonResponse(data["search_node"], json_dumps_params={'ensure_ascii': False}, safe=False)
-    else:
-        return JsonResponse({"msg": "访问太频繁，请稍后再试！"}, json_dumps_params={'ensure_ascii': False})
+    data = {"search_node": []}
+    place_data = Position.objects.filter(is_effective=1).values_list("position_city__province__name",
+                                                                     "position_city__name",
+                                                                     "position_district__name")
+    df = pd.DataFrame(list(place_data)).fillna("其它地区")
+    df.columns = ["province", "city", "district"]
+    df["district"] = df["district"].fillna("其它地区")
+    df = df.drop_duplicates(subset=["province", "city", "district"])
+    # 按照province过滤
+    province_node = [city for city in df.drop_duplicates(['province'])['province']]
+    for province in province_node:
+        # 按照city过滤
+        city_node = df[df['province'].str.contains(province)].drop_duplicates(['city'])['city']
+        all_city_data = []  # 一个city下所有的district
+        for city in city_node:
+            province_df = df[df['province'].str.contains(province)]
+            district_node = [{"name": place, "type": "position_district__name"} for place in
+                             province_df[province_df["city"].str.contains(city)].drop_duplicates(['district'])[
+                                 'district']]
+            # 构造city数据
+            all_city_data.append({"name": city, "type": "position_city__name", "children": district_node})
+        # 构造province数据
+        data["search_node"].append(
+            {"name": province, "type": "position_city__province__name", "children": all_city_data})
+    return JsonResponse(data["search_node"], json_dumps_params={'ensure_ascii': False}, safe=False)
 
 
 @login_required
 # @verify_sign("GET")
+@require_http_methods(["GET"])
 def display_filter(request):
     page = int(request.GET.get('page', 1))
     limit = int(request.GET.get('limit', 10))
@@ -343,6 +345,7 @@ def display_filter(request):
 
 
 @login_required
+@require_http_methods(["GET"])
 def cleaning_view(request):
     resp = render(request, 'position/cleaning.html')
     return resp

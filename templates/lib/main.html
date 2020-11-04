@@ -118,7 +118,7 @@
                         <dl class="layui-nav-child">
                             <dd data-name="administrativeDiv"><a lay-href="{% url 'public:administrative_div_view' %}">全国行政区划</a></dd>
                             <dd data-name="grid">
-                                <a href="javascript:;">爬虫模块</a>
+                                <a href="javascript:;">爬虫</a>
                                 <dl class="layui-nav-child">
                                     <dd data-name="spiderManage"><a lay-href="{% url 'public:spider_manage_view' %}">爬虫管理</a></dd>
                                     <dd data-name="spiderOperate"><a lay-href="{% url 'public:spider_operate_view' %}">爬虫操作</a></dd>
@@ -134,15 +134,19 @@
                             <cite>招聘数据</cite>
                         </a>
                         <dl class="layui-nav-child">
-                            <dd data-name="visualization"><a lay-href="{% url 'position:visualization_view' %}">可视化展示</a></dd>
-                            <dd data-name="grid">
-                                <a href="javascript:;">数据操作</a>
-                                <dl class="layui-nav-child">
-                                    <dd data-name="show"><a lay-href="{% url 'position:display_view' %}">数据展示</a></dd>
-                                    <dd data-name="clean"><a lay-href="{% url 'position:cleaning_view' %}">数据清洗</a></dd>
-                                    <dd data-name="console"><a lay-href="******">数据分析</a></dd>
-                                </dl>
+                            <dd data-name="visualization">
+                                <a lay-href="{% url 'position:visualization_view' %}">可视化展示</a>
+                                <a lay-href="{% url 'position:display_view' %}">数据展示</a>
+                                <a lay-href="{% url 'position:cleaning_view' %}">数据清洗</a>
                             </dd>
+{#                            <dd data-name="grid">#}
+{#                                <a href="javascript:;">数据操作</a>#}
+{#                                <dl class="layui-nav-child">#}
+{#                                    <dd data-name="show"><a lay-href="{% url 'position:display_view' %}">数据展示</a></dd>#}
+{#                                    <dd data-name="clean"><a lay-href="{% url 'position:cleaning_view' %}">数据清洗</a></dd>#}
+{#                                    <dd data-name="console"><a lay-href="******">数据分析</a></dd>#}
+{#                                </dl>#}
+{#                            </dd>#}
                         </dl>
                     </li>
 
@@ -157,12 +161,12 @@
                         </dl>
                     </li>
 
-                    <li data-name="home" class="layui-nav-item layui-nav-itemed">
-                        <a href="{% url 'position:run_view' %}" lay-tips="demo" lay-direction="2">
-                            <i class="layui-icon layui-icon-home"></i>
-                            <cite>demo</cite>
-                        </a>
-                    </li>
+{#                    <li data-name="home" class="layui-nav-item layui-nav-itemed">#}
+{#                        <a href="{% url 'position:run_view' %}" lay-tips="demo" lay-direction="2">#}
+{#                            <i class="layui-icon layui-icon-home"></i>#}
+{#                            <cite>demo</cite>#}
+{#                        </a>#}
+{#                    </li>#}
 
 
                 </ul>

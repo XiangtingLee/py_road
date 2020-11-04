@@ -88,7 +88,8 @@ def reg_act(request):
                 return JsonResponse({"code": 0, "msg": "用户名已被注册", "icon": 2})
             if User.objects.filter(mobile=mobile):
                 return JsonResponse({"code": 0, "msg": "手机号已被注册", "icon": 2})
-            User.objects.create_user(username=username, password=password, mobile=mobile)
+            nick_name = "User%s" % int(time.time()*1000)
+            User.objects.create_user(username=username, password=password, mobile=mobile, nick_name=nick_name)
             return JsonResponse({"code": 0, "msg": "注册成功", "next": '../login', "icon": 1})
         return JsonResponse({"code": 0, "msg": "暂不提供注册服务，请联系管理员", "icon": 2})
     else:
@@ -230,7 +231,6 @@ def manage_filter(request):
 def manage_profile(request, uid):
     if request.method == "POST":
         form = request.POST
-        print(request.POST)
         filter_kwargs = {key: form[key] for key in form if
                               key not in ["csrfmiddlewaretoken", "page", "limit"] and form[key]}
         User.objects.filter(id=uid).update(**filter_kwargs)

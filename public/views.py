@@ -15,6 +15,7 @@ from django.shortcuts import render
 from django.forms.models import model_to_dict
 from django.http import JsonResponse, HttpResponseRedirect
 from django.contrib.auth.decorators import login_required
+from django.views.decorators.http import require_http_methods
 # from django.views.decorators.csrf import csrf_exempt
 # from django.views.decorators.http import require_POST, require_http_methods
 
@@ -93,26 +94,34 @@ from django.conf import settings
 #         return JsonResponse({'status': status})
 
 
+@login_required
+@require_http_methods(["GET"])
 def proxy_view(request):
-    resp = render(request, 'public/proxyPool.html')
+    protocols = ProxyPoolProtocol.objects.order_by('id').all()
+    types = ProxyPoolType.objects.order_by('id').all()
+    resp = render(request, 'public/proxy_pool.html', {"protocols": protocols, "types": types})
     resp.set_signed_cookie(key="sign", value=int(time.time()), salt=settings.SECRET_KEY, path="/public/proxy/")
     return resp
 
 
-@verify_sign("POST")
-def proxy_data(request):
-    if request.method == "POST":
-        data = {'code': 0, 'count': 0, 'data': [], 'msg': ''}
-        if request.method == 'POST':
-            page = int(request.POST.get('page', 1))
-            limit = int(request.POST.get('limit', 10))
-            _data = list(ProxyPool.objects.filter(is_delete=0).values())
-            data['count'], data['data'] = ListProcess().pagination(_data, page, limit)
-        return JsonResponse(data, json_dumps_params={'ensure_ascii': False})
-    else:
-        return JsonResponse({"msg": "访问太频繁，请稍后再试！"}, json_dumps_params={'ensure_ascii': False})
+@login_required
+# @verify_sign("GET")
+@require_http_methods(["GET"])
+def proxy_filter(request):
+    data = {'code': 0, 'count': 0, 'data': [], 'msg': ''}
+    form = request.GET
+    page = int(form.get('page', 1))
+    limit = int(form.get('limit', 10))
+    filter_kwargs = {key: form[key] for key in form if
+                     key not in ["csrfmiddlewaretoken", "page", "limit"] and form[key]}
+    _data = ProxyPool.objects.filter(is_delete=0, **filter_kwargs).values("id", "protocol__name", "type__name",
+                                                                          "address", "port", "add_time", "update_time")
+    data['count'], data['data'] = ListProcess().pagination(_data, page, limit)
+    return JsonResponse(data, json_dumps_params={'ensure_ascii': False})
 
 
+@login_required
+@require_http_methods(["POST"])
 def proxy_upload(request):
     csv_file = request.FILES.get('file', None)
     if not csv_file:
@@ -121,11 +130,15 @@ def proxy_upload(request):
         return JsonResponse({'status': 0, 'message': '文件过大，请重新选择！'}, json_dumps_params={'ensure_ascii': False})
     file_data = csv_file.read().decode("utf-8")
     file_name = csv_file.name.replace('.csv', '').replace('.CSV', '')
+    type_field = ProxyPoolType.objects.get_or_create(name=file_name,
+                                                     defaults={"name": file_name, "add_time": datetime.datetime.now()})
     lines = file_data.split("\n")
     ins_list = []
     for line in lines:
         fields = line.split(",")
-        ins_list.append(ProxyPool(type=file_name, protocol=fields[0], address=fields[1],
+        protocol_field = ProxyPoolProtocol.objects.get_or_create(name=fields[0], defaults={"name": fields[0],
+                                                                                           "add_time": datetime.datetime.now()})
+        ins_list.append(ProxyPool(type=type_field[0], protocol=protocol_field[0], address=fields[1],
                                   port=fields[2].replace('\n', '').replace('\r', ''), add_time=datetime.datetime.now()))
     if ins_list.__len__() > 7000:
         times = (len(lines) // 7000) + 1
@@ -139,68 +152,69 @@ def proxy_upload(request):
     return update_sign(JsonResponse({'status': 1}, json_dumps_params={'ensure_ascii': False}), key_path="/public/proxy/")
 
 
+@login_required
+@require_http_methods(["POST"])
 def proxy_change(request):
     data = {'status': 0, 'message': ''}
-    if request.method == 'POST':
-        proxy_id = request.POST.get('id', '')
-        is_available = True if request.POST.get('is_available', 'false') == 'true' else False
-        if proxy_id:
-            ProxyPool.objects.filter(id=proxy_id).update(is_available=is_available, update_time=datetime.datetime.now())
-            data['status'] = 1
+    proxy_id = request.POST.get('id', '')
+    is_available = True if request.POST.get('is_available', 'false') == 'true' else False
+    if proxy_id:
+        a = ProxyPool.objects.filter(id=proxy_id).update(is_available=is_available, update_time=datetime.datetime.now())
+        print(a)
+        data['status'] = 1
     return JsonResponse(data, json_dumps_params={'ensure_ascii': False})
 
 
+@login_required
+@require_http_methods(["POST"])
 def proxy_check(request):
     data = {'message': ''}
-    if request.method == "POST":
-        threads = []
-        ids = request.POST.getlist('ids[]', None)
-        judge_result = {'valid': [], 'invalid': []}
-        check_id = list(map(int, ids))
-        kwargs = {"is_delete": False}
-        if check_id:
-            kwargs["id__in"] = check_id
-        for record in ProxyPool.objects.filter(**kwargs).values('id', 'protocol', 'address', 'port'):
-            address = record['address'] + ':' + record['port']
-            thread = MyThread(func=__proxy_judge, args=(record['protocol'], address,))
-            thread.setName(str(record['id']))
-            threads.append(thread)
-        check_row = threads.__len__()
-        if check_row > 5000:
-            times = (check_row // 5000) + 1
-            for one in range(0, times):
-                if one == times - 1:
-                    print('cheking %s-%s' % (5000 * one, check_row - 1))
-                    start_check_thread = threads[5000 * one: check_row - 1]
-                else:
-                    print('cheking %s-%s' % (5000 * one, (5000 * one) + 5000))
-                    start_check_thread = threads[5000 * one: (5000 * one) + 5000]
-                for thread in start_check_thread:
-                    thread.start()
-                for thread in start_check_thread:
-                    thread.join()
-                thread_result = [{'id': i.name, 'result': i.run_result()} for i in start_check_thread]
-                for result in thread_result:
-                    judge_result['valid'].append(int(result['id'])) if result['result'] else judge_result[
-                        'invalid'].append(int(result['id']))
-        else:
-            for thread in threads:
+    threads = []
+    ids = request.POST.getlist('ids[]', None)
+    judge_result = {'valid': [], 'invalid': []}
+    check_id = list(map(int, ids))
+    kwargs = {"is_delete": False}
+    if check_id:
+        kwargs["id__in"] = check_id
+    for record in ProxyPool.objects.filter(**kwargs).values('id', 'protocol__name', 'address', 'port'):
+        address = record['address'] + ':' + record['port']
+        thread = MyThread(func=__proxy_judge, args=(record['protocol__name'], address,))
+        thread.setName(str(record['id']))
+        threads.append(thread)
+    check_row = threads.__len__()
+    if check_row > 5000:
+        times = (check_row // 5000) + 1
+        for one in range(0, times):
+            if one == times - 1:
+                print('cheking %s-%s' % (5000 * one, check_row - 1))
+                start_check_thread = threads[5000 * one: check_row - 1]
+            else:
+                print('cheking %s-%s' % (5000 * one, (5000 * one) + 5000))
+                start_check_thread = threads[5000 * one: (5000 * one) + 5000]
+            for thread in start_check_thread:
                 thread.start()
-            for thread in threads:
+            for thread in start_check_thread:
                 thread.join()
-            thread_result = [{"id": i.name, "result": i.run_result()} for i in threads]
+            thread_result = [{'id': i.name, 'result': i.run_result()} for i in start_check_thread]
             for result in thread_result:
                 judge_result['valid'].append(int(result['id'])) if result['result'] else judge_result[
                     'invalid'].append(int(result['id']))
-        ProxyPool.objects.filter(id__in=judge_result['valid']).update(is_available=1,
-                                                                      update_time=datetime.datetime.now())
-        ProxyPool.objects.filter(id__in=judge_result['invalid']).update(is_available=0,
-                                                                        update_time=datetime.datetime.now())
-        data['result'] = {'count': check_id.__len__(), 'valid': judge_result['valid'].__len__(),
-                          'invalid': judge_result['invalid'].__len__()}
-        return update_sign(JsonResponse(data, json_dumps_params={'ensure_ascii': False}), key_path="/public/proxy/")
     else:
-        return JsonResponse({"status": "error", "maessage": "网络繁忙，请稍后再试！"}, json_dumps_params={'ensure_ascii': False})
+        for thread in threads:
+            thread.start()
+        for thread in threads:
+            thread.join()
+        thread_result = [{"id": i.name, "result": i.run_result()} for i in threads]
+        for result in thread_result:
+            judge_result['valid'].append(int(result['id'])) if result['result'] else judge_result[
+                'invalid'].append(int(result['id']))
+    ProxyPool.objects.filter(id__in=judge_result['valid']).update(is_available=1,
+                                                                  update_time=datetime.datetime.now())
+    ProxyPool.objects.filter(id__in=judge_result['invalid']).update(is_available=0,
+                                                                    update_time=datetime.datetime.now())
+    data['result'] = {'count': check_id.__len__(), 'valid': judge_result['valid'].__len__(),
+                      'invalid': judge_result['invalid'].__len__()}
+    return update_sign(JsonResponse(data, json_dumps_params={'ensure_ascii': False}), key_path="/public/proxy/")
 
 
 def __proxy_judge(protocol, address):
@@ -219,6 +233,7 @@ def __proxy_judge(protocol, address):
 
 
 @login_required
+@require_http_methods(["GET"])
 def spider_manage_view(request):
     resp = render(request, 'public/spider_manage.html')
     resp.set_signed_cookie(key='sign', value=int(time.time()), salt=settings.SECRET_KEY, path='/public/spider/manage/')
@@ -226,6 +241,7 @@ def spider_manage_view(request):
 
 
 @login_required
+@require_http_methods(["GET"])
 def spider_manage_show(request, spider_id):
     spider = Spider.objects.get(id=spider_id)
     path = spider.path
@@ -243,6 +259,7 @@ def spider_manage_show(request, spider_id):
 
 
 @login_required
+@require_http_methods(["GET", "POST"])
 def spider_manage_edit(request, spider_id):
     spider_id = int(spider_id)
     if request.method == "POST":
@@ -303,6 +320,7 @@ def spider_manage_edit(request, spider_id):
 
 
 @login_required
+# @require_http_methods(["POST"])
 def spider_manage_probe(request):
     if request.method == "POST":
         print(request.POST)
@@ -325,16 +343,14 @@ def spider_manage_probe(request):
 
 
 @login_required
-@verify_sign("POST")
+@require_http_methods(["GET"])
+@verify_sign("GET")
 def spider_manage_data(request):
-    if request.method == "POST":
-        data = {"code": 0, "msg": "", "data": []}
-        spiders = Spider.objects.all().order_by('id')
-        data["data"] = [model_to_dict(spider) for spider in spiders]
-        data["count"] = spiders.count()
-        return JsonResponse(data)
-    else:
-        return JsonResponse({"status": "error", "maessage": "网络繁忙，请稍后再试！"}, json_dumps_params={'ensure_ascii': False})
+    data = {"code": 0, "msg": "", "data": []}
+    spiders = Spider.objects.all().order_by('id')
+    data["data"] = [model_to_dict(spider) for spider in spiders]
+    data["count"] = spiders.count()
+    return JsonResponse(data)
 
 
 @login_required

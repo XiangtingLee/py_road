@@ -1,0 +1,108 @@
+{% extends 'lib/base.html' %}
+{% load static %}
+{% block title %}代理池{% endblock %}
+{% block content %}
+    <div class="layui-fluid">
+        <div class="layui-row layui-col-space15">
+            <div class="layui-col-md12">
+                <div class="layui-card">
+
+                    <form class="layui-form layui-card-header layuiadmin-card-header-auto" id="filter-form">
+                        <div class="layui-form-item">
+                            <div class="layui-inline">
+                                <label class="layui-form-label">ID</label>
+                                <div class="layui-input-block">
+                                    <input type="text" name="id" placeholder="请输入ID" autocomplete="off"
+                                           class="layui-input">
+                                </div>
+                            </div>
+                            <div class="layui-inline">
+                                <label class="layui-form-label">代理类型</label>
+                                <div class="layui-input-inline">
+                                    <select name="type__name" lay-search>
+                                        <option value="">直接选择或搜索选择</option>
+                                        {% for type in types %}
+                                            <option value="{{ type }}">{{ type }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="layui-inline">
+                                <label class="layui-form-label">代理协议</label>
+                                <div class="layui-input-inline">
+                                    <select name="protocol__name" lay-search>
+                                        <option value="">直接选择或搜索选择</option>
+                                        {% for protocol in protocols %}
+                                            <option value="{{ protocol }}">{{ protocol }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="layui-inline">
+                                <label class="layui-form-label">代理地址</label>
+                                <div class="layui-input-block">
+                                    <input type="text" name="address__contains" placeholder="支持模糊搜索" autocomplete="off"
+                                           class="layui-input">
+                                </div>
+                            </div>
+                            <div class="layui-inline">
+                                <label class="layui-form-label">端口号</label>
+                                <div class="layui-input-block">
+                                    <input type="text" name="port" placeholder="" autocomplete="off"
+                                           class="layui-input">
+                                </div>
+                            </div>
+                            <div class="layui-inline">
+                                <label class="layui-form-label">是否有效</label>
+                                <div class="layui-input-inline">
+                                    <select name="is_available">
+                                        <option value="">请选择...</option>
+                                        <option value="1">是</option>
+                                        <option value="0">否</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div style="text-align: right;">
+                                <button class="layui-btn" id="filter" data-type="filter" type="button">筛选</button>
+                                <button type="reset" class="layui-btn layui-btn-primary" style="margin-right: 50px">重置
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+
+                    <div class="layui-card-body">
+                        <table class="layui-hide" id="proxy-data-form" lay-filter="proxy-data-form"></table>
+                        {% csrf_token %}
+                        <script type="text/html" id="proxy-toolbar">
+                            <div class="layui-btn-container">
+                                <button class="layui-btn layui-btn-sm" lay-event="verify">验证可用性</button>
+                            </div>
+                        </script>
+
+                        <script type="text/html" id="test-table-switchTpl">
+                            {% verbatim %}
+                            <input type="checkbox" name="available" lay-skin="switch" lay-text="是|否"
+                                   lay-filter="test-table-sexDemo"
+                                   value="{{ d.id }}" data-json="{{ encodeURIComponent(JSON.stringify(d)) }}"
+                                   {{ d.is_available== 1 ? "checked" : "" }}>
+                            {% endverbatim %}
+                        </script>
+
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+{% block tail_include_after %}
+    <script>
+        layui.config({
+            base: '{% static 'layuiadmin/' %}' //静态资源所在路径
+        }).extend({
+            index: 'lib/index',
+            proxy_pool: 'public/proxy_pool'
+        }).use(['index', 'proxy_pool']);
+    </script>
+{% endblock %}

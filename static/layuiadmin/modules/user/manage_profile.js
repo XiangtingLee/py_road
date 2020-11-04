@@ -71,5 +71,5 @@ layui.define('form', function (exports) {
                 return false;
             });
     });
-    exports('administrative_div', {})
+    exports('manage_profile', {})
 });
