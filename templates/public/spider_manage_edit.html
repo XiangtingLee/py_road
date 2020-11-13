@@ -10,7 +10,7 @@
                     <div class="layui-form-item">
                         <label class="layui-form-label">爬虫名称</label>
                         <div class="layui-input-block">
-                            <input type="text" name="name" lay-verify="name" placeholder="请输入路径"
+                            <input type="text" name="name" lay-verify="name" placeholder="请输入名称"
                                    autocomplete="off" class="layui-input" value="{{ name }}">
                         </div>
                     </div>
@@ -20,7 +20,7 @@
                         <i class="layui-icon layui-icon-help" style="font-size: 15px;"></i>
                         </label>
                         <div class="layui-input-block">
-                            <input type="text" name="path" lay-verify="path" placeholder="请输入名称"
+                            <input type="text" name="path" lay-verify="path" placeholder="请输入路径"
                                    autocomplete="off" class="layui-input" value="{{ path }}">
                         </div>
                     </div>
@@ -55,8 +55,8 @@
             base: '{% static 'layuiadmin/' %}' //静态资源所在路径
         }).extend({
             index: 'lib/index',
-            edit: 'public/spider_manage_edit'
-        }).use(['index', 'edit']);
+            spider_manage_edit: 'public/spider_manage_edit'
+        }).use(['index', 'spider_manage_edit']);
     </script>
 {% endblock %}
 

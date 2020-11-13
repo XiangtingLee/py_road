@@ -104,7 +104,7 @@ layui.config({
                                 if(result.code == 0){
                                     layer.msg(result.msg,{icon: 1});
                                     layer.closeAll('page');
-                                    return done(result.data.src);
+                                    return done(result.extra.src);
                                 }else if(result.code == -1){
                                     layer.alert(result.msg,{icon: 2});
                                 }

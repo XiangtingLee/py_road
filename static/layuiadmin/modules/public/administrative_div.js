@@ -11,6 +11,14 @@ layui.define('form', function (exports) {
             , url: '/public/administrativeDiv/filter/'
             , method: 'GET'
             , toolbar: 'default'
+            , parseData: function (res) {
+                return {
+                    data : res.data,
+                    msg : res.msg,
+                    code: res.code,
+                    count : res.extra.totalCount
+                }
+            }
             , defaultToolbar: ["filter","exports"]
             , cols: [[
                 {checkbox: true, fixed: 'left', rowspan: 2}
@@ -50,7 +58,7 @@ layui.define('form', function (exports) {
                 , method: 'post'
                 , data: {k: obj.field, d: obj.value}
                 , success: function (d) {
-                    if (d.code !== 10000) {
+                    if (d.code != 0) {
                         table.reload('dataForm', {
                             where: {}
                         }, 'data');

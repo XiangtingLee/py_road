@@ -70,7 +70,7 @@ layui.define('form', function (exports) {
                     shadeClose: true,
                     shade: 0.8,
                     area: ['375px', '425px'],
-                    content: '/public/spider/manage/probe/'
+                    content: '/public/spider/manage/edit/0/'
                 });
             }
             , autoAdd: function () { //获取选中数目

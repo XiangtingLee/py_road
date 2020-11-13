@@ -22,6 +22,7 @@ PYECHARTS_INIT_OPTS = opts.InitOpts(width="100%", height="100%", theme=ThemeType
 PYECHARTS_MARKPOINT_MIN = opts.MarkPointItem(type_="min", value_index=1)
 PYECHARTS_MARKPOINT_MAX = opts.MarkPointItem(type_="max", value_index=1)
 PYECHARTS_LINEPOINT_AVG = opts.MarkLineItem(type_="average", value_index=1)
+RESP = ResponseStandard()
 
 
 def _get_pie_render_data(data: list):
@@ -314,13 +315,8 @@ def node_data(request):
 # @verify_sign("GET")
 @require_http_methods(["GET"])
 def display_filter(request):
-    page = int(request.GET.get('page', 1))
-    limit = int(request.GET.get('limit', 10))
-    form = request.GET
-    data = {'code': 0, 'count': 0, 'data': [], 'msg': ''}
-    filter_kwargs = {'is_effective': 1}
-    filter_kwargs.update({key: form[key] for key in form if
-                          key not in ["csrfmiddlewaretoken", "page", "limit"] and form[key]})
+    page, limit, filter_kwargs = get_opt_kwargs(request, "GET")
+    filter_kwargs["is_effective"] = 1
     if 'salary' in filter_kwargs.keys():
         try:
             filter_kwargs["salary_lower__gte"] = int(filter_kwargs["salary"].split(',')[0])
@@ -329,19 +325,24 @@ def display_filter(request):
         except IndexError or TypeError:
             del filter_kwargs["salary"]
     if filter_kwargs.__contains__("position_city__province__name"):
-        filter_kwargs["position_city__province__name"] = None if filter_kwargs["position_city__province__name"] == "其它地区" else filter_kwargs["position_city__province__name"]
+        filter_kwargs["position_city__province__name"] = None if filter_kwargs[
+                                                                     "position_city__province__name"] == "其它地区" else \
+        filter_kwargs["position_city__province__name"]
     if filter_kwargs.__contains__("position_city__name"):
-        filter_kwargs["position_city__name"] = None if filter_kwargs["position_city__name"] == "其它地区" else filter_kwargs["position_city__name"]
+        filter_kwargs["position_city__name"] = None if filter_kwargs["position_city__name"] == "其它地区" else \
+        filter_kwargs["position_city__name"]
     if filter_kwargs.__contains__("position_district__name"):
-        filter_kwargs["position_district__name"] = None if filter_kwargs["position_district__name"] == "其它地区" else filter_kwargs["position_district__name"]
+        filter_kwargs["position_district__name"] = None if filter_kwargs["position_district__name"] == "其它地区" else \
+        filter_kwargs["position_district__name"]
     _data = list(
         Position.objects.filter(**filter_kwargs).annotate(salary=Concat("salary_lower", V("-"), "salary_upper", V("k"),
                                                                         output_field=CharField())).values(
             'id', 'company__name', 'position_type__name', 'position_name', 'position_city__name',
             'position_district__name', 'education__name', 'experience__name', 'update_time', "salary").order_by('id')
     )
-    data['count'], data['data'] = ListProcess().pagination(_data, page, limit)
-    return JsonResponse(data, json_dumps_params={'ensure_ascii': False})
+    totalCount, render_data = ListProcess().pagination(_data, page, limit)
+    resp = RESP.get_data_response(0, None, render_data, totalCount=totalCount, page=page, limit=limit)
+    return JsonResponse(resp, json_dumps_params={'ensure_ascii': False})
 
 
 @login_required

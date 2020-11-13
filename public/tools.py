@@ -1,7 +1,10 @@
 import time
+import sys
+import math
 import threading
 import requests
 import datetime
+from copy import deepcopy
 from functools import wraps
 
 from django.http import JsonResponse
@@ -16,6 +19,74 @@ REQUEST_HEADERS = {
     'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,'
               'application/signed-exchange;v=b3 '
 }
+
+
+class ResponseStandard(object):
+
+    def __init__(self):
+        self.RESPONSE_BASE_BODY = {
+            "msg": "成功",  # 返回携带的消息
+            "code": 0,  # 业务自定义状态码
+            "extra": {}  # 全局附加数据，字段、内容不定
+        }
+
+    @staticmethod
+    def _get_code_msg(code):
+        msgs = {
+            10001: "暂不提供注册服务",
+            10002: "暂不提供登录服务",
+            10003: "强制下线",
+            10004: "用户名已被注册",
+            10005: "手机号已被注册",
+            10006: "未登录",
+            10007: "登录失败",
+            10008: "用户信息错误",
+            10009: "退出登录失败",
+            10010: "帐号已封禁",
+            10011: "权限不足",
+            20001: "请求方式错误",
+            20002: "服务器拒绝处理请求",
+            20003: "非法参数",
+            20004: "添加数据失败",
+            20005: "删除数据失败",
+            20006: "修改数据失败",
+            20007: "查询数据失败",
+            20008: "部分数据添加失败",
+            20009: "部分数据删除失败",
+            20010: "部分数据修改失败",
+            20011: "部分数据查询失败",
+            30001: "文件不存在",
+            30002: "文件夹不存在",
+            30003: "文件已存在",
+            30004: "文件夹已存在",
+            30005: "文件名不能为空",
+            30006: "文件夹名不能为空",
+            40001: "上传为空，请重试",
+            40002: "上传文件为空",
+            40003: "文件格式错误",
+            40004: "文件大小超限",
+            40005: "上传文件名为空",
+            40006: "上传文件已存在",
+            40007: "上传文件内容格式错误",
+            40008: "上传文件非法",
+        }
+        return msgs.get(code, "")
+
+    def _get_base_response(self, code=0, msg=None, **extra):
+        resp_base_body = deepcopy(self.RESPONSE_BASE_BODY)
+        resp_base_body["code"] = code
+        resp_base_body["msg"] = msg if msg else self._get_code_msg(code)
+        resp_base_body["extra"] = extra
+        return resp_base_body
+
+    def get_opt_response(self, code=0, msg=None, **extra):
+        return self._get_base_response(code, msg, **extra)
+
+    def get_data_response(self, code, msg, data, **extra):
+        resp = self._get_base_response(code, msg, **extra)
+        resp["data"] = data
+        return resp
+
 
 ThreadLock = threading.Lock()
 
@@ -160,3 +231,20 @@ class ListProcess(object):
                 return total, data
             return total, []
         return total, []
+
+
+def get_opt_kwargs(request, method: str = "GET", exclude: list = None, pagination: bool = True):
+    items = ["csrfmiddlewaretoken", "page", "limit"]
+    if exclude is not None and isinstance(exclude, list):
+        [items.append(one) for one in exclude]
+    form = request.GET if method.lower() == "get" else request.POST if method.lower() == "post" else None
+    if form:
+        filter_kwargs = {key: form[key] for key in form if
+                         key not in items and form[key]}
+        if pagination:
+            page = int(form.get('page', 1))
+            limit = int(form.get('limit', 10))
+            return page, limit, filter_kwargs
+        else:
+            return filter_kwargs
+    return 0, 0, {}

@@ -37,16 +37,16 @@ layui.define('form', function (exports) {
                         this.layerIndex = layer.load(0, {shade: [0.5, '#393D49']});
                     },
                     success: function (data) {
-                        if (data.status == 'error') {
-                            if (data.success) {
-                                layer.msg(data.msg, {icon: 5});
-                                return false;
-                            }
+                        if(data.code === 20008) {
                             layer.msg(data.msg, {icon: 5, time: 1000}, function () {
-                                setTimeout('window.location.reload()', 1000);
+                                setTimeout('window.location.reload();', 1000);
                             });
                             return false;
-                        } else if (data.status == 'success') {
+                        }
+                        if(data.code != 0){
+                            layer.msg(data.msg, {icon: 5});
+                            return false;
+                        } else  {
                             layer.msg(data.msg, {icon: 6, time: 1000}, function () {
                                 parent.location.reload();
                                 parent.layer.close(index);

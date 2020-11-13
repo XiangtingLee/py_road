@@ -17,15 +17,16 @@ from django.http import JsonResponse, HttpResponseRedirect
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_http_methods
 # from django.views.decorators.csrf import csrf_exempt
-# from django.views.decorators.http import require_POST, require_http_methods
 
 # 项目内引用
 from .models import *
 from .tasks import delay_spider
 # from log.models import SpiderRunLog
 from position.models import PositionType
-from .tools import MyThread, verify_sign, update_sign, ListProcess
+from .tools import MyThread, verify_sign, update_sign, ListProcess, get_opt_kwargs, ResponseStandard
 from django.conf import settings
+
+RESP = ResponseStandard()
 
 
 # connect scrapyd service
@@ -108,16 +109,12 @@ def proxy_view(request):
 # @verify_sign("GET")
 @require_http_methods(["GET"])
 def proxy_filter(request):
-    data = {'code': 0, 'count': 0, 'data': [], 'msg': ''}
-    form = request.GET
-    page = int(form.get('page', 1))
-    limit = int(form.get('limit', 10))
-    filter_kwargs = {key: form[key] for key in form if
-                     key not in ["csrfmiddlewaretoken", "page", "limit"] and form[key]}
+    page, limit, filter_kwargs = get_opt_kwargs(request, "GET")
     _data = ProxyPool.objects.filter(is_delete=0, **filter_kwargs).values("id", "protocol__name", "type__name",
                                                                           "address", "port", "add_time", "update_time")
-    data['count'], data['data'] = ListProcess().pagination(_data, page, limit)
-    return JsonResponse(data, json_dumps_params={'ensure_ascii': False})
+    totalCount, render_data = ListProcess().pagination(_data, page, limit)
+    resp = RESP.get_data_response(0, None, render_data, totalCount=totalCount, page=page, limit=limit)
+    return JsonResponse(resp, json_dumps_params={'ensure_ascii': False})
 
 
 @login_required
@@ -125,19 +122,24 @@ def proxy_filter(request):
 def proxy_upload(request):
     csv_file = request.FILES.get('file', None)
     if not csv_file:
-        return JsonResponse({'status': 0, 'message': '上传失败，请重新选择！'}, json_dumps_params={'ensure_ascii': False})
+        return JsonResponse(RESP.get_opt_response(40001))
+    if csv_file.size > 1024 ** 2:
+        return JsonResponse(RESP.get_opt_response(40004))
     if csv_file.multiple_chunks():
-        return JsonResponse({'status': 0, 'message': '文件过大，请重新选择！'}, json_dumps_params={'ensure_ascii': False})
+        return JsonResponse(RESP.get_opt_response(40004))
     file_data = csv_file.read().decode("utf-8")
     file_name = csv_file.name.replace('.csv', '').replace('.CSV', '')
+    if not csv_file.name.lower().endswith("csv"):
+        return JsonResponse(RESP.get_opt_response(40003))
     type_field = ProxyPoolType.objects.get_or_create(name=file_name,
                                                      defaults={"name": file_name, "add_time": datetime.datetime.now()})
     lines = file_data.split("\n")
     ins_list = []
     for line in lines:
         fields = line.split(",")
-        protocol_field = ProxyPoolProtocol.objects.get_or_create(name=fields[0], defaults={"name": fields[0],
-                                                                                           "add_time": datetime.datetime.now()})
+        protocol_field = ProxyPoolProtocol.objects.get_or_create(name=fields[0],
+                                                                 defaults={"name": fields[0],
+                                                                           "add_time": datetime.datetime.now()})
         ins_list.append(ProxyPool(type=type_field[0], protocol=protocol_field[0], address=fields[1],
                                   port=fields[2].replace('\n', '').replace('\r', ''), add_time=datetime.datetime.now()))
     if ins_list.__len__() > 7000:
@@ -149,26 +151,29 @@ def proxy_upload(request):
                 ProxyPool.objects.bulk_create(ins_list[7000 * one: (7000 * one) + 7000])
     else:
         ProxyPool.objects.bulk_create(ins_list)
-    return update_sign(JsonResponse({'status': 1}, json_dumps_params={'ensure_ascii': False}), key_path="/public/proxy/")
+    return update_sign(JsonResponse(RESP.get_opt_response(msg="上传成功！")), key_path="/public/proxy/")
 
 
 @login_required
 @require_http_methods(["POST"])
 def proxy_change(request):
-    data = {'status': 0, 'message': ''}
-    proxy_id = request.POST.get('id', '')
+    proxy_id = request.POST.get('id', None)
     is_available = True if request.POST.get('is_available', 'false') == 'true' else False
-    if proxy_id:
-        a = ProxyPool.objects.filter(id=proxy_id).update(is_available=is_available, update_time=datetime.datetime.now())
-        print(a)
-        data['status'] = 1
-    return JsonResponse(data, json_dumps_params={'ensure_ascii': False})
+    if not proxy_id:
+        return JsonResponse(RESP.get_opt_response(20003), json_dumps_params={'ensure_ascii': False})
+    try:
+        _proxy = ProxyPool.objects.get(id=proxy_id)
+        _proxy.is_available = is_available
+        _proxy.update_time = datetime.datetime.now()
+        _proxy.save()
+    except:
+        return JsonResponse(RESP.get_opt_response(20006))
+    return JsonResponse(RESP.get_opt_response(msg="修改成功"))
 
 
 @login_required
 @require_http_methods(["POST"])
 def proxy_check(request):
-    data = {'message': ''}
     threads = []
     ids = request.POST.getlist('ids[]', None)
     judge_result = {'valid': [], 'invalid': []}
@@ -212,9 +217,9 @@ def proxy_check(request):
                                                                   update_time=datetime.datetime.now())
     ProxyPool.objects.filter(id__in=judge_result['invalid']).update(is_available=0,
                                                                     update_time=datetime.datetime.now())
-    data['result'] = {'count': check_id.__len__(), 'valid': judge_result['valid'].__len__(),
-                      'invalid': judge_result['invalid'].__len__()}
-    return update_sign(JsonResponse(data, json_dumps_params={'ensure_ascii': False}), key_path="/public/proxy/")
+    resp = RESP.get_opt_response(count=check_id.__len__(), valid=judge_result['valid'].__len__(),
+                                 invalid=judge_result['invalid'].__len__())
+    return update_sign(JsonResponse(resp), key_path="/public/proxy/")
 
 
 def __proxy_judge(protocol, address):
@@ -272,9 +277,9 @@ def spider_manage_edit(request, spider_id):
                 if Spider.objects.filter(name=file_name).count():
                     ready.append(file_name)
             if ready:
-                return JsonResponse(
-                    {'status': 'error', 'success': True, 'msg': "以下名称已存在，请修改。</br>" + "</br>".join(ready)})
+                return JsonResponse(RESP.get_opt_response(30003, msg="以下名称已存在，请修改。</br>" + "</br>".join(ready)))
             else:
+                fail_list = []
                 for one in add_list:
                     file_name = one.get("name", None)
                     now = datetime.datetime.now()
@@ -282,35 +287,33 @@ def spider_manage_edit(request, spider_id):
                               "add_time": now, "update_time": now}
                     result = Spider.objects.create(**kwargs)
                     if not result:
-                        return JsonResponse({'status': 'error', 'success': False, 'msg': "%s添加失败，请重试" % file_name})
-                return update_sign(JsonResponse({'status': 'success', 'success': True, 'msg': "添加成功"}),
-                                   key_path='/public/spider/manage/')
+                        fail_list.append(file_name)
+                if fail_list:
+                    return JsonResponse(RESP.get_opt_response(20008, msg="、".join(fail_list) + "添加失败，请重试"))
+                return update_sign(JsonResponse(RESP.get_opt_response(msg="添加成功")), key_path='/public/spider/manage/')
 
         is_available = True if args.get("is_available", False) else False
         is_delete = True if args.get("is_delete", False) else False
         file_name = args.get("name", None)
         file_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__))) + args["path"]
         if not file_name:
-            return JsonResponse({'status': 'error', 'success': False, 'msg': "名称不能为空"})
+            return JsonResponse(RESP.get_opt_response(30005, msg="名称不能为空"))
         if not args["path"] or not os.path.exists(file_path):
-            return JsonResponse({'status': 'error', 'success': False, 'msg': "文件路径错误，请修改"})
+            return JsonResponse(RESP.get_opt_response(30001, msg="文件路径错误，请修改"))
         kwargs = {"name": file_name, "path": args["path"], "is_available": is_available, "is_delete": is_delete,
                   "remark": args.get("remark", None), "update_time": datetime.datetime.now()}
         if not spider_id:
             if Spider.objects.filter(name=file_name).count():
-                return JsonResponse({'status': 'error', 'success': False, 'msg': "名称已存在，请修改"})
+                return JsonResponse(RESP.get_opt_response(30003, msg="名称已存在，请修改"))
             kwargs["add_time"] = datetime.datetime.now()
             result = Spider.objects.create(**kwargs)
             if result:
-                return update_sign(JsonResponse({'status': 'success', 'success': True, 'msg': "添加成功"}),
-                                   key_path='/public/spider/manage/')
-            return JsonResponse({'status': 'error', 'success': False, 'msg': "添加失败"})
+                return update_sign(JsonResponse(RESP.get_opt_response(msg="添加成功")), key_path='/public/spider/manage/')
+            return JsonResponse(RESP.get_opt_response(20004))
         result = Spider.objects.filter(id=spider_id).update(**kwargs)
         if result:
-            return update_sign(JsonResponse({'status': 'success', 'success': True, 'msg': "修改成功"}),
-                               key_path='/public/spider/manage/')
-        return update_sign(JsonResponse({'status': 'error', 'success': False, 'msg': "修改失败"}),
-                           key_path='/public/spider/manage/')
+            return update_sign(JsonResponse(RESP.get_opt_response(msg="修改成功")), key_path='/public/spider/manage/')
+        return update_sign(JsonResponse(RESP.get_opt_response(20006)), key_path='/public/spider/manage/')
 
     else:
         data = {}
@@ -320,40 +323,43 @@ def spider_manage_edit(request, spider_id):
 
 
 @login_required
+@require_http_methods(["GET"])
 # @require_http_methods(["POST"])
 def spider_manage_probe(request):
-    if request.method == "POST":
-        print(request.POST)
-    else:
-        record = []
-        apps = settings.INSTALLED_APPS[6:]
-        project_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        apps_path = [os.path.join(project_path, app) for app in apps]
-        for app_path in apps_path:
-            spider_path = os.path.join(app_path, "spider")
-            if os.path.exists(spider_path):
-                for root, dirs, files in os.walk(spider_path, topdown=False):
-                    for name in files:
-                        if name.endswith('.py'):
-                            file_path = os.path.join(root, name)
-                            ret_path = re.sub('(.*?road).*?', '', file_path)
-                            if not Spider.objects.filter(path__in=[ret_path.replace("/", "\\"), ret_path.replace("\\", "/")]).exists():
-                                record.append({'path': ret_path})
-        return render(request, 'public/spider_manage_probe.html', {"file": record})
+    record = []
+    apps = settings.INSTALLED_APPS[6:]
+    project_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    apps_path = [os.path.join(project_path, app) for app in apps]
+    for app_path in apps_path:
+        spider_path = os.path.join(app_path, "spider")
+        if os.path.exists(spider_path):
+            for root, dirs, files in os.walk(spider_path, topdown=False):
+                for name in files:
+                    if name.endswith('.py'):
+                        file_path = os.path.join(root, name)
+                        ret_path = re.sub('(.*?road).*?', '', file_path)
+                        if not Spider.objects.filter(
+                                path__in=[ret_path.replace("/", "\\"), ret_path.replace("\\", "/")]).exists():
+                            record.append({'path': ret_path})
+    return render(request, 'public/spider_manage_probe.html', {"file": record})
 
 
 @login_required
 @require_http_methods(["GET"])
 @verify_sign("GET")
 def spider_manage_data(request):
-    data = {"code": 0, "msg": "", "data": []}
-    spiders = Spider.objects.all().order_by('id')
-    data["data"] = [model_to_dict(spider) for spider in spiders]
-    data["count"] = spiders.count()
-    return JsonResponse(data)
+    page, limit, filter_kwargs = get_opt_kwargs(request, "GET")
+    _data = list(
+        Spider.objects.filter(**filter_kwargs).values("id", "name", "path", "add_time", "update_time",
+                                                      "remark").order_by("id")
+    )
+    totalCount, render_data = ListProcess().pagination(_data, page, limit)
+    resp = RESP.get_data_response(0, None, render_data, totalCount=totalCount, page=page, limit=limit)
+    return JsonResponse(resp)
 
 
 @login_required
+@require_http_methods(["GET"])
 def spider_operate_view(request):
     spiders = Spider.objects.filter(is_available=1, is_delete=0).values("name", "remark").order_by('id')
     position_types = PositionType.objects.filter(is_effective=1).values_list("name", flat=True).order_by('id')
@@ -362,19 +368,14 @@ def spider_operate_view(request):
     return resp
 
 
+@login_required
+@require_http_methods(["POST"])
 def spider_operate_run(request):
-    if request.method == "POST":
-        args = request.POST.getlist("args", None)
-        spider_name = request.POST.get('spider', None)
-        kwargs = request.POST.dict()
-        del kwargs["csrfmiddlewaretoken"]
-        del kwargs["spider"]
-        if "args" in kwargs.keys():
-            del kwargs["args"]
-        delay_spider(spider_name, *tuple(args), **kwargs)
-        return HttpResponseRedirect('/public/spider/operate/view/')
-    else:
-        return JsonResponse({"status": "error", "maessage": "网络繁忙，请稍后再试！"}, json_dumps_params={'ensure_ascii': False})
+    args = request.POST.getlist("args", None)
+    spider_name = request.POST.get('spider', None)
+    kwargs = get_opt_kwargs(request, "POST", exclude=["spider", "args"], pagination=False)
+    delay_spider(spider_name, *tuple(args), **kwargs)
+    return HttpResponseRedirect('/public/spider/operate/view/')
 
 
 @login_required
@@ -386,35 +387,27 @@ def administrative_div_view(request):
 
 
 @login_required
+@require_http_methods(["GET"])
 def administrative_div_filter(request):
-    if request.method == "GET":
-        data = {"code": 0, "msg": "", "data": []}
-        form = request.GET
-        page = int(form.get('page', 1))
-        limit = int(form.get('limit', 10))
-        filter_kwargs = {key: form[key] for key in form if
-                         key not in ["city-picker", "csrfmiddlewaretoken", "page", "limit"] and form[key]}
-        _data = AdministrativeDiv.objects.filter(**filter_kwargs).annotate(province_name=F("province__name"),
-                                                                           city_name=F("city__name"),
-                                                                           area_name=F("area__name")).values(
-            "id", "code", "name", "pinyin", "short_name", "zip_code", "province_name", "city_name", "area_name",
-            "lng_lat",
-            "add_time", "update_time").order_by('id')
-        data['count'], data['data'] = ListProcess().pagination(_data, page, limit)
-        return JsonResponse(data)
-    else:
-        return JsonResponse({"status": "error", "maessage": "网络繁忙，请稍后再试！"}, json_dumps_params={'ensure_ascii': False})
+    page, limit, filter_kwargs = get_opt_kwargs(request, "GET", exclude=["city-picker"])
+    _data = AdministrativeDiv.objects.filter(**filter_kwargs).annotate(province_name=F("province__name"),
+                                                                       city_name=F("city__name"),
+                                                                       area_name=F("area__name")).values(
+        "id", "code", "name", "pinyin", "short_name", "zip_code", "province_name", "city_name", "area_name",
+        "lng_lat",
+        "add_time", "update_time").order_by('id')
+    totalCount, render_data = ListProcess().pagination(_data, page, limit)
+    resp = RESP.get_data_response(0, None, render_data, totalCount=totalCount, page=page, limit=limit)
+    return JsonResponse(resp)
 
 
 @login_required
+@require_http_methods(["POST"])
 def administrative_div_edit(request, div_id):
-    if request.method == "POST":
-        kwargs = {request.POST["k"]: None if not request.POST["d"] else request.POST["d"]}
-        kwargs["update_time"] = datetime.datetime.now()
-        try:
-            update_count = AdministrativeDiv.objects.filter(id=div_id).update(**kwargs)
-            return JsonResponse({'code': 10000, "count": update_count, "msg": "修改成功"})
-        except:
-            return JsonResponse({'code': 10003, "count": 0, "msg": "修改失败"})
-    else:
-        return JsonResponse({"code": 10004, "msg": "网络繁忙，请稍后再试"}, json_dumps_params={'ensure_ascii': False})
+    kwargs = {request.POST["k"]: None if not request.POST["d"] else request.POST["d"],
+              "update_time": datetime.datetime.now()}
+    try:
+        update_count = AdministrativeDiv.objects.filter(id=div_id).update(**kwargs)
+        return JsonResponse(RESP.get_opt_response(msg="修改成功", affected_rows=update_count))
+    except:
+        return JsonResponse(RESP.get_opt_response(20006, affected_rows=0))

@@ -32,7 +32,7 @@ layui.define(function (exports) {
                 admin.exit(function () {
                     layer.msg(res.msg, {
                         offset: '15px'
-                        , icon: res.data.icon
+                        , icon: res.extra.icon
                         , time: 1000
                     }, function () {
                         location.href = '/login';

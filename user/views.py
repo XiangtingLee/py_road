@@ -11,15 +11,19 @@ from django.core.files.storage import FileSystemStorage
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import login, authenticate, logout
 from django.forms.models import model_to_dict
+from django.views.decorators.http import require_http_methods
 
 from .models import User
-from public.tools import ListProcess
+from public.tools import ListProcess, ResponseStandard, get_opt_kwargs
 
 import time
 import datetime
 from .forms import CaptchaForms
 from captcha.models import CaptchaStore
 from captcha.views import captcha_image_url
+
+
+RESP = ResponseStandard()
 
 
 class CustomBackend(ModelBackend):
@@ -37,7 +41,7 @@ def login_act(request):
     if request.method == "POST":
         cap = CaptchaForms(request.POST).is_valid()
         if not cap:
-            return JsonResponse({"code": 0, "msg": "验证码错误", "icon": 2})
+            return JsonResponse(RESP.get_opt_response(msg="验证码错误", icon=2))
         username = request.POST.get('username')
         password = request.POST.get('password')
         next_url = request.POST.get("next_url", '')
@@ -46,16 +50,22 @@ def login_act(request):
         if user is not None:
             if user.is_active:
                 login(request, user)
+                login_ip = request.META.get('HTTP_X_FORWARDED_FOR', request.META["REMOTE_ADDR"])
+                _u = User.objects.get(username=username)
+                _u.last_login_ip = login_ip
+                _u.save()
                 request.session['user'] = username
                 if keep_login:
                     request.session.set_expiry(datetime.timedelta(days=10))
                 else:
                     request.session.set_expiry(0)
-                return JsonResponse({"code": 0, "msg": "欢迎回来，" + username, "next": next_url, "icon": 1})
+                if not _u.mobile:
+                    return JsonResponse(RESP.get_opt_response(msg="请完善资料", next='/reg/guide/', icon=3))
+                return JsonResponse(RESP.get_opt_response(msg="欢迎回来，" + username, next=next_url, icon=1))
             else:
-                return JsonResponse({"code": 0, "msg": "您的账号已经锁定，请联系管理员", "icon": 2})
+                return JsonResponse(RESP.get_opt_response(msg="您的账号已经锁定，请联系管理员", icon=2))
         else:
-            return JsonResponse({"code": 0, "msg": "用户名或密码错误", "icon": 2})
+            return JsonResponse(RESP.get_opt_response(msg="用户名或密码错误", icon=2))
     else:
         if request.user.is_authenticated:
             return redirect(reverse('main'))
@@ -73,29 +83,33 @@ def login_act(request):
 def logout_act(request):
     try:
         logout(request)
-        return JsonResponse({"code": 0, "msg": "退出成功", "data": {"icon": 1}})
+        return JsonResponse(RESP.get_opt_response(msg="退出成功", icon=1))
     except TimeoutError:
-        return JsonResponse({"code": 0, "msg": "退出失败,请检查网络后重试", "data": {"icon": 2}})
+        return JsonResponse(RESP.get_opt_response(msg="退出失败,请检查网络后重试", icon=2))
 
 
+@require_http_methods(["GET", "POST"])
 def reg_act(request):
     if request.method == "POST":
-        if settings.ALLOW_REG:
+        if not settings.ALLOW_REG:
             username = request.POST.get('username')
             password = request.POST.get('password')
             mobile = request.POST.get('mobile', None)
             if User.objects.filter(username=username):
-                return JsonResponse({"code": 0, "msg": "用户名已被注册", "icon": 2})
+                return JsonResponse(RESP.get_opt_response(msg="用户名已被注册", icon=2))
             if User.objects.filter(mobile=mobile):
-                return JsonResponse({"code": 0, "msg": "手机号已被注册", "icon": 2})
-            nick_name = "User%s" % int(time.time()*1000)
+                return JsonResponse(RESP.get_opt_response(msg="手机号已被注册", icon=2))
+            nick_name = "User%s" % int(time.time() * 1000)
             User.objects.create_user(username=username, password=password, mobile=mobile, nick_name=nick_name)
-            return JsonResponse({"code": 0, "msg": "注册成功", "next": '../login', "icon": 1})
-        return JsonResponse({"code": 0, "msg": "暂不提供注册服务，请联系管理员", "icon": 2})
+            return JsonResponse(RESP.get_opt_response(msg="注册成功", next='/login', icon=1))
+        return JsonResponse(RESP.get_opt_response(msg="暂不提供注册服务，请联系管理员", icon=2))
     else:
+        if not request.user.is_anonymous:
+            return redirect(reverse('main'))
         return render(request, 'user/register.html')
 
 
+@require_http_methods(["GET", "POST"])
 def reset_act(request):
     if request.method == "POST":
         mobile = request.POST.get('mobile', None)
@@ -106,135 +120,127 @@ def reset_act(request):
             user.save()
         except User.DoesNotExist:
             if settings.ALLOW_REG:
-                username = "User%s" % int(time.time()*1000)
+                username = "User%s" % int(time.time() * 1000)
                 User.objects.create_user(username=username, password=password, mobile=mobile)
             else:
-                return JsonResponse({"code": 0, "msg": "暂不提供注册服务，请联系管理员", "icon": 2})
-        return JsonResponse({"code": 0, "msg": "修改成功", "icon": 1, 'next': '../login'})
+                return JsonResponse(RESP.get_opt_response(msg="暂不提供注册服务，请联系管理员", icon=2))
+        return JsonResponse(RESP.get_opt_response(msg="修改成功", icon=1, next='../login'))
     else:
+        if not request.user.is_anonymous:
+            return redirect(reverse('main'))
         return render(request, 'user/reset.html')
 
 
+@require_http_methods(["GET"])
 def profile_view(request):
     data = {"user": request.user}
     return render(request, 'user/profile.html', data)
 
 
 def profile_update(request):
-    kwargs = {}
-    req_args = request.POST
     user_id = request.user.id
-    for i in req_args:
-        kwargs[i] = req_args[i]
-
-    del kwargs["csrfmiddlewaretoken"]
-    del kwargs["role"]
+    kwargs = get_opt_kwargs(request, "POST", exclude=["role"], pagination=False)
     User.objects.filter(id=user_id).update(**kwargs)
     messages.success(request, "修改成功")
     return redirect('user:profile_view')
 
 
+@require_http_methods(["POST"])
 def profile_upload(request):
-    if request.method == 'POST' and request.FILES['file']:
+    if request.FILES['file']:
         uid = request.user.id
         file = request.FILES['file']
-        file_save_name = "face_img/face_" + str(uid) + "_" + str(int(time.time() * 100)) + "." + file.name.split('.')[
-            -1]
+        file_save_name = "face_img/face_" + str(uid) + "_" + str(int(time.time()*100)) + "." + file.name.split('.')[-1]
         fs = FileSystemStorage()
         filename = fs.save(file_save_name, file)
         uploaded_file_url = fs.url(filename)
         User.objects.filter(id=uid).update(face_img=uploaded_file_url)
-        return JsonResponse({"code": 0, "msg": "上传成功", "data": {"src": uploaded_file_url}})
+        return JsonResponse(RESP.get_opt_response(msg="上传成功", src=uploaded_file_url))
 
 
+@require_http_methods(["GET"])
 def password_view(request):
     return render(request, 'user/forget.html')
 
 
 @login_required()
+@require_http_methods(["POST"])
 def password_change(request):
-    if request.method == "POST":
-        username = request.user.username
-        req_args = request.POST
-        old_pwd = req_args["oldPassword"]
-        new_pwd = req_args["password"]
-        if old_pwd == new_pwd:
-            messages.warning(request, "新密码不能与旧密码相同，请重新输入")
-            return redirect('user:password_view')
-        user = auth.authenticate(username=username, password=old_pwd)
-        if not user:
-            messages.error(request, "修改失败，原密码输入错误")
-            return redirect('user:password_view')
-        try:
-            user.set_password(new_pwd)
-            user.save()
-            logout(request)
-            messages.success(request, "修改成功, 请重新登录")
-            jump_to_console = '''<html><body onLoad="window.top.location.href='./'" ></body></html>'''
-            return HttpResponse(jump_to_console)
-        except RuntimeError:
-            messages.warning(request, "修改失败，请检查网络环境后重试")
-            return redirect('user:password_view')
+    username = request.user.username
+    req_args = request.POST
+    old_pwd = req_args["oldPassword"]
+    new_pwd = req_args["password"]
+    if old_pwd == new_pwd:
+        messages.warning(request, "新密码不能与旧密码相同，请重新输入")
+        return redirect('user:password_view')
+    user = auth.authenticate(username=username, password=old_pwd)
+    if not user:
+        messages.error(request, "修改失败，原密码输入错误")
+        return redirect('user:password_view')
+    try:
+        user.set_password(new_pwd)
+        user.save()
+        logout(request)
+        messages.success(request, "修改成功, 请重新登录")
+        jump_to_console = '''<html><body onLoad="window.top.location.href='./'" ></body></html>'''
+        return HttpResponse(jump_to_console)
+    except RuntimeError:
+        messages.warning(request, "修改失败，请检查网络环境后重试")
+        return redirect('user:password_view')
 
 
 @login_required
+@require_http_methods(["GET", "POST"])
 def reg_guide(request):
     if request.method == "POST":
-        # 头像接口分辨率分为40,100,140,160,240,640六种
-        kwargs = {}
-        req_args = request.POST
+        kwargs = get_opt_kwargs(request, "POST", exclude=["agreement", "vercode"], pagination=False)
         user_id = request.user.id
-        for i in req_args:
-            kwargs[i] = req_args[i]
-        del kwargs["csrfmiddlewaretoken"]
-        del kwargs["agreement"]
-        del kwargs["vercode"]
         if User.objects.filter(nick_name=kwargs["nick_name"]):
-            return JsonResponse({"code": 0, "msg": "昵称已存在", "icon": 2})
+            return JsonResponse(RESP.get_opt_response(msg="昵称已存在", icon=2))
         if User.objects.filter(mobile=kwargs["mobile"]):
-            return JsonResponse({"code": 0, "msg": "手机号已被注册", "icon": 2})
+            return JsonResponse(RESP.get_opt_response(msg="手机号已被注册", icon=2))
         User.objects.filter(id=user_id).update(**kwargs)
-        return JsonResponse({"code": 0, "msg": "保存成功", "next": '../', "icon": 1})
+        return JsonResponse(RESP.get_opt_response(msg="保存成功", next="/", icon=1))
     else:
-        if not request.user.mobile:
-            data = {}
-            user = UserSocialAuth.objects.get(user=request.user)
-            data["username"] = user.provider + '_' + Hashids(salt=settings.SECRET_KEY, min_length=10).encode(user.id)
-            gender_dict = {"男": 1, "女": 0}
-            data["sex"] = gender_dict.get(user.extra_data["gender"], 2)
-            return render(request, 'user/reg_guide.html', data)
-        return redirect('main')
+        if request.user.mobile:
+            return redirect('main')
+        data = {}
+        user = UserSocialAuth.objects.get(user=request.user)
+        data["username"] = user.provider + '_' + Hashids(salt=settings.SECRET_KEY, min_length=10).encode(user.id)
+        gender_dict = {"男": 1, "女": 0}
+        data["sex"] = gender_dict.get(user.extra_data["gender"], 2)
+        return render(request, 'user/reg_guide.html', data)
 
 
 @login_required
+@require_http_methods(["GET"])
 def manage_view(request):
-    ip = request.META.get('HTTP_X_FORWARDED_FOR', request.META["REMOTE_ADDR"])
     return render(request, 'user/manage.html')
 
-@login_required
-def manage_filter(request):
-    if request.method == "GET":
-        data = {'code': 0, 'count': 0, 'data': [], 'msg': ''}
-        form = request.GET
-        page = int(form.get('page', 1))
-        limit = int(form.get('limit', 10))
-        filter_kwargs = {key: form[key] for key in form if
-                              key not in ["csrfmiddlewaretoken", "page", "limit"] and form[key]}
-        _data = list(
-            User.objects.filter(**filter_kwargs).values("id", "username", "nick_name", "face_img", "mobile", "email", "sex",
-                                                        "last_login_ip", "date_joined", "is_active").order_by('id')
-        )
-        data['count'], data['data'] = ListProcess().pagination(_data, page, limit)
-        return JsonResponse(data, json_dumps_params={'ensure_ascii': False})
 
 @login_required
+@require_http_methods(["GET"])
+def manage_filter(request):
+    page, limit, filter_kwargs = get_opt_kwargs(request, "GET")
+    _data = list(
+        User.objects.filter(**filter_kwargs).values("id", "username", "nick_name", "face_img", "mobile", "email", "sex",
+                                                    "last_login_ip", "date_joined", "is_active").order_by('id')
+    )
+    totalCount, render_data = ListProcess().pagination(_data, page, limit)
+    resp = RESP.get_data_response(0, None, render_data, totalCount=totalCount, page=page, limit=limit)
+    return JsonResponse(resp, json_dumps_params={'ensure_ascii': False})
+
+
+@login_required
+@require_http_methods(["GET", "POST"])
 def manage_profile(request, uid):
     if request.method == "POST":
-        form = request.POST
-        filter_kwargs = {key: form[key] for key in form if
-                              key not in ["csrfmiddlewaretoken", "page", "limit"] and form[key]}
-        User.objects.filter(id=uid).update(**filter_kwargs)
-        return JsonResponse({'status': 'success', 'success': True, 'msg': "操作成功"})
+        if not request.user.is_superuser:
+            return JsonResponse(RESP.get_opt_response(10011))
+        _u = User.objects.get(id=uid)
+        _u.is_active = request.POST.get("is_active", 1)
+        _u.save()
+        return JsonResponse(RESP.get_opt_response(msg="操作成功"))
     else:
         data = {}
         if uid:

@@ -55,7 +55,8 @@ layui.define(['jquery', 'admin', 'form', 'supersized'], function (exports) {
 
     function verify() {
         form.verify({
-            username: [/^[a-zA-Z0-9_-]{4,16}$/, "用户名需为4到16位（可包括：字母，数字，下划线，减号）"]
+            username: [/^[a-zA-Z0-9_-]{4,16}$/, "用户名需为4到16位（可包括：字母，数字，下划线，减号）"],
+            nickname: [/^[a-zA-Z0-9_-]{4,16}$/, "昵称需为4到16位（可包括：字母，数字，下划线，减号）"]
             , pass: [/^.*(?=.{6,12})(?=.*\d)(?=.*[a-z])(?=.*[\.,;:"'!@#$%^&*?\/\\\|\[\]\{\}]).*$/,
                 '密码为6-12位，包括至少1个小写字母，1个数字，1个特殊字符']
             , repass: function (value) {
@@ -80,11 +81,11 @@ layui.define(['jquery', 'admin', 'form', 'supersized'], function (exports) {
                 , done: function (res) {
                     layer.msg(res.msg, {
                         offset: '15px'
-                        , icon: res.icon
+                        , icon: res.extra.icon
                         , time: 1000
                     }, function () {
-                        if (res.icon === 1) {
-                            location.href = res.next;
+                        if (res.extra.icon === 1 || res.extra.icon === 3) {
+                            location.href = res.extra.next;
                         }
                         if(has_cap){
                             ref_cap();

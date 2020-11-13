@@ -29,6 +29,14 @@ layui.define(['table', 'form'], function (exports) {
         elem: '#user-list'
         , url: '/user/manage/filter/' //模拟接口
         , method: 'get'
+        , parseData: function (res) {
+            return {
+                data : res.data,
+                msg : res.msg,
+                code: res.code,
+                count : res.extra.totalCount
+            }
+        }
         , cols: [[
             {type: 'checkbox', fixed: 'left'}
             , {field: 'id', width: 60, fixed: 'left', title: 'ID'}
@@ -82,13 +90,13 @@ layui.define(['table', 'form'], function (exports) {
                     method: "post",
                     data: form,
                     success: function (data) {
-                        if(data.status == 'error'){
-                            layer.msg(data.msg,{icon: 5});
-                            return false;
-                        }else if(data.status == 'success'){
+                        if(!data.code){
                             layer.msg(data.msg, {icon: 6, time: 1000}, function(){
                                 table.reload('user-list');
                             });
+                        }else{
+                            layer.msg(data.msg,{icon: 5});
+                            return false;
                         }
                     }
                 });

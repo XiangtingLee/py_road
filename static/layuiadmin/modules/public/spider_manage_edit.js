@@ -32,10 +32,10 @@ layui.define('form', function (exports) {
                         this.layerIndex = layer.load(0, { shade: [0.5, '#393D49'] });
                     },
                     success:function(data){
-                        if(data.status == 'error'){
+                        if(data.code != 0){
                             layer.msg(data.msg,{icon: 5});
                             return false;
-                        }else if(data.status == 'success'){
+                        }else{
                             layer.msg(data.msg, {icon: 6, time: 1000}, function(){
                                 parent.location.reload();
                                 parent.layer.close(index);

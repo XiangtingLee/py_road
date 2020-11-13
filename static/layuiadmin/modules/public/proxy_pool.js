@@ -12,6 +12,14 @@ layui.define(function (exports) {
             , cellMinWidth: 80
             , toolbar: '#proxy-toolbar'
             , title: '数据表'
+            , parseData: function (res) {
+                return {
+                    data : res.data,
+                    msg : res.msg,
+                    code: res.code,
+                    count : res.extra.totalCount
+                }
+            }
             , cols: [[
                 {type: 'checkbox', fixed: 'left'}
                 , {field: 'id', title: 'ID', width: 80, fixed: 'left', sort: true}
@@ -80,7 +88,7 @@ layui.define(function (exports) {
                     }
                 }
                 , done: function (res) {
-                    if (res.status === 1) {
+                    if (res.code == "") {
                         layer.msg('上传成功', {icon: 1}, function () {
                             table.reload('proxyForm', {
                                 page: {
@@ -90,7 +98,7 @@ layui.define(function (exports) {
                             }, 'data');
                             initUpload();
                         });
-                    } else if (res.status === 0) {
+                    } else {
                         layer.msg('上传失败，' + res.message, {icon: 2});
                     }
                 }
@@ -109,10 +117,10 @@ layui.define(function (exports) {
                     method: 'POST',
                     data: {'id': id, 'is_available': obj.elem.checked},
                     success: function (res) {
-                        if (res.status === 1) {
-                            layer.tips('修改成功', obj.othis); //获取按钮状态 obj.elem.checked
+                        if (res.code == 0) {
+                            layer.tips(res.msg, obj.othis); //获取按钮状态 obj.elem.checked
                         } else {
-                            layer.tips('修改失败，请重试', obj.othis);
+                            layer.tips(res.msg, obj.othis);
                             obj.elem.checked = !obj.elem.checked;
                             form.render();
                         }
@@ -146,8 +154,8 @@ function verify(ids, dataEle) {
             data: {'ids': ids},
             success: function (data) {
                 layer.msg('验证完毕，共验证' +
-                    data.result.count + '条代理，' +
-                    '有效' + data.result.valid + '条，失效' + data.result.invalid + '条',
+                    data.extra.count + '条代理，' +
+                    '有效' + data.extra.valid + '条，失效' + data.extra.invalid + '条',
                     {icon: 1, time: 1000}, function () {
                         dataEle.reload('proxyForm', {
                             page: {
