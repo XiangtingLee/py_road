@@ -202,7 +202,7 @@ def reg_guide(request):
         User.objects.filter(id=user_id).update(**kwargs)
         return JsonResponse(RESP.get_opt_response(msg="保存成功", next="/", icon=1))
     else:
-        if request.user.mobile:
+        if request.user.is_superuser or request.user.mobile:
             return redirect('main')
         data = {}
         user = UserSocialAuth.objects.get(user=request.user)
@@ -226,8 +226,8 @@ def manage_filter(request):
         User.objects.filter(**filter_kwargs).values("id", "username", "nick_name", "face_img", "mobile", "email", "sex",
                                                     "last_login_ip", "date_joined", "is_active").order_by('id')
     )
-    totalCount, render_data = ListProcess().pagination(_data, page, limit)
-    resp = RESP.get_data_response(0, None, render_data, totalCount=totalCount, page=page, limit=limit)
+    total_count, render_data = ListProcess().pagination(_data, page, limit)
+    resp = RESP.get_data_response(0, None, render_data, totalCount=total_count, page=page, limit=limit)
     return JsonResponse(resp, json_dumps_params={'ensure_ascii': False})
 
 
