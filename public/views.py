@@ -21,7 +21,7 @@ from django.views.decorators.http import require_http_methods
 # 项目内引用
 from .models import *
 from .tasks import delay_spider
-# from log.models import SpiderRunLog
+from log.models import SpiderRunLog
 from position.models import PositionType
 from .tools import MyThread, verify_sign, update_sign, ListProcess, get_opt_kwargs, ResponseStandard
 from django.conf import settings
@@ -329,15 +329,16 @@ def spider_manage_probe(request):
     record = []
     apps = settings.INSTALLED_APPS[6:]
     project_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    apps_path = [os.path.join(project_path, app) for app in apps]
+    apps_path = [os.path.join(project_path, app) for app in apps] + [os.path.join(os.path.join(project_path, "pyroad_spider"), "pyroad_spider")]
     for app_path in apps_path:
-        spider_path = os.path.join(app_path, "spider")
+        spider_path = os.path.join(app_path, "spiders")
         if os.path.exists(spider_path):
             for root, dirs, files in os.walk(spider_path, topdown=False):
                 for name in files:
-                    if name.endswith('.py'):
+                    if not name.startswith("__init__") and name.endswith('.py'):
                         file_path = os.path.join(root, name)
-                        ret_path = re.sub('(.*?road).*?', '', file_path)
+                        ret_path = re.sub('(.*?py_road).*?', '', file_path)
+                        print(ret_path)
                         if not Spider.objects.filter(
                                 path__in=[ret_path.replace("/", "\\"), ret_path.replace("\\", "/")]).exists():
                             record.append({'path': ret_path})

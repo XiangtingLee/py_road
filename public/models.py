@@ -2,7 +2,7 @@ from django.db import models
 
 
 class AdministrativeDiv(models.Model):
-    code = models.IntegerField(verbose_name='地区编码')
+    code = models.CharField(max_length=10, null=True, blank=True, verbose_name='地区编码')
     name = models.CharField(max_length=100, verbose_name='地区名称', blank=True)
     pinyin = models.CharField(null=True, blank=True, max_length=100, verbose_name='拼音名')
     short_name = models.CharField(null=True, blank=True, max_length=100, verbose_name='简称')
@@ -29,22 +29,17 @@ class AdministrativeDiv(models.Model):
         return self.name
 
 
-class CityBusinessZone(models.Model):
+class CityBusinessArea(models.Model):
     name = models.CharField(max_length=100, verbose_name='商圈名称', blank=True)
-    province = models.ForeignKey(AdministrativeDiv, on_delete=models.CASCADE, null=True, blank=True,
-                                 related_name="business_level1")
-    city = models.ForeignKey(AdministrativeDiv, on_delete=models.CASCADE, null=True, blank=True,
-                             related_name="business_level2")
-    area = models.ForeignKey(AdministrativeDiv, on_delete=models.CASCADE, null=True, blank=True,
-                             related_name="business_level3")
-
+    district = models.ForeignKey(AdministrativeDiv, on_delete=models.CASCADE, null=True, blank=True)
     add_time = models.DateTimeField(verbose_name="添加时间")
     update_time = models.DateTimeField(auto_now=True, verbose_name="更新时间")
     is_effective = models.BooleanField(default=True, verbose_name="是否有效")
+    area = ''
 
     class Meta:
         managed = True
-        db_table = 'public_city_business_zone'
+        db_table = 'public_city_business_area'
         verbose_name = '全国城市商圈'
         verbose_name_plural = verbose_name
         ordering = ['-id']
@@ -115,6 +110,7 @@ class Spider(models.Model):
     path = models.CharField(max_length=255, verbose_name='爬虫路径')
     add_time = models.DateTimeField(verbose_name="添加时间")
     update_time = models.DateTimeField(auto_now=False, verbose_name="更新时间")
+    is_frame = models.BooleanField(default=False, verbose_name='是否为框架爬虫')
     is_available = models.BooleanField(default=False, verbose_name='是否可用')
     is_delete = models.BooleanField(default=False, verbose_name='是否删除')
     remark = models.TextField(verbose_name="备注")

@@ -1,5 +1,5 @@
 from django.db import models
-from public.models import AdministrativeDiv, CityBusinessZone
+from public.models import AdministrativeDiv, CityBusinessArea
 
 
 # Create your models here.
@@ -181,19 +181,20 @@ class PositionLabels(models.Model):
 
 class Company(models.Model):
     # core info
-    id = models.IntegerField(primary_key=True, verbose_name='公司id')
+    id = models.IntegerField(primary_key=True, verbose_name='公司id', blank=True, default=None)
     tyc_id = models.CharField(blank=True, null=True, max_length=20, verbose_name="天眼查id")
-    name = models.CharField(max_length=100, verbose_name="公司名称")
+    name = models.CharField(blank=True, null=True, max_length=100, verbose_name="公司名称")
     city = models.ForeignKey(AdministrativeDiv, on_delete=models.CASCADE, blank=True, null=True, verbose_name="所在地区")
     short_name = models.CharField(blank=True, null=True, max_length=50, verbose_name="公司简称")
     introduce = models.CharField(blank=True, null=True, max_length=255, verbose_name="公司介绍")
-    certification = models.BooleanField(default=True, verbose_name="公司认证")
-    financing = models.ForeignKey(CompanyFinancing, on_delete=models.CASCADE, verbose_name="融资阶段")
-    scale = models.ForeignKey(CompanyScale, on_delete=models.CASCADE, verbose_name="公司规模")
-    industry = models.ManyToManyField(CompanyIndustries, verbose_name="公司所属行业")
+    certification = models.BooleanField(blank=True, default=True, verbose_name="公司认证")
+    financing = models.ForeignKey(CompanyFinancing, on_delete=models.CASCADE, blank=True, null=True,
+                                  verbose_name="融资阶段")
+    scale = models.ForeignKey(CompanyScale, on_delete=models.CASCADE, blank=True, null=True, verbose_name="公司规模")
+    industry = models.ManyToManyField(CompanyIndustries, blank=True, verbose_name="公司所属行业")
     url = models.CharField(blank=True, null=True, max_length=255, verbose_name="公司官网")
     logo = models.CharField(blank=True, null=True, max_length=255, verbose_name="公司logo")
-    label = models.ManyToManyField(CompanyLabels, verbose_name="公司标签")
+    label = models.ManyToManyField(CompanyLabels, blank=True, verbose_name="公司标签")
 
     business_name = models.CharField(blank=True, null=True, max_length=255, verbose_name="工商-公司名称")
     business_credit_code = models.CharField(null=True, blank=True, max_length=20, verbose_name="工商-公司信用代码")
@@ -204,9 +205,9 @@ class Company(models.Model):
     business_reg_status = models.ForeignKey(CompanyRegStatus, on_delete=models.CASCADE, blank=True, null=True,
                                             verbose_name="工商-经营状态")
 
-    is_effective = models.BooleanField(default=True, verbose_name="是否有效")
-    warehouse_time = models.DateTimeField(verbose_name="入库时间")
-    update_time = models.DateTimeField(auto_now=True, verbose_name="更新时间")
+    is_effective = models.BooleanField(blank=True, default=True, verbose_name="是否有效")
+    warehouse_time = models.DateTimeField(blank=True, null=True, verbose_name="入库时间")
+    update_time = models.DateTimeField(blank=True, null=True, auto_now=True, verbose_name="更新时间")
 
     class Meta:
         managed = True
@@ -223,28 +224,30 @@ class Position(models.Model):
     company = models.ForeignKey(Company, on_delete=models.CASCADE, verbose_name="公司id")
     # 职位相关
     id = models.IntegerField(primary_key=True, verbose_name='职位id')
-    position_name = models.CharField(blank=True, null=True, max_length=100, verbose_name="职位名称")
-    position_type = models.ForeignKey(PositionType, on_delete=models.CASCADE, blank=True, null=True,
-                                      verbose_name="职位类型")
-    position_nature = models.ForeignKey(PositionNature, on_delete=models.CASCADE, blank=True, null=True,
-                                        verbose_name="职位性质")
-    position_city = models.ForeignKey(AdministrativeDiv, on_delete=models.CASCADE, blank=True, null=True,
-                                      verbose_name="工作所在城市", related_name="position_level1")
-    position_district = models.ForeignKey(AdministrativeDiv, on_delete=models.CASCADE, blank=True, null=True,
-                                          verbose_name="工作所在区域", related_name="position_level2")
-    position_business_zones = models.ManyToManyField(CityBusinessZone, verbose_name="工作所在商圈")
+    name = models.CharField(blank=True, null=True, max_length=100, verbose_name="职位名称")
+    description = models.TextField(blank=True, null=True, verbose_name="职位描述")
+    type = models.ForeignKey(PositionType, on_delete=models.CASCADE, blank=True, null=True, verbose_name="职位类型")
+    nature = models.ForeignKey(PositionNature, on_delete=models.CASCADE, blank=True, null=True, verbose_name="职位性质")
+    city = models.ForeignKey(AdministrativeDiv, on_delete=models.CASCADE, blank=True, null=True,
+                             verbose_name="所在城市", related_name="position_level1")
+    district = models.ForeignKey(AdministrativeDiv, on_delete=models.CASCADE, blank=True, null=True,
+                                 verbose_name="所在区域", related_name="position_level2")
+    business_area = models.ForeignKey(CityBusinessArea, on_delete=models.CASCADE, blank=True, null=True,
+                                      verbose_name="所在商圈")
+    street = models.CharField(blank=True, null=True, max_length=100, verbose_name="详细地址")
     education = models.ForeignKey(PositionEducation, on_delete=models.CASCADE, blank=True, null=True,
                                   verbose_name="学历要求")
     experience = models.ForeignKey(PositionExperience, on_delete=models.CASCADE, blank=True, null=True,
-                                   verbose_name="工作经验")
+                                   verbose_name="经验要求")
     salary_lower = models.IntegerField(verbose_name="薪水下限")
     salary_upper = models.IntegerField(verbose_name="薪水上限")
-    welfare = models.ManyToManyField(PositionWelfares, verbose_name="福利待遇")
-    label = models.ManyToManyField(PositionLabels, verbose_name="职位标签")
+    welfare = models.ManyToManyField(PositionWelfares, blank=True, verbose_name="福利待遇")
+    label = models.ManyToManyField(PositionLabels, blank=True, verbose_name="职位标签")
 
-    is_effective = models.BooleanField(default=True, verbose_name="是否有效")
-    warehouse_time = models.DateTimeField(verbose_name="入库时间")
-    update_time = models.DateTimeField(auto_now=True, verbose_name="更新时间")
+    status_choices = ((-1, "DELETED"), (0, "EXPIRED"),(1, "ONLINE"))
+    status = models.SmallIntegerField(blank=True, null=True, choices=status_choices, verbose_name="是否有效")
+    warehouse_time = models.DateTimeField(blank=True, null=True, verbose_name="入库时间")
+    update_time = models.DateTimeField(blank=True, null=True, auto_now=True, verbose_name="更新时间")
 
     class Meta:
         managed = True
@@ -253,4 +256,4 @@ class Position(models.Model):
         verbose_name_plural = verbose_name
 
     def __str__(self):
-        return "[" + self.company.name + "]" + self.position_name
+        return "[" + self.company.name + "]" + self.name if self.company.name else self.name

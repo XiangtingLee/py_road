@@ -59,7 +59,7 @@ def _education():
     """
     获取学历要求
     """
-    all_edu = Position.objects.filter(is_effective=1).values_list("education__name", flat=True)
+    all_edu = Position.objects.filter(status=1).values_list("education__name", flat=True)
     render_data = _get_pie_render_data(list(all_edu))
     pie = Pie(init_opts=PYECHARTS_INIT_OPTS)
     pie.add(series_name="学历要求", data_pair=render_data, tooltip_opts=opts.TooltipOpts(formatter="{b}:{c}({d}%)"))
@@ -74,7 +74,7 @@ def _word_cloud():
     all_label = PositionLabels.objects.all()
     for label in all_label:
         name = label.name
-        count = label.position_set.filter(is_effective=1).__len__()
+        count = label.position_set.filter(status=1).__len__()
         temp.append((name, count))
     df = pd.DataFrame(temp)
     df.columns = ['name', 'count']
@@ -109,7 +109,7 @@ def _local_distribution():
     获取地区分布
     """
     data = {}
-    all_city = Position.objects.filter(is_effective=1).values_list("position_city__province__name", flat=True)
+    all_city = Position.objects.filter(status=1).values_list("district__province__name", flat=True)
     value_count = pd.value_counts(list(all_city)).to_frame()
     df_value_counts = pd.DataFrame(value_count).reset_index()
     df_value_counts.columns = ['name', 'counts']
@@ -131,7 +131,7 @@ def _experience():
     获取经验要求
     """
     xAxis = []
-    all_data = Position.objects.filter(is_effective=1).values_list("position_type__name", "experience__name")
+    all_data = Position.objects.filter(status=1).values_list("type__name", "experience__name")
     df = pd.DataFrame(list(all_data))
     df.columns = ["type", "name"]
     gdf = df.sort_values(by='name', ascending=False).groupby(["type", "name"]).size().to_frame()
@@ -167,7 +167,7 @@ def _get_daily_num():
         date_str = range_date_start.strftime("%m-%d")
         xAxis.append(date_str)
         for one_type in all_type:
-            daily_count = Position.objects.filter(position_type=one_type, warehouse_time__gte=range_date_start,
+            daily_count = Position.objects.filter(type=one_type, warehouse_time__gte=range_date_start,
                                                   warehouse_time__lt=end_date).count()
             try:
                 render_data[one_type.name].append(daily_count)
@@ -190,7 +190,7 @@ def _get_position_type_salary():
     """
     xAxis = DateProcess().get_month_range_str(6, out_format="%Y.%m", include_this_month=True)
     all_type = list(PositionType.objects.filter(is_effective=1).values_list("name", flat=True))
-    a = Position.objects.filter(is_effective=1).values_list("position_type__name", "salary_lower", "salary_upper",
+    a = Position.objects.filter(status=1).values_list("type__name", "salary_lower", "salary_upper",
                                                             "warehouse_time")
     df = pd.DataFrame(list(a), columns=["type", "salary_low", "salary_up", "date"])
     df["salary"] = (df["salary_low"] + df["salary_up"]) / 2
@@ -316,7 +316,7 @@ def node_data(request):
 @require_http_methods(["GET"])
 def display_filter(request):
     page, limit, filter_kwargs = get_opt_kwargs(request, "GET")
-    filter_kwargs["is_effective"] = 1
+    filter_kwargs["status"] = 1
     if 'salary' in filter_kwargs.keys():
         try:
             filter_kwargs["salary_lower__gte"] = int(filter_kwargs["salary"].split(',')[0])
@@ -324,21 +324,21 @@ def display_filter(request):
             del filter_kwargs["salary"]
         except IndexError or TypeError:
             del filter_kwargs["salary"]
-    if filter_kwargs.__contains__("position_city__province__name"):
-        filter_kwargs["position_city__province__name"] = None if filter_kwargs[
-                                                                     "position_city__province__name"] == "其它地区" else \
-        filter_kwargs["position_city__province__name"]
-    if filter_kwargs.__contains__("position_city__name"):
-        filter_kwargs["position_city__name"] = None if filter_kwargs["position_city__name"] == "其它地区" else \
-        filter_kwargs["position_city__name"]
-    if filter_kwargs.__contains__("position_district__name"):
-        filter_kwargs["position_district__name"] = None if filter_kwargs["position_district__name"] == "其它地区" else \
-        filter_kwargs["position_district__name"]
+    if filter_kwargs.__contains__("city__province__name"):
+        filter_kwargs["city__province__name"] = None if filter_kwargs[
+                                                                     "city__province__name"] == "其它地区" else \
+        filter_kwargs["city__province__name"]
+    if filter_kwargs.__contains__("city__name"):
+        filter_kwargs["city__name"] = None if filter_kwargs["city__name"] == "其它地区" else \
+        filter_kwargs["city__name"]
+    if filter_kwargs.__contains__("district__name"):
+        filter_kwargs["district__name"] = None if filter_kwargs["district__name"] == "其它地区" else \
+        filter_kwargs["district__name"]
     _data = list(
         Position.objects.filter(**filter_kwargs).annotate(salary=Concat("salary_lower", V("-"), "salary_upper", V("k"),
                                                                         output_field=CharField())).values(
-            'id', 'company__name', 'position_type__name', 'position_name', 'position_city__name',
-            'position_district__name', 'education__name', 'experience__name', 'update_time', "salary").order_by('id')
+            'id', 'company__name', 'type__name', 'name', 'city__name',
+            'district__name', 'education__name', 'experience__name', 'update_time', "salary").order_by('id')
     )
     totalCount, render_data = ListProcess().pagination(_data, page, limit)
     resp = RESP.get_data_response(0, None, render_data, totalCount=totalCount, page=page, limit=limit)
@@ -366,7 +366,7 @@ def _check_position_effective(pid):
         '''//div[@class="content"]/text()[1]''') else False
     if is_outline or is_delete:
         ThreadLock.acquire()
-        effect_row = Position.objects.filter(id=pid).update(is_effective=0, update_time=datetime.datetime.now())
+        effect_row = Position.objects.filter(id=pid).update(status=0, update_time=datetime.datetime.now())
         ThreadLock.release()
         if effect_row:
             return 1
@@ -390,7 +390,7 @@ def cleaning_check(request):
         if check_id:
             filter_kwargs = {'id__in': check_id}
         else:
-            filter_kwargs = {'is_effective': 1}
+            filter_kwargs = {'status': 1}
         check_data = Position.objects.filter(**filter_kwargs).values_list('id', flat=True)
         threads = []
         for pid in check_data:
