@@ -33,13 +33,13 @@ layui.define('form', function (exports) {
                 , {
                     field: 'add_time', width: 170, rowspan: 2, title: '添加时间', sort: true,
                     templet: function (d) {
-                        return d.add_time.replace("T", "\t");
+                        return d.add_time.replace("T", "\t").split(".")[0];
                     }
                 }
                 , {
                     field: 'update_time', width: 170, rowspan: 2, title: '修改时间', sort: true,
                     templet: function (d) {
-                        return d.update_time.replace("T", " ");
+                        return d.update_time.replace("T", " ").split(".")[0];
                     }
                 }
             ], [

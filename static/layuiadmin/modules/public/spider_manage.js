@@ -11,8 +11,25 @@ layui.define('form', function (exports) {
                 {type: 'numbers', title: '序号', fixed: 'left'}
                 , {field: 'name', minWidth: 120, title: '名称'}
                 , {field: 'path', minWidth: 300, title: '路径'}
-                , {field: 'add_time', width: 170, title: '添加时间', sort: true}
-                , {field: 'update_time', width: 170, title: '修改时间', sort: true}
+                , {
+                    field: 'is_frame', width: 90, title: '使用框架',
+                    templet: function (d) {
+                        if (d.is_frame) return "是";
+                        return "否";
+                    }
+                }
+                , {
+                    field: 'add_time', width: 160, title: '添加时间', sort: true,
+                    templet: function (d) {
+                        return d.update_time.replace("T", "\t").split(".")[0];
+                    }
+                }
+                , {
+                    field: 'update_time', width: 160, title: '修改时间', sort: true,
+                    templet: function (d) {
+                        return d.update_time.replace("T", "\t").split(".")[0];
+                    }
+                }
                 , {field: 'remark', title: '备注'}
                 , {width: 178, align: 'center', fixed: 'right', toolbar: '#table-operate', title: '操作'}
             ]]
@@ -56,7 +73,7 @@ layui.define('form', function (exports) {
                     title: '编辑爬虫信息',
                     shadeClose: true,
                     shade: 0.8,
-                    area: ['375px', '425px'],
+                    area: ['375px', '468px'],
                     content: content_url.replace("/0/", '/' + data.id + '/'),
                 });
             }
@@ -69,7 +86,7 @@ layui.define('form', function (exports) {
                     title: '添加爬虫',
                     shadeClose: true,
                     shade: 0.8,
-                    area: ['375px', '425px'],
+                    area: ['375px', '468px'],
                     content: '/public/spider/manage/edit/0/'
                 });
             }

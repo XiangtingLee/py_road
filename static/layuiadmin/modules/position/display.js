@@ -56,17 +56,17 @@ layui.define('form', function (exports) {
             , cols: [[
                 {type: 'checkbox', fixed: 'left'}
                 , {field: 'id', title: 'ID', width: 90, fixed: 'left', sort: true}
-                , {field: 'position_name', title: '职位名称', minWidth: 150, sort: true}
-                , {field: 'position_type__name', title: '职位类型', width: 101, sort: true}
+                , {field: 'name', title: '职位名称', minWidth: 150, sort: true}
+                , {field: 'type__name', title: '职位类型', width: 101, sort: true}
                 , {field: 'company__name', title: '公司名称', minWidth: 101, sort: true}
-                , {field: 'position_city__name', title: '所在城市', width: 101, sort: true}
-                , {field: 'position_district__name', title: '所在地点', width: 101, sort: true}
+                , {field: 'city__name', title: '所在城市', width: 101, sort: true}
+                , {field: 'district__name', title: '所在地点', width: 101, sort: true}
                 , {field: 'education__name', title: '学历要求', width: 101, sort: true}
                 , {field: 'experience__name', title: '经验要求', width: 120, sort: true}
                 , {field: 'salary', title: '薪资', width: 100, sort: true}
                 , {
                     field: 'update_time', title: '最后修改时间', width: 180, sort: true, templet: function (d) {
-                        return d.update_time.replace("T", "\t");
+                        return d.update_time.replace("T", "\t").split(".")[0];
                     }
                 }
                 , {fixed: 'right', title: '操作', width: 80, align: 'center', toolbar: '#barDemo'}
@@ -97,6 +97,15 @@ layui.define('form', function (exports) {
                 , layEvent = obj.event; //获得 lay-event 对应的值
             if (layEvent === 'detail') {
                 window.open("https://www.lagou.com/jobs/" + data.id + ".html");
+                // var iframe = layer.open({
+                //     type: 2,
+                //     title: data.position_name,
+                //     shade: false,
+                //     maxmin: true,
+                //     content: "https://www.lagou.com/jobs/" + data.id + ".html"
+                // });
+                // layer.full(iframe);
+
             } else if (layEvent === 'del') {
                 layer.confirm('真的删除行么', function (index) {
                     obj.del(); //删除对应行（tr）的DOM结构

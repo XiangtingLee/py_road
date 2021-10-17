@@ -29,12 +29,12 @@ layui.define(function (exports) {
                 , {field: 'port', title: '端口号', width: 100}
                 , {
                     field: 'add_time', title: '入库时间', minWidth: 180, sort: true, templet: function (d) {
-                        return d.add_time.replace("T", "\t");
+                        return d.add_time.replace("T", "\t").split(".")[0];
                     }
                 }
                 , {
                     field: 'update_time', title: '更新时间', minWidth: 180, sort: true, templet: function (d) {
-                        return d.update_time.replace("T", "\t");
+                        return d.update_time.replace("T", "\t").split(".")[0];
                     }
                 }
                 , {
