@@ -26,6 +26,14 @@
                     </div>
 
                     <div class="layui-form-item" pane="">
+                        <label class="layui-form-label">框架爬虫</label>
+                        <div class="layui-input-block">
+                            <input type="radio" name="is_frame" value="1" title="是" {% if is_frame %}checked{% endif %}>
+                            <input type="radio" name="is_frame" value="0" title="否" {% if not is_frame %}checked{% endif %}>
+                        </div>
+                    </div>
+
+                    <div class="layui-form-item" pane="">
                         <label class="layui-form-label">有效性</label>
                         <div class="layui-input-block">
                             <input type="checkbox" name="is_available" lay-skin="primary" title="有效" {% if not is_available %}{% else %}checked{% endif %}>

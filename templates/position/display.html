@@ -30,7 +30,7 @@
                                 <div class="layui-inline">
                                     <label class="layui-form-label">职位类型</label>
                                     <div class="layui-input-inline">
-                                        <select name="position_type__name">
+                                        <select name="type__name">
                                             <option value="">请选择职位类型</option>
                                             {% for type in all_type %}
                                                 <option value="{{ type }}">{{ type }}</option>
@@ -50,7 +50,7 @@
                                 <div class="layui-inline">
                                     <label class="layui-form-label">职位名称</label>
                                     <div class="layui-input-inline">
-                                        <input class="layui-input" name="position_name__contains" id="filterPosition"
+                                        <input class="layui-input" name="name__contains" id="filterPosition"
                                                autocomplete="off">
                                     </div>
                                 </div>
