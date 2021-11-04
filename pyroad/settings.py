@@ -182,3 +182,6 @@ ALLOW_REG = False
 # Pyecharts assets host
 from pyecharts.globals import CurrentConfig
 CurrentConfig.ONLINE_HOST = '/static/echarts/'
+
+X_FRAME_OPTIONS = 'SAMEORIGIN'
+DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'

@@ -1,7 +1,7 @@
 from django.contrib import admin
 from position.models import *
 # Register your models here.
-admin.site.register(CompanyScale)
+admin.site.register(CompanySize)
 admin.site.register(CompanyRegStatus)
 admin.site.register(CompanyFinancing)
 admin.site.register(CompanyIndustries)

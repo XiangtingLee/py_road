@@ -269,7 +269,7 @@ class CrawlPosiion(object):
         del data["labels"]
         del data["welfare"]
         del data["position_business_zones"]
-        data['warehouse_time'] = datetime.datetime.now()
+        data['add_time'] = datetime.datetime.now()
         try:
             # create Position obj
             position_obj = Position.objects.create(**data)

@@ -3,7 +3,7 @@ from public.models import AdministrativeDiv, CityBusinessArea
 
 
 # Create your models here.
-class CompanyScale(models.Model):
+class CompanySize(models.Model):
     name = models.CharField(max_length=20, verbose_name="规模名称")
     add_time = models.DateTimeField(verbose_name="新增时间")
     update_time = models.DateTimeField(auto_now=True, verbose_name="更新时间")
@@ -179,34 +179,50 @@ class PositionLabels(models.Model):
         return self.name
 
 
+class BusinessInfo(models.Model):
+    cid = models.IntegerField(primary_key=True, verbose_name='公司id', blank=True, default=None)
+    tyc_id = models.CharField(blank=True, null=True, max_length=20, verbose_name="天眼查id")
+    full_name = models.CharField(blank=True, null=True, max_length=255, verbose_name="工商-公司名称")
+    credit_code = models.CharField(null=True, blank=True, max_length=20, verbose_name="工商-公司信用代码")
+    establish_time = models.DateField(null=True, blank=True, verbose_name="工商-成立时间")
+    reg_capital = models.CharField(blank=True, null=True, max_length=20, verbose_name="工商-注册资本")
+    reg_location = models.CharField(blank=True, null=True, max_length=255, verbose_name="工商-注册地点")
+    legal_person_name = models.CharField(blank=True, null=True, max_length=255, verbose_name="工商-法人姓名")
+    reg_status = models.ForeignKey(CompanyRegStatus, on_delete=models.CASCADE, blank=True, null=True,
+                                            verbose_name="工商-经营状态")
+    add_time = models.DateTimeField(verbose_name="新增时间")
+    update_time = models.DateTimeField(auto_now=True, verbose_name="更新时间")
+    is_effective = models.BooleanField(default=True, verbose_name="是否有效")
+
+    class Meta:
+        managed = True
+        db_table = 'position_company_business'
+        verbose_name = '公司工商信息'
+        verbose_name_plural = verbose_name
+
+    def __str__(self):
+        return str(self.id) if not self.full_name else self.full_name
+
+
 class Company(models.Model):
     # core info
     id = models.IntegerField(primary_key=True, verbose_name='公司id', blank=True, default=None)
-    tyc_id = models.CharField(blank=True, null=True, max_length=20, verbose_name="天眼查id")
     name = models.CharField(blank=True, null=True, max_length=100, verbose_name="公司名称")
     city = models.ForeignKey(AdministrativeDiv, on_delete=models.CASCADE, blank=True, null=True, verbose_name="所在地区")
     short_name = models.CharField(blank=True, null=True, max_length=50, verbose_name="公司简称")
-    introduce = models.CharField(blank=True, null=True, max_length=255, verbose_name="公司介绍")
+    introduction = models.CharField(blank=True, null=True, max_length=255, verbose_name="公司介绍")
     certification = models.BooleanField(blank=True, default=True, verbose_name="公司认证")
     financing = models.ForeignKey(CompanyFinancing, on_delete=models.CASCADE, blank=True, null=True,
                                   verbose_name="融资阶段")
-    scale = models.ForeignKey(CompanyScale, on_delete=models.CASCADE, blank=True, null=True, verbose_name="公司规模")
+    size = models.ForeignKey(CompanySize, on_delete=models.CASCADE, blank=True, null=True, verbose_name="公司规模")
     industry = models.ManyToManyField(CompanyIndustries, blank=True, verbose_name="公司所属行业")
-    url = models.CharField(blank=True, null=True, max_length=255, verbose_name="公司官网")
+    url = models.URLField(blank=True, null=True, max_length=255, verbose_name="公司官网")
     logo = models.CharField(blank=True, null=True, max_length=255, verbose_name="公司logo")
     label = models.ManyToManyField(CompanyLabels, blank=True, verbose_name="公司标签")
-
-    business_name = models.CharField(blank=True, null=True, max_length=255, verbose_name="工商-公司名称")
-    business_credit_code = models.CharField(null=True, blank=True, max_length=20, verbose_name="工商-公司信用代码")
-    business_establish_time = models.DateField(null=True, blank=True, verbose_name="工商-成立时间")
-    business_reg_capital = models.CharField(blank=True, null=True, max_length=20, verbose_name="工商-注册资本")
-    business_reg_location = models.CharField(blank=True, null=True, max_length=255, verbose_name="工商-注册地点")
-    business_legal_person_name = models.CharField(blank=True, null=True, max_length=255, verbose_name="工商-法人姓名")
-    business_reg_status = models.ForeignKey(CompanyRegStatus, on_delete=models.CASCADE, blank=True, null=True,
-                                            verbose_name="工商-经营状态")
-
+    business_info = models.ForeignKey(BusinessInfo, on_delete=models.CASCADE, blank=True, null=True,
+                                      verbose_name="工商信息")
     is_effective = models.BooleanField(blank=True, default=True, verbose_name="是否有效")
-    warehouse_time = models.DateTimeField(blank=True, null=True, verbose_name="入库时间")
+    add_time = models.DateTimeField(blank=True, null=True, verbose_name="新增时间")
     update_time = models.DateTimeField(blank=True, null=True, auto_now=True, verbose_name="更新时间")
 
     class Meta:
@@ -216,7 +232,7 @@ class Company(models.Model):
         verbose_name_plural = verbose_name
 
     def __str__(self):
-        return self.name
+        return str(self.id) if not self.name else self.name
 
 
 class Position(models.Model):
@@ -246,7 +262,7 @@ class Position(models.Model):
 
     status_choices = ((-1, "DELETED"), (0, "EXPIRED"),(1, "ONLINE"))
     status = models.SmallIntegerField(blank=True, null=True, choices=status_choices, verbose_name="是否有效")
-    warehouse_time = models.DateTimeField(blank=True, null=True, verbose_name="入库时间")
+    add_time = models.DateTimeField(blank=True, null=True, verbose_name="新增时间")
     update_time = models.DateTimeField(blank=True, null=True, auto_now=True, verbose_name="更新时间")
 
     class Meta:

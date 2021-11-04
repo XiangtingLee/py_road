@@ -146,7 +146,7 @@ class CrawlCompany(object):
                 if city_ins:
                     city_id = city_ins[0].id
                     data["city_id"] = city_id
-        data['warehouse_time'] = datetime.datetime.now()
+        data['add_time'] = datetime.datetime.now()
         labels = data.get("label", None)
         industry = data.get("industry", None)
         del data["label"]
