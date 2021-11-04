@@ -14,6 +14,7 @@ from redis.connection import ConnectionError as RedisConnectionError
 import datetime
 from lxml import etree
 import pandas as pd
+import numpy as np
 from pyecharts import options as opts
 from pyecharts.globals import ThemeType
 from pyecharts.charts import Bar, Line, Pie, WordCloud, Scatter, Funnel, Map
@@ -285,29 +286,31 @@ def display_view(request):
 @require_http_methods(["POST"])
 def node_data(request):
     data = {"search_node": []}
-    place_data = Position.objects.filter(is_effective=1).values_list("position_city__province__name",
-                                                                     "position_city__name",
-                                                                     "position_district__name")
-    df = pd.DataFrame(list(place_data)).fillna("其它地区")
+    place_data = Position.objects.filter(status=1).values_list("district__province__name",
+                                                                     "district__city__name",
+                                                                     "district__name")
+    df = pd.DataFrame(np.array(place_data)).dropna()                                            # 处理掉带空的数据
     df.columns = ["province", "city", "district"]
-    df["district"] = df["district"].fillna("其它地区")
     df = df.drop_duplicates(subset=["province", "city", "district"])
-    # 按照province过滤
-    province_node = [city for city in df.drop_duplicates(['province'])['province']]
+    province_node = [city for city in df.drop_duplicates(['province'])['province']]             # 按照province过滤
     for province in province_node:
-        # 按照city过滤
-        city_node = df[df['province'].str.contains(province)].drop_duplicates(['city'])['city']
-        all_city_data = []  # 一个city下所有的district
+        city_node = df[df['province'].str.contains(province)].drop_duplicates(['city'])['city'] # 按照city过滤
+        city_data = []  # 存放一个city下所有的district
         for city in city_node:
             province_df = df[df['province'].str.contains(province)]
-            district_node = [{"name": place, "type": "position_district__name"} for place in
-                             province_df[province_df["city"].str.contains(city)].drop_duplicates(['district'])[
-                                 'district']]
+            # 构造district数据
+            district_node = [
+                {"name": place, "type": "district__name"} for place in
+                province_df[province_df["city"].str.contains(city)].drop_duplicates(['district'])['district']
+            ]
             # 构造city数据
-            all_city_data.append({"name": city, "type": "position_city__name", "children": district_node})
+            city_data.append(
+                {"name": city, "type": "district__city__name", "children": district_node}
+            )
         # 构造province数据
         data["search_node"].append(
-            {"name": province, "type": "position_city__province__name", "children": all_city_data})
+            {"name": province, "type": "district__province__name", "children": city_data}
+        )
     return JsonResponse(data["search_node"], json_dumps_params={'ensure_ascii': False}, safe=False)
 
 
@@ -337,7 +340,7 @@ def display_filter(request):
     _data = list(
         Position.objects.filter(**filter_kwargs).annotate(salary=Concat("salary_lower", V("-"), "salary_upper", V("k"),
                                                                         output_field=CharField())).values(
-            'id', 'company__name', 'type__name', 'name', 'city__name',
+            'id', 'company__short_name', 'type__name', 'name', 'city__name',
             'district__name', 'education__name', 'experience__name', 'update_time', "salary").order_by('id')
     )
     totalCount, render_data = ListProcess().pagination(_data, page, limit)

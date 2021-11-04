@@ -58,7 +58,7 @@ layui.define('form', function (exports) {
                 , {field: 'id', title: 'ID', width: 90, fixed: 'left', sort: true}
                 , {field: 'name', title: '职位名称', minWidth: 150, sort: true}
                 , {field: 'type__name', title: '职位类型', width: 101, sort: true}
-                , {field: 'company__name', title: '公司名称', minWidth: 101, sort: true}
+                , {field: 'company__short_name', title: '公司名称', minWidth: 101, sort: true}
                 , {field: 'city__name', title: '所在城市', width: 101, sort: true}
                 , {field: 'district__name', title: '所在地点', width: 101, sort: true}
                 , {field: 'education__name', title: '学历要求', width: 101, sort: true}
