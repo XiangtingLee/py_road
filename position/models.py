@@ -210,7 +210,8 @@ class Company(models.Model):
     name = models.CharField(blank=True, null=True, max_length=100, verbose_name="公司名称")
     city = models.ForeignKey(AdministrativeDiv, on_delete=models.CASCADE, blank=True, null=True, verbose_name="所在地区")
     short_name = models.CharField(blank=True, null=True, max_length=50, verbose_name="公司简称")
-    introduction = models.CharField(blank=True, null=True, max_length=255, verbose_name="公司介绍")
+    introduction = models.CharField(blank=True, null=True, max_length=255, verbose_name="公司简介")
+    profile = models.TextField(blank=True, null=True, verbose_name="公司介绍")
     certification = models.BooleanField(blank=True, default=True, verbose_name="公司认证")
     financing = models.ForeignKey(CompanyFinancing, on_delete=models.CASCADE, blank=True, null=True,
                                   verbose_name="融资阶段")
