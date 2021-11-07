@@ -102,7 +102,7 @@ class ProxyPool(models.Model):
         ordering = ['-id']
 
     def __str__(self):
-        return self.address + ':' + str(self.port)
+        return self.protocol.name + "://" + self.address + ':' + str(self.port)
 
 
 class Spider(models.Model):

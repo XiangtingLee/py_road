@@ -238,7 +238,7 @@ class Company(models.Model):
 
 class Position(models.Model):
     # 公司相关
-    company = models.ForeignKey(Company, on_delete=models.CASCADE, verbose_name="公司id")
+    company = models.ForeignKey(Company, on_delete=models.CASCADE, verbose_name="公司id", null=True, blank=True)
     # 职位相关
     id = models.IntegerField(primary_key=True, verbose_name='职位id')
     name = models.CharField(blank=True, null=True, max_length=100, verbose_name="职位名称")
