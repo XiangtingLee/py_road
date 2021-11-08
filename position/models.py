@@ -261,7 +261,7 @@ class Position(models.Model):
     welfare = models.ManyToManyField(PositionWelfares, blank=True, verbose_name="福利待遇")
     label = models.ManyToManyField(PositionLabels, blank=True, verbose_name="职位标签")
 
-    status_choices = ((-1, "DELETED"), (0, "EXPIRED"),(1, "ONLINE"))
+    status_choices = ((-1, "DELETED"), (0, "EXPIRED"),(1, "ONLINE"), (2, "UN_PUBLISH"))
     status = models.SmallIntegerField(blank=True, null=True, choices=status_choices, verbose_name="是否有效")
     add_time = models.DateTimeField(blank=True, null=True, verbose_name="新增时间")
     update_time = models.DateTimeField(blank=True, null=True, verbose_name="更新时间")
