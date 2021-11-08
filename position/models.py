@@ -264,7 +264,7 @@ class Position(models.Model):
     status_choices = ((-1, "DELETED"), (0, "EXPIRED"),(1, "ONLINE"))
     status = models.SmallIntegerField(blank=True, null=True, choices=status_choices, verbose_name="是否有效")
     add_time = models.DateTimeField(blank=True, null=True, verbose_name="新增时间")
-    update_time = models.DateTimeField(blank=True, null=True, auto_now=True, verbose_name="更新时间")
+    update_time = models.DateTimeField(blank=True, null=True, verbose_name="更新时间")
 
     class Meta:
         managed = True
