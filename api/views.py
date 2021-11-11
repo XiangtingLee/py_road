@@ -1,5 +1,7 @@
 from django.shortcuts import render
 from django.http import HttpResponse
+from django.http.response import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
 import hashlib
 
 # Create your views here.
@@ -20,3 +22,22 @@ def wechat_verify(request):
         return HttpResponse(echostr)
     else:
         return HttpResponse(params)
+
+
+@csrf_exempt
+def proxy_verify(request):
+    data = {
+        "method": request.method,
+        "ip": request.META.get("REMOTE_ADDR"),
+        "proxy": False,
+        "proxy_ip": None,
+        "ua": request.META.get('HTTP_USER_AGENT'),
+        "REMOTE_ADDR": request.META.get("REMOTE_ADDR"),
+        "HTTP_X_FORWARDED_FOR": request.META.get('HTTP_X_FORWARDED_FOR')
+    }
+    if request.META.get('HTTP_X_FORWARDED_FOR'):
+        data["proxy"] = True
+        data["ip"] = request.META.get("HTTP_X_FORWARDED_FOR")
+        data["proxy_ip"] = request.META.get("REMOTE_ADDR")
+    return JsonResponse(data, json_dumps_params={'ensure_ascii': False}, safe=False)
+

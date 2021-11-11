@@ -58,7 +58,7 @@ class ProxyPoolType(models.Model):
     class Meta:
         managed = True
         db_table = 'public_proxy_pool_type'
-        verbose_name = '代理池'
+        verbose_name = '代理类型'
         verbose_name_plural = verbose_name
         ordering = ['-id']
 
@@ -76,7 +76,24 @@ class ProxyPoolProtocol(models.Model):
     class Meta:
         managed = True
         db_table = 'public_proxy_pool_protocol'
-        verbose_name = '代理池'
+        verbose_name = '代理协议'
+        verbose_name_plural = verbose_name
+        ordering = ['-id']
+
+    def __str__(self):
+        return self.name
+
+class ProxyMethodType(models.Model):
+    name = models.CharField(max_length=16, verbose_name="名称")
+    add_time = models.DateTimeField(verbose_name="添加时间")
+    update_time = models.DateTimeField(auto_now=True, verbose_name="更新时间")
+    is_available = models.BooleanField(default=True, verbose_name='是否可用')
+    is_delete = models.BooleanField(default=False, verbose_name='是否删除')
+
+    class Meta:
+        managed = True
+        db_table = 'public_proxy_pool_method'
+        verbose_name = '代理请求方式'
         verbose_name_plural = verbose_name
         ordering = ['-id']
 
@@ -89,6 +106,7 @@ class ProxyPool(models.Model):
     address = models.CharField(max_length=15, verbose_name='代理地址')
     port = models.CharField(max_length=10, verbose_name='代理端口号')
     type = models.ForeignKey(ProxyPoolType, on_delete=models.CASCADE, verbose_name='代理类型')
+    method = models.ForeignKey(ProxyMethodType, on_delete=models.CASCADE, verbose_name='请求方式')
     add_time = models.DateTimeField(verbose_name="添加时间")
     update_time = models.DateTimeField(auto_now=True, verbose_name="更新时间")
     is_available = models.BooleanField(default=False, verbose_name='是否可用')
