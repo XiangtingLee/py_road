@@ -106,7 +106,7 @@ class ProxyPool(models.Model):
     address = models.CharField(max_length=15, verbose_name='代理地址')
     port = models.CharField(max_length=10, verbose_name='代理端口号')
     type = models.ForeignKey(ProxyPoolType, on_delete=models.CASCADE, verbose_name='代理类型')
-    method = models.ForeignKey(ProxyMethodType, on_delete=models.CASCADE, verbose_name='请求方式')
+    method = models.ForeignKey(ProxyMethodType, on_delete=models.CASCADE, verbose_name='请求方式', null=True, blank=True)
     add_time = models.DateTimeField(verbose_name="添加时间")
     update_time = models.DateTimeField(auto_now=True, verbose_name="更新时间")
     is_available = models.BooleanField(default=False, verbose_name='是否可用')
