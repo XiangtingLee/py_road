@@ -1,71 +1,77 @@
 layui.define('form', function (exports) {
     layui.use(['table', "form", 'tree', 'slider', 'treeSelect'], function () {
         var table = layui.table
-                , $ = layui.jquery
-                , form = layui.form
-                , slider = layui.slider
-                , treeSelect = layui.treeSelect;
+            , $ = layui.jquery
+            , form = layui.form
+            , slider = layui.slider
+            , treeSelect = layui.treeSelect;
 
-            form.render();
+        form.render();
 
-            slider.render({
-                elem: '#salaryRange'
-                , value: 100
-                , range: true
-                , setTips: function (val) {
-                    return val + 'K';
-                }
-                , change: function (val) {
-                    $('#filterSalary').val(val[0] + "," + val[1]);
-                }
-            });
-            treeSelect.render({
-                elem: '#filterLocation',
-                data: '/position/display/node/data/',
-                type: 'post',
-                placeholder: '请选择所在城市',
-                search: true,
-                style: {
-                    folder: {
-                        enable: false
-                    },
-                    line: {
-                        enable: true
-                    }
+        slider.render({
+            elem: '#salaryRange'
+            , value: 100
+            , range: true
+            , setTips: function (val) {
+                return val + 'K';
+            }
+            , change: function (val) {
+                $('#filterSalary').val(val[0] + "," + val[1]);
+            }
+        });
+        treeSelect.render({
+            elem: '#filterLocation',
+            data: '/position/display/node/data/',
+            type: 'post',
+            placeholder: '请选择所在城市',
+            search: true,
+            style: {
+                folder: {
+                    enable: false
                 },
-                click: function (d) {
-                    $('#filterLocation').val(d.current.name);
-                    $('#filterLocation').attr("name", d.current.type);
+                line: {
+                    enable: true
                 }
-            });
+            },
+            click: function (d) {
+                $('#filterLocation').val(d.current.name);
+                $('#filterLocation').attr("name", d.current.type);
+            }
+        });
 
         //方法级渲染
         table.render({
-            elem: '#test-table-toolbar'
+            elem: '#dataTableWithToolBar'
             , url: '/position/display/filter/'
             , method: 'GET'
+            , toolbar: true
             , title: '用户数据表'
             , parseData: function (res) {
                 return {
-                    data : res.data,
-                    msg : res.msg,
+                    data: res.data,
+                    msg: res.msg,
                     code: res.code,
-                    count : res.extra.totalCount
+                    count: res.extra.totalCount
                 }
             }
             , cols: [[
                 {type: 'checkbox', fixed: 'left'}
                 , {field: 'id', title: 'ID', width: 90, fixed: 'left', sort: true}
-                , {field: 'name', title: '职位名称', minWidth: 150, sort: true}
+                , {field: 'name', title: '职位名称', minWidth: 150}
                 , {field: 'type__name', title: '职位类型', width: 101, sort: true}
                 , {field: 'company__short_name', title: '公司名称', minWidth: 101, sort: true}
                 , {field: 'city__name', title: '所在城市', width: 101, sort: true}
-                , {field: 'district__name', title: '所在地点', width: 101, sort: true}
+                , {field: 'district__name', title: '所在地点', width: 91}
                 , {field: 'education__name', title: '学历要求', width: 101, sort: true}
-                , {field: 'experience__name', title: '经验要求', width: 120, sort: true}
-                , {field: 'salary', title: '薪资', width: 100, sort: true}
+                , {field: 'experience__name', title: '经验要求', width: 101, sort: true}
+                , {field: 'salary', title: '薪资', width: 80, sort: true}
                 , {
-                    field: 'update_time', title: '最后修改时间', width: 180, sort: true, templet: function (d) {
+                    field: 'status', title: '职位状态', width: 101, sort: true, templet: function (d) {
+                        return ["已过期", "已下线", "有效", "待发布"][d.status + 1]
+                    }
+                }
+                , {
+                    field: 'update_time', title: '最后修改时间', width: 155, sort: true, templet: function (d) {
                         return d.update_time.replace("T", "\t").split(".")[0];
                     }
                 }
@@ -80,7 +86,7 @@ layui.define('form', function (exports) {
                 const filter = $('#filterData').serialize();
                 table.reload('dataForm', {
                     url: "/position/display/filter/?" + filter
-                    , page: { curr: 1 }
+                    , page: {curr: 1}
                     , method: "GET"
                     , where: {}
                 }, 'data');

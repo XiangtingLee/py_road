@@ -45,12 +45,12 @@ def _company_financing():
     return pie.render_embed()
 
 
-def _company_scale():
+def _company_size():
     """
     公司规模数据
     """
-    all_scala = Company.objects.values_list("scale__name", flat=True)
-    render_data = _get_pie_render_data(list(all_scala))
+    all_size = Company.objects.values_list("size__name", flat=True)
+    render_data = _get_pie_render_data(list(all_size))
     pie = Pie(init_opts=PYECHARTS_INIT_OPTS)
     pie.add(series_name="公司融资情况", data_pair=render_data, radius=["40%", "50%"])
     return pie.render_embed()
@@ -168,8 +168,8 @@ def _get_daily_num():
         date_str = range_date_start.strftime("%m-%d")
         xAxis.append(date_str)
         for one_type in all_type:
-            daily_count = Position.objects.filter(type=one_type, warehouse_time__gte=range_date_start,
-                                                  warehouse_time__lt=end_date).count()
+            daily_count = Position.objects.filter(type=one_type, add_time__gte=range_date_start,
+                                                  add_time__lt=end_date).count()
             try:
                 render_data[one_type.name].append(daily_count)
             except KeyError:
@@ -192,7 +192,7 @@ def _get_position_type_salary():
     xAxis = DateProcess().get_month_range_str(6, out_format="%Y.%m", include_this_month=True)
     all_type = list(PositionType.objects.filter(is_effective=1).values_list("name", flat=True))
     a = Position.objects.filter(status=1).values_list("type__name", "salary_lower", "salary_upper",
-                                                            "warehouse_time")
+                                                            "add_time")
     df = pd.DataFrame(list(a), columns=["type", "salary_low", "salary_up", "date"])
     df["salary"] = (df["salary_low"] + df["salary_up"]) / 2
     df.drop(columns=["salary_low", "salary_up"], inplace=True)
@@ -232,7 +232,7 @@ def visualization_view(request):
             "location": _local_distribution,
             "education": _education,
             "experience": _experience,
-            "company_scale": _company_scale,
+            "company_scale": _company_size,
             "company_industry": _company_industry,
             "company_financing": _company_financing,
             "daily": _get_daily_num,
@@ -256,7 +256,7 @@ def update_position_visualization_cache(task_id):
         "location": _local_distribution,
         "education": _education,
         "experience": _experience,
-        "company_scale": _company_scale,
+        "company_scale": _company_size,
         "company_industry": _company_industry,
         "company_financing": _company_financing,
         "daily": _get_daily_num,
@@ -340,7 +340,7 @@ def display_filter(request):
     _data = list(
         Position.objects.filter(**filter_kwargs).annotate(salary=Concat("salary_lower", V("-"), "salary_upper", V("k"),
                                                                         output_field=CharField())).values(
-            'id', 'company__short_name', 'type__name', 'name', 'city__name',
+            'id', 'company__short_name', 'type__name', 'name', 'city__name', 'status',
             'district__name', 'education__name', 'experience__name', 'update_time', "salary").order_by('id')
     )
     totalCount, render_data = ListProcess().pagination(_data, page, limit)
