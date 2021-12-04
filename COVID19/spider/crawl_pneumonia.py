@@ -98,7 +98,7 @@ class CrawlPneumonia(object):
 
 if __name__ == "__main__":
     spider = CrawlPneumonia()
-    spider.start_url = "http://3g.dxy.cn/newh5/view/pneumonia"
+    spider.start_url = "https://ncov.dxy.cn/ncovh5/view/pneumonia"
     spider.run()
     # resp = requests.get("https://lab.isaaclin.cn/nCoV/api/overall?latest=0").json()
     # for one in resp["results"]:
