@@ -75,7 +75,7 @@ layui.define('form', function (exports) {
                         return d.update_time.replace("T", "\t").split(".")[0];
                     }
                 }
-                , {fixed: 'right', title: '操作', width: 80, align: 'center', toolbar: '#barDemo'}
+                , {fixed: 'right', title: '操作', width: 80, align: 'center', toolbar: '#item-operation'}
             ]]
             , id: 'dataForm'
             , page: true

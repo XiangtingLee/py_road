@@ -10,5 +10,6 @@ urlpatterns = [
     url('^display/filter/$', views.display_filter, name='display_filter'),
     url('^visualization/view/$', views.visualization_view, name='visualization_view'),
     url('^cleaning/view/$', views.cleaning_view, name='cleaning_view'),
+    url('^cleaning/filter/$', views.cleaning_filter, name='cleaning_filter'),
     url('^cleaning/check/$', views.cleaning_check, name='cleaning_check'),
 ]

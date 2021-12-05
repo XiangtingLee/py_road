@@ -328,8 +328,7 @@ def display_filter(request):
         except IndexError or TypeError:
             del filter_kwargs["salary"]
     if filter_kwargs.__contains__("city__province__name"):
-        filter_kwargs["city__province__name"] = None if filter_kwargs[
-                                                                     "city__province__name"] == "其它地区" else \
+        filter_kwargs["city__province__name"] = None if filter_kwargs["city__province__name"] == "其它地区" else \
         filter_kwargs["city__province__name"]
     if filter_kwargs.__contains__("city__name"):
         filter_kwargs["city__name"] = None if filter_kwargs["city__name"] == "其它地区" else \
@@ -353,6 +352,27 @@ def display_filter(request):
 def cleaning_view(request):
     resp = render(request, 'position/cleaning.html')
     return resp
+
+
+@login_required
+@require_http_methods(["GET"])
+def cleaning_filter(request):
+    page, limit, filter_kwargs = get_opt_kwargs(request, "GET")
+    place_data = Position.objects.filter(status=1).values_list("id", "district__province__name",
+                                                               "district__city__name",
+                                                               "district__name")
+    df = pd.DataFrame(np.array(place_data))
+    df.columns = ["id", "province", "city", "district"]
+    items_id = df[df.isnull().T.any()]["id"].values.tolist()    # 找出存在空值行的id
+    _data = list(
+        Position.objects.filter(id__in=items_id).annotate(salary=Concat("salary_lower", V("-"), "salary_upper", V("k"),
+                                                                        output_field=CharField())).values(
+            'id', 'company__short_name', 'type__name', 'name', 'city__name', 'status',
+            'district__name', 'education__name', 'experience__name', 'update_time', "salary").order_by('id')
+    )
+    total_count, render_data = ListProcess().pagination(_data, page, limit)
+    resp = RESP.get_data_response(0, None, render_data, totalCount=total_count, page=page, limit=limit)
+    return JsonResponse(resp, json_dumps_params={'ensure_ascii': False})
 
 
 def _check_position_effective(pid):
