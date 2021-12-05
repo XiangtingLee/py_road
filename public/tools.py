@@ -249,4 +249,4 @@ def get_opt_kwargs(request, method: str = "GET", exclude: list = None, paginatio
             return page, limit, filter_kwargs
         else:
             return filter_kwargs
-    return 0, 0, {}
+    return 1, 10, {}
