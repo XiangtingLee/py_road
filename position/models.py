@@ -251,7 +251,7 @@ class Position(models.Model):
                                  verbose_name="所在区域", related_name="position_level2")
     business_area = models.ForeignKey(CityBusinessArea, on_delete=models.CASCADE, blank=True, null=True,
                                       verbose_name="所在商圈")
-    street = models.CharField(blank=True, null=True, max_length=100, verbose_name="详细地址")
+    street = models.CharField(blank=True, null=True, max_length=255, verbose_name="详细地址")
     education = models.ForeignKey(PositionEducation, on_delete=models.CASCADE, blank=True, null=True,
                                   verbose_name="学历要求")
     experience = models.ForeignKey(PositionExperience, on_delete=models.CASCADE, blank=True, null=True,

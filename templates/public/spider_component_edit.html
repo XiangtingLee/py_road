@@ -1,6 +1,6 @@
 {% extends 'lib/base.html' %}
 {% load static %}
-{% block title %}编辑爬虫{% endblock %}
+{% block title %}编辑组件{% endblock %}
 {% block content %}
     <div class="layui-fluid">
         <div class="layui-card">
@@ -8,50 +8,42 @@
             <div class="layui-card-body" style="padding: 15px;">
                 <form class="layui-form" action="">
                     <div class="layui-form-item">
-                        <label class="layui-form-label">爬虫名称</label>
+                        <label class="layui-form-label">组件名称</label>
                         <div class="layui-input-block">
                             <input type="text" name="name" lay-verify="name" placeholder="请输入名称"
-                                   autocomplete="off" class="layui-input" value="{{ spider.name }}">
+                                   autocomplete="off" class="layui-input" value="{{ name }}">
                         </div>
                     </div>
 
                     <div class="layui-form-item">
-                        <label class="layui-form-label">文件路径
+                        <label class="layui-form-label">组件代码
                         <i class="layui-icon layui-icon-help" style="font-size: 15px;"></i>
                         </label>
                         <div class="layui-input-block">
-                            <input type="text" name="path" lay-verify="path" placeholder="请输入路径"
-                                   autocomplete="off" class="layui-input" value="{{ spider.path }}">
+                            <textarea id="code-editor" name="code" placeholder="请输入代码" style="display: none;"></textarea>
                         </div>
                     </div>
 
                     <div class="layui-form-item" pane="">
-                        <label class="layui-form-label">加载组件</label>
+                        <label class="layui-form-label">Scrapy适用</label>
                         <div class="layui-input-block">
-                            <div id="select-component"></div>
-                        </div>
-                    </div>
-
-                    <div class="layui-form-item" pane="">
-                        <label class="layui-form-label">框架爬虫</label>
-                        <div class="layui-input-block">
-                            <input type="radio" name="is_frame" value="1" title="是" {% if spider.is_frame %}checked{% endif %}>
-                            <input type="radio" name="is_frame" value="0" title="否" {% if not spider.is_frame %}checked{% endif %}>
+                            <input type="radio" name="frame_available" value="1" title="是" {% if frame_available %}checked{% endif %}>
+                            <input type="radio" name="frame_available" value="0" title="否" {% if not frame_available %}checked{% endif %}>
                         </div>
                     </div>
 
                     <div class="layui-form-item" pane="">
                         <label class="layui-form-label">有效性</label>
                         <div class="layui-input-block">
-                            <input type="checkbox" value="1" name="is_available" lay-skin="primary" title="有效" {% if not spider.is_available %}{% else %}checked{% endif %}>
-                            <input type="checkbox" value="1" name="is_delete" lay-skin="primary" title="已删除" {% if spider.is_delete %}checked{% endif %}>
+                            <input type="checkbox" value="1" name="is_available" lay-skin="primary" title="有效" {% if not is_available %}{% else %}checked{% endif %}>
+                            <input type="checkbox" value="1" name="is_delete" lay-skin="primary" title="已删除" {% if is_delete %}checked{% endif %}>
                         </div>
                     </div>
 
                     <div class="layui-form-item layui-form-text">
-                        <label class="layui-form-label">备注</label>
+                        <label class="layui-form-label">描述</label>
                         <div class="layui-input-block">
-                            <textarea name="remark" placeholder="请输入备注" class="layui-textarea">{{ spider.remark }}</textarea>
+                            <textarea name="description" placeholder="请输入描述" class="layui-textarea">{{ description }}</textarea>
                         </div>
                     </div>
                     {% csrf_token %}
@@ -66,13 +58,15 @@
 {% endblock %}
 {% block tail_include_after %}
     <script>
-        var all_component = [{% for item in component %}{name: '{{ item.name }}', value: {{ item.id }}, selected: {{ item.selected }}},{% endfor %}]
+        var code = `{% for line in code %}{{ line|safe }}{% endfor %}`
+    </script>
+    <script>
         layui.config({
             base: '{% static 'layuiadmin/' %}' //静态资源所在路径
         }).extend({
             index: 'lib/index',
-            spider_manage_edit: 'public/spider_manage_edit'
-        }).use(['index', 'spider_manage_edit']);
+            spider_component_edit: 'public/spider_component_edit',
+        }).use(['index', 'spider_component_edit']);
     </script>
 {% endblock %}
 

@@ -1,47 +1,84 @@
 {% extends 'lib/base.html' %}
 {% load static %}
 {% block title %}爬虫操作{% endblock %}
+{% block header_include_after %}
+{% endblock %}
 {% block content %}
     <div class="layui-fluid">
         <div class="layui-row layui-col-space15">
-            <div class="layui-col-md6">
-
+            <!-- 爬虫配置 -->
+            <div class="layui-col-md12">
                 <div class="layui-card">
-                    <div class="layui-card-header">自编爬虫操作</div>
+                    <div class="layui-card-header">爬虫配置</div>
                     <div class="layui-card-body">
-
-                        <form class="layui-form" action="{% url 'public:spider_operate_run_self' %}" lay-filter="run-spider-form"
-                              method="post">
+                        <form class="layui-form" action="{% url 'public:spider_operate_run' %}" lay-filter="run-spider-form" method="post">
                             {% csrf_token %}
-                            <div class="layui-row layui-col-space10 layui-form-item">
-                                <div class="layui-col-lg12">
-                                    <label class="layui-form-label">操作爬虫：</label>
-                                    <div class="layui-input-block">
-                                        <label>
-                                            <select name="spider" lay-verify="required" lay-filter="dynamic_render"
-                                                    lay-search>
-                                                <option value="">请选择爬虫</option>
-                                                {% for spider in spiders %}
-                                                    {% if not spider.is_frame %}
-                                                        <option value="{{ spider.name }}" render-type="{{ spider.name }}">{{ spider.name }}({{ spider.remark }})</option>
-                                                    {% endif %}
-                                                {% endfor %}
-                                            </select>
-                                        </label>
+                            <!-- 配置主体 -->
+                            <div class="layui-row">
+                                <div class="layui-col-md6 layui-col-space10">
+                                    <!-- 选择爬虫 -->
+                                    <div class="layui-col-lg12  layui-form-item">
+                                        <label class="layui-form-label">操作爬虫：</label>
+                                        <div class="layui-input-block">
+                                            <label>
+                                                <select name="spider" lay-verify="required" lay-filter="dynamic_render"
+                                                        lay-search>
+                                                    <option value="">请选择爬虫</option>
+                                                    <optgroup label="自编爬虫">
+                                                    {% for spider in spiders %}
+                                                        {% if not spider.is_frame %}
+                                                            <option value="{{ spider.name }}" components="keyword proxy thread input filter" render-type="{{ spider.name }}">{{ spider.name }}({{ spider.remark }})</option>
+                                                        {% endif %}
+                                                    {% endfor %}
+                                                    </optgroup>
+                                                    <optgroup label="Scrapy框架">
+                                                    {% for spider in spiders %}
+                                                        {% if spider.is_frame %}
+                                                            <option value="{{ spider.name }}" components="{{ spider.component }}" render-type="{{ spider.name }}">{{ spider.name }}({{ spider.remark }})</option>
+                                                        {% endif %}
+                                                    {% endfor %}
+                                                    </optgroup>
+                                                </select>
+                                            </label>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                            <div class="layui-form-item">
-                                <div class="layui-input-block">
-                                    <button class="layui-btn" lay-submit>启动爬虫</button>
-                                    <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+                                <div class="layui-col-md6 layui-col-space10">
+                                    <!-- 启动按钮 -->
+                                    <div class="layui-form-item">
+                                    <div class="layui-input-block">
+                                        <button class="layui-btn" lay-submit>启动爬虫</button>
+                                        <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+                                    </div>
                                 </div>
+                                </div>
+                            </div>
+                            <!-- 组件加载区 -->
+                            <div class="layui-row" id="component-loader">
+
                             </div>
                         </form>
 
-                        <script type="text/html" id="lg_position_input">
-                            <div class="papers_input_content">
-                                <div class="layui-row layui-col-space10 layui-form-item">
+                        <!-- 代理控件 -->
+                        <script type="text/html" id="proxy-component">
+                            <div class="layui-col-md6 layui-col-space10 layui-inline">
+                                <div class="layui-col-lg12  layui-form-item">
+                                    <label class="layui-form-label">爬虫代理：</label>
+                                    <div class="layui-input-block">
+                                        <select name="proxy_source" lay-filter="select-proxy-type">
+{#                                            <option value="">不使用代理</option>#}
+                                            <option value="api">第三方代理</option>
+                                            <option value="sql">自建代理</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </script>
+
+                        <!-- 城市选择控件 -->
+                        <script type="text/html" id="city-component">
+                            <div class="layui-col-md6 layui-col-space10 layui-inline">
+                                <div class="layui-col-lg12  layui-form-item">
                                     <label class="layui-form-label">城市分站：</label>
                                     <div class="layui-input-block">
                                         <input type="radio" name="city" value="全国" title="全国站" checked>
@@ -53,34 +90,46 @@
                                         <input type="radio" name="city" value="江苏" title="江苏站">
                                     </div>
                                 </div>
-                                <div class="layui-row layui-col-space10 layui-form-item">
+                            </div>
+                        </script>
+
+                        <!-- 线程控件 -->
+                        <script type="text/html" id="thread-component">
+                            <div class="layui-col-md6 layui-col-space10 layui-inline">
+                                <div class="layui-col-lg12  layui-form-item">
                                     <label class="layui-form-label">线程数量：</label>
                                     <div class="layui-input-block">
                                         <div id="thread" style="padding-top: 15px;"></div>
                                         <input name="thread" id="threadCount" type="hidden" value="20">
                                     </div>
                                 </div>
-                                <div class="layui-row layui-col-space10 layui-form-item">
-                                    <div class="layui-col-lg12">
-                                        <label class="layui-form-label">爬取种类：</label>
-                                        <div class="layui-input-block">
-                                            <select name="kd" lay-verify="required" lay-filter="selectLan" lay-search>
-                                                <option value="">请选择语言</option>
-                                                {% for type in position_types %}
-                                                <option value="{{ type }}">{{ type }}</option>
-                                                {% endfor %}
-                                            </select>
-                                        </div>
+                            </div>
+                        </script>
+
+                        <!-- 关键字控件 -->
+                        <script type="text/html" id="keyword-component">
+                            <div class="layui-col-md6 layui-col-space10 layui-inline">
+                                <div class="layui-col-lg12  layui-form-item">
+                                    <label class="layui-form-label">关键字：</label>
+                                    <div class="layui-input-block">
+                                        <select name="classify" lay-verify="required" lay-filter="selectLan" lay-search>
+                                            <option value="">请选择关键字</option>
+                                            {% for type in position_types %}
+                                            <option value="{{ type }}">{{ type }}</option>
+                                            {% endfor %}
+                                        </select>
                                     </div>
                                 </div>
                             </div>
                         </script>
 
-                        <script type="text/html" id="lg_company_input">
-                            <div class="papers_input_content">
-                                <div class="layui-form-item layui-row layui-col-space10">
+
+                        <!-- 输入组件 -->
+                        <script type="text/html" id="input-component">
+                            <div class="layui-col-md6 layui-col-space10 layui-inline">
+                                <div class="layui-col-lg12  layui-form-item">
                                     <label class="layui-form-label">公司id：</label>
-                                    <div class="layui-input-inline">
+                                    <div class="layui-input-block">
                                         <label>
                                             <input name="cid" placeholder="请输入公司id" class="layui-input">
                                         </label>
@@ -89,170 +138,58 @@
                             </div>
                         </script>
 
-                    </div>
-                </div>
-
-            </div>
-
-            <div class="layui-col-md6">
-
-                <div class="layui-card">
-                    <div class="layui-card-header">框架爬虫操作</div>
-                    <div class="layui-card-body">
-
-                        <form class="layui-form" action="{% url 'public:spider_operate_run_frame' %}" lay-filter="run-spider-form"
-                              method="post">
-                            {% csrf_token %}
-                            <div class="layui-row layui-col-space10 layui-form-item">
-                                <div class="layui-col-lg12">
-                                    <label class="layui-form-label">操作爬虫：</label>
-                                    <div class="layui-input-block">
-                                        <label>
-                                            <select name="spiderName" lay-verify="required" lay-filter="dynamic_render"
-                                                    lay-search>
-                                                <option value="">请选择爬虫</option>
-                                                {% for spider in spiders %}
-                                                    {% if spider.is_frame %}
-                                                        <option value="{{ spider.name }}" render-type="{{ spider.name }}">{{ spider.name }}({{ spider.remark }})</option>
-                                                    {% endif %}
-                                                {% endfor %}
-                                            </select>
-                                        </label>
-                                    </div>
+                        <!-- 过滤组件 -->
+                        <script type="text/html" id="filter-component">
+                            <div class="layui-col-md6 layui-col-space10 layui-inline">
+                                <div id="filter-container" class="layui-col-lg12">
+                                    <label class="layui-form-label filter-line">过滤条件：</label>
                                 </div>
                             </div>
-                            <div class="layui-row layui-col-space10 layui-form-item">
-                                <div class="layui-col-lg6">
-                                    <label class="layui-form-label">爬虫代理：</label>
-                                    <div class="layui-input-block">
-                                        <select name="prxoy_type" lay-filter="select-proxy-type">
-                                            <option value="">不使用代理</option>
-                                            <option value="0">自建代理</option>
-                                            <option value="1">第三方代理</option>
+                        </script>
+
+                        <!-- 过滤单行组件 -->
+                        <script type="text/html" id="filter-line">
+                            <div id="filter-template" class="layui-input-block layui-col-space10 filter-line">
+                                <div class="layui-col-sm4 layui-col-xs12">
+                                    <label>
+                                        <input name="k" placeholder="请输入key" class="layui-input">
+                                    </label>
+                                </div>
+                                <div class="layui-col-sm4 layui-col-xs12">
+                                    <label>
+                                        <input name="v" placeholder="请输入value" class="layui-input">
+                                    </label>
+                                </div>
+                                <div class="layui-col-sm3 layui-col-xs12">
+                                    <label>
+                                        <select name="opt">
+                                            <option value="">请选择连接符</option>
+                                            <option value="-1|0">end</option>
+                                            <option value="0|0">or</option>
+                                            <option value="1|0">and</option>
+                                            <option value="0|1">or not</option>
+                                            <option value="1|1">and not</option>
                                         </select>
-                                    </div>
+                                    </label>
                                 </div>
-                            </div>
-                            <div class="layui-form-item">
-                                <div class="layui-input-block">
-                                    <button class="layui-btn" lay-submit>启动爬虫</button>
-                                    <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+                                <div class="layui-col-sm1  layui-col-xs12">
+                                    <div class="add-filter {% verbatim %}{{ d.filterCount }}{% endverbatim %}" style="position: absolute;top: 12px;cursor:pointer;">
+                                        <i class="layui-icon layui-icon-add-circle" style="font-size: 20px; color: #70bf2b;"></i>
+                                    </div>
+                                    {% verbatim %}{{# if (d.filterCount !== 1) { }}{% endverbatim %}
+                                    <div class="del-filter" style="position: absolute;left: 30px;top: 12px;cursor:pointer; z-index: 100;">
+                                        <i class="layui-icon layui-icon-delete" style="font-size: 20px; color: #ba2121;"></i>
+                                    </div>
+                                    {% verbatim %}{{# } }}{% endverbatim %}
                                 </div>
-                            </div>
-                        </form>
-
-                        <script type="text/html" id="lagou_wxapp_position_info_input">
-                            <div class="papers_input_content">
-                                <div class="layui-form-item layui-row layui-col-space12">
-                                    <label class="layui-form-label">过滤条件：</label>
-                                    <div class="layui-input-inline">
-                                        <label>
-                                            <input name="k" placeholder="请输入key" class="layui-input">
-                                        </label>
-                                    </div>
-                                    <div class="layui-input-inline">
-                                        <label>
-                                            <input name="v" placeholder="请输入value" class="layui-input">
-                                        </label>
-                                    </div>
-                                    <div class="layui-input-inline">
-                                        <label>
-                                            <select name="opt">
-                                                <option value="">请选择连接方式</option>
-                                                <option value="0|0">and</option>
-                                                <option value="1|0">or</option>
-                                                <option value="0|1">and not</option>
-                                                <option value="1|1">or not</option>
-                                            </select>
-                                        </label>
-                                    </div>
-                                    <div class="layui-input-block" style="position: absolute;right: 10px;">
-                                        <div class="add-filter" style="position: absolute;right: 35px;top: 12px;cursor:pointer;" render-type="filter">
-                                            <i class="layui-icon layui-icon-add-circle" style="font-size: 20px; color: #70bf2b;"></i>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </script>
-
-                        <script type="text/html" id="filter_input">
-                            <div class="papers_input_content">
-                                <div class="layui-form-item layui-row layui-col-space12">
-                                    <label class="layui-form-label"></label>
-                                    <div class="layui-input-inline">
-                                        <label>
-                                            <input name="k" placeholder="请输入key" class="layui-input">
-                                        </label>
-                                    </div>
-                                    <div class="layui-input-inline">
-                                        <label>
-                                            <input name="v" placeholder="请输入value" class="layui-input">
-                                        </label>
-                                    </div>
-                                    <div class="layui-input-inline">
-                                        <label>
-                                            <select name="opt">
-                                                <option value="">请选择连接方式</option>
-                                                <option value="0|0">and</option>
-                                                <option value="1|0">or</option>
-                                                <option value="0|1">and not</option>
-                                                <option value="1|1">or not</option>
-                                            </select>
-                                        </label>
-                                    </div>
-                                    <div class="layui-input-block" style="position: absolute;right: 10px;">
-                                        <div class="add-filter{% verbatim %}{{ d.num }}{% endverbatim %}" style="position: absolute;right: 35px;top: 12px;cursor:pointer;" render-type="filter">
-                                            <i class="layui-icon layui-icon-add-circle" style="font-size: 20px; color: #70bf2b;"></i>
-                                        </div>
-                                        <div class="del-filter{% verbatim %}{{ d.num }}{% endverbatim %}" style="position: absolute;right: 5px;top: 12px;cursor:pointer;">
-                                            <i class="layui-icon layui-icon-reduce-circle" style="font-size: 20px; color: #ba2121;"></i>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </script>
-
-                        <script type="text/html" id="select-proxy-type">
-                            <div class="papers_input_content">
-                                <div class="layui-form-item layui-row layui-col-space8">
-                                    <label class="layui-form-label"></label>
-                                    <div class="layui-input-inline">
-                                        <label>
-                                            <input name="k" placeholder="请输入key" class="layui-input">
-                                        </label>
-                                    </div>
-                                    <div class="layui-input-inline">
-                                        <label>
-                                            <input name="v" placeholder="请输入value" class="layui-input">
-                                        </label>
-                                    </div>
-                                    <div class="layui-input-inline">
-                                        <label>
-                                            <select name="opt">
-                                                    <option value="">请选择连接方式</option>
-                                                    <option value="0|0">and</option>
-                                                    <option value="1|0">or</option>
-                                                    <option value="0|1">and not</option>
-                                                    <option value="1|1">or not</option>
-                                                </select>
-                                        </label>
-                                    </div>
-                                    <div class="layui-input-block" style="position: absolute;right: 15px;">
-                                        <div class="add-filter{% verbatim %}{{ d.num }}{% endverbatim %}" style="position: absolute;right: 40px;top: 12px;cursor:pointer;" render-type="filter">
-                                            <i class="layui-icon layui-icon-add-circle" style="font-size: 20px; color: #70bf2b;"></i>
-                                        </div>
-                                        <div class="del-filter{% verbatim %}{{ d.num }}{% endverbatim %}" style="position: absolute;right: 10px;top: 12px;cursor:pointer;">
-                                            <i class="layui-icon layui-icon-reduce-circle" style="font-size: 20px; color: #ba2121;"></i>
-                                        </div>
-                                    </div>
-                                </div>
+                                <div style="clear: both;"></div>
                             </div>
                         </script>
 
                     </div>
                 </div>
             </div>
-
+            <!-- 运行记录 -->
             <div class="layui-col-md12">
                 <div class="layui-card">
                     <div class="layui-card-header">运行记录</div>
@@ -344,9 +281,12 @@
                     , where: {}
                 });
                 }
-            };
-            var counter = 1;
+            }
+            , filterCounter = 0;
 
+            form.render();
+
+            // 加载日历组件
             lay('.date-range').each(function () {
                 laydate.render({
                     elem: this
@@ -355,13 +295,26 @@
                 });
             });
 
-            form.render();
+            // 筛选按钮
+            $('#filter').on('click', function () {
+                var type = $(this).data('type');
+                active[type] ? active[type].call(this) : '';
+            });
 
+            // 渲染数据
             table.render({
                 elem: '#spiderRunlogData'
                 , url: '{% url 'log:spider_filter' %}'
                 , method: 'GET'
                 , initSort: {field: 'id', type: 'desc'}
+                , parseData: function (res) {
+                    return {
+                        data: res.data,
+                        msg: res.msg,
+                        code: res.code,
+                        count: res.extra.total
+                    }
+                }
                 , cols: [[
                     {field: 'id', title: 'ID', width: 80, fixed: 'left', unresize: true, sort: true}
                     , {field: 'spider_name', title: '爬虫名称', width: 150}
@@ -382,7 +335,11 @@
                     , {
                         field: 'end_time', title: '结束时间', width: 160, sort: true,
                         templet: function (d) {
-                            return d.end_time.replace("T", "\t").split(".")[0];
+                            if (d.end_time) {
+                                return d.end_time.replace("T", "\t").split(".")[0];
+                            }else{
+                                return d.end_time
+                            }
                         }
                     }
                     , {field: 'remark', title: '备注', width: 180}
@@ -391,13 +348,7 @@
                 , id: 'runLogForm'
             });
 
-            //重载按钮
-            $('#filter').on('click', function () {
-                var type = $(this).data('type');
-                active[type] ? active[type].call(this) : '';
-            });
-
-            //监听行双击事件（单击事件为：row）
+            // 监听行双击事件（单击事件为：row）
             table.on('rowDouble(spiderRunlogData)', function (obj) {
                 var data = obj.data;
 
@@ -409,43 +360,58 @@
                 obj.tr.addClass('layui-table-click').siblings().removeClass('layui-table-click');
             });
 
-            //监听下拉框变化
+            // 监听下拉框变化
             form.on('select(dynamic_render)', function (obj) {
-                var elem = obj.othis;
-                var itemElem = elem.closest('.layui-form-item');
-                itemElem.next('.papers_input_content').remove();
-                var render_type = obj.elem[obj.elem.selectedIndex].getAttribute('render-type');
-                var textTemp = $('#' + render_type + '_input').html();
+                var elem = obj.othis
+                , componentContainer = $("#component-loader")
+                {#, components = ["proxy", "city", "thread", "keyword", "input", "filter"]#}
+                , components = obj.elem[obj.elem.selectedIndex].getAttribute('components').split(" ")
+                , component = "proxy"
+                , templates = []
+                , template = $('#' + component + '-component').html();
 
-                if (textTemp) {
-                    $(laytpl(textTemp).render({})).insertAfter(itemElem);
-                    form.render(null, 'run-spider-form');
-                    $('.add-filter').on('click', (function(){
-                        insNode(this);
-                    }));
-                    slider.render({
-                        elem: '#thread' ,min: 1 ,max: 30 ,value: 20
-                        , change: function (val) {
-                            $('#threadCount').val(val);
-                        }
-                    });
+                // 清空组件加载
+                componentContainer.empty();
+                filterCounter = 0;
+                // 选择需要的组件
+                for (let component of components) {
+                    templates.push($('#' + component + '-component').html());
                 }
-            })
-            function insNode(elem)
-            {
-                textTemp = $('#' + elem.getAttribute('render-type') + '_input').html();
-                fillterEnd = elem.closest('.papers_input_content')
-                $(laytpl(textTemp).render({num: counter++})).insertAfter(fillterEnd);
+                // 渲染
+                for (let template of templates) {
+                    if(template !== undefined) {
+                        componentContainer.append($(laytpl(template).render({}))[0])
+                    }
+                }
+                insNode(0, 0, 4);
                 form.render(null, 'run-spider-form');
-                $('.add-filter' + (counter - 1)).on('click', (function(){
-                    insNode(this);
-                }));
-                $('.del-filter' + (counter - 1)).on('click', (function(){
-                    this.closest('.layui-form-item').remove();
-                    form.render(null, 'run-spider-form');
-                }));
-            }
+                slider.render({
+                    elem: '#thread' ,min: 1 ,max: 30 ,value: 20
+                    , change: function (val) {
+                        $('#threadCount').val(val);
+                    }
+                });
+            })
 
+            // 插入节点
+            function insNode(container, template, maxcount)
+            {
+                if (filterCounter >= maxcount) {
+                    layer.msg('最多只能过滤' + maxcount + "条!", {icon: 2});
+                    return
+                }
+                var template = template ? template : $("#filter-line").html()
+                , container = container ? container : $("#filter-container");
+                container.append($(laytpl(template).render({filterCount: ++filterCounter})));
+                $('.add-filter').off('click').on('click', (function(){
+                    insNode(container, template, maxcount);
+                }));
+                $('.del-filter').on('click', (function(){
+                    filterCounter--;
+                    this.closest('.filter-line').remove();
+                }));
+                form.render(null, 'run-spider-form');
+            }
         });
     </script>
 {% endblock %}

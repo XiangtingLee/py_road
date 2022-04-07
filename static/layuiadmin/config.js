@@ -43,6 +43,7 @@ layui.define(['laytpl', 'layer', 'element', 'util'], function(exports){
       'supersized', //注册登录页全屏轮播
       'treeTable', //折叠静态表格
       'treeSelect', //下拉树
+      'xmSelect', //下拉多选
     ]
     
     //主题配置

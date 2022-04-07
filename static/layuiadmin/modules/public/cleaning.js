@@ -8,6 +8,14 @@ layui.define('form', function (exports) {
             , method: 'GET'
             , toolbar: '#toolbar'
             , title: '用户数据表'
+            , parseData: function (res) {
+                return {
+                    data: res.data,
+                    msg: res.msg,
+                    code: res.code,
+                    count: res.extra.total
+                }
+            }
             , cols: [[
                 {type: 'checkbox', fixed: 'left'}
                 , {field: 'id', title: 'ID', width: 90, fixed: 'left', sort: true}

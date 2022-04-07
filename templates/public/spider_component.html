@@ -1,16 +1,15 @@
 {% extends 'lib/base.html' %}
 {% load static %}
-{% block title %}爬虫管理{% endblock %}
+{% block title %}爬虫组件{% endblock %}
 {% block content %}
     <div class="layui-fluid">
         <div class="layui-row layui-col-space15">
             <div class="layui-col-md12">
                 <div class="layui-card">
-                    <div class="layui-card-header">爬虫列表</div>
+                    <div class="layui-card-header">组件列表</div>
                     <div class="layui-card-body">
                         <div class="layui-btn-group record-table-btn" style="margin-bottom: 10px;">
                             <button class="layui-btn" data-type="add">手动添加</button>
-                            <button class="layui-btn" data-type="autoAdd" style="margin-left: 10px !important;">自动探测</button>
                         </div>
 
                         <table class="layui-hide" id="record-table" lay-filter="record-table"></table>
@@ -32,8 +31,8 @@
             base: '{% static 'layuiadmin/' %}' //静态资源所在路径
         }).extend({
             index: 'lib/index',
-            spider_manage: 'public/spider_manage',
-        }).use(['index', 'spider_manage']);
+            spider_component: 'public/spider_component',
+        }).use(['index', 'spider_component']);
     </script>
 {% endblock %}
 

@@ -240,9 +240,10 @@ def get_opt_kwargs(request, method: str = "GET", exclude: list = None, paginatio
     form = request.GET if method.lower() == "get" else request.POST if method.lower() == "post" else None
     if form:
         filter_kwargs = {
-            key: form.getlist(key, []) if method.lower() == "post" and len(form.getlist(key, [])) > 1 else form[key] for
-            key in form if
-            key not in items and form[key]}
+            key: form.getlist(key, []) if (method.lower() == "post" and len(form.getlist(key, [])) > 1) else form[key]
+            for key in form
+            if (key not in items and form[key])
+        }
         if pagination:
             page = int(form.get('page', 1))
             limit = int(form.get('limit', 10))

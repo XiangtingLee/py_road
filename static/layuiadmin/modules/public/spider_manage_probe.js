@@ -6,6 +6,14 @@ layui.define('form', function (exports) {
         table.render({
             elem: '#record-table'
             , data: eval($("#file-data").data("file"))
+            , parseData: function (res) {
+                return {
+                    data: res.data,
+                    msg: res.msg,
+                    code: res.code,
+                    count: res.extra.total
+                }
+            }
             , cols: [[
                 {checkbox: true}
                 , {type: 'numbers', title: '序号'}

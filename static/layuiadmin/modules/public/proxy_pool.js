@@ -14,10 +14,10 @@ layui.define(function (exports) {
             , title: '数据表'
             , parseData: function (res) {
                 return {
-                    data : res.data,
-                    msg : res.msg,
+                    data: res.data,
+                    msg: res.msg,
                     code: res.code,
-                    count : res.extra.totalCount
+                    count: res.extra.total
                 }
             }
             , cols: [[

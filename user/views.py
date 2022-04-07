@@ -226,8 +226,8 @@ def manage_filter(request):
         User.objects.filter(**filter_kwargs).values("id", "username", "nick_name", "face_img", "mobile", "email", "sex",
                                                     "last_login_ip", "date_joined", "is_active").order_by('id')
     )
-    total_count, render_data = ListProcess().pagination(_data, page, limit)
-    resp = RESP.get_data_response(0, None, render_data, totalCount=total_count, page=page, limit=limit)
+    total, render_data = ListProcess().pagination(_data, page, limit)
+    resp = RESP.get_data_response(0, None, render_data, total=total, page=page, limit=limit)
     return JsonResponse(resp, json_dumps_params={'ensure_ascii': False})
 
 

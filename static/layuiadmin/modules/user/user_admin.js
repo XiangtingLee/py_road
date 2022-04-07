@@ -34,7 +34,7 @@ layui.define(['table', 'form'], function (exports) {
                 data : res.data,
                 msg : res.msg,
                 code: res.code,
-                count : res.extra.totalCount
+                count : res.extra.total
             }
         }
         , cols: [[

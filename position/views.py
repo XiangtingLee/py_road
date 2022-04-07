@@ -275,7 +275,11 @@ def update_position_visualization_cache(task_id):
 @login_required
 @require_http_methods(["GET"])
 def display_view(request):
-    data = {"all_type": PositionType.objects.values_list("name", flat=True)}
+    data = {
+        "all_type": PositionType.objects.values_list("name", flat=True),
+        "all_education": PositionEducation.objects.values_list("name", flat=True),
+        "all_experience": PositionExperience.objects.values_list("name", flat=True)
+    }
     resp = render(request, 'position/display.html', data)
     resp.set_signed_cookie(key='sign', value=int(time.time()), salt=settings.SECRET_KEY, path='/position/display/')
     return resp
@@ -319,6 +323,12 @@ def node_data(request):
 @require_http_methods(["GET"])
 def display_filter(request):
     page, limit, filter_kwargs = get_opt_kwargs(request, "GET")
+    if "update_time" in filter_kwargs.keys():
+        filter_kwargs["update_time__range"] = (
+            datetime.datetime.strptime(filter_kwargs["update_time"].split(" - ")[0], "%Y-%m-%d %H:%M:%S"),
+            datetime.datetime.strptime(filter_kwargs["update_time"].split(" - ")[1], "%Y-%m-%d %H:%M:%S")
+        )
+        del filter_kwargs["update_time"]
     filter_kwargs["status"] = 1
     if 'salary' in filter_kwargs.keys():
         try:
@@ -339,11 +349,11 @@ def display_filter(request):
     _data = list(
         Position.objects.filter(**filter_kwargs).annotate(salary=Concat("salary_lower", V("-"), "salary_upper", V("k"),
                                                                         output_field=CharField())).values(
-            'id', 'company__short_name', 'type__name', 'name', 'city__name', 'status',
+            'id', 'company__short_name', 'company__name', 'type__name', 'name', 'city__name', 'status',
             'district__name', 'education__name', 'experience__name', 'update_time', "salary").order_by('id')
     )
-    totalCount, render_data = ListProcess().pagination(_data, page, limit)
-    resp = RESP.get_data_response(0, None, render_data, totalCount=totalCount, page=page, limit=limit)
+    total, render_data = ListProcess().pagination(_data, page, limit)
+    resp = RESP.get_data_response(0, None, render_data, total=total, page=page, limit=limit)
     return JsonResponse(resp, json_dumps_params={'ensure_ascii': False})
 
 
@@ -370,8 +380,8 @@ def cleaning_filter(request):
             'id', 'company__short_name', 'type__name', 'name', 'city__name', 'status',
             'district__name', 'education__name', 'experience__name', 'update_time', "salary").order_by('id')
     )
-    total_count, render_data = ListProcess().pagination(_data, page, limit)
-    resp = RESP.get_data_response(0, None, render_data, totalCount=total_count, page=page, limit=limit)
+    total, render_data = ListProcess().pagination(_data, page, limit)
+    resp = RESP.get_data_response(0, None, render_data, total=total, page=page, limit=limit)
     return JsonResponse(resp, json_dumps_params={'ensure_ascii': False})
 
 

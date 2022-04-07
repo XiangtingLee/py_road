@@ -13,10 +13,10 @@ layui.define('form', function (exports) {
             , toolbar: 'default'
             , parseData: function (res) {
                 return {
-                    data : res.data,
-                    msg : res.msg,
+                    data: res.data,
+                    msg: res.msg,
                     code: res.code,
-                    count : res.extra.totalCount
+                    count: res.extra.total
                 }
             }
             , defaultToolbar: ["filter","exports"]

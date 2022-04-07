@@ -136,3 +136,6 @@ migrations/
 
 #celery beats
 celerybeat-schedule.*
+
+#scrapy job dir
+/pyroad_spider/jobdir/

@@ -28,6 +28,14 @@
                                 </div>
 
                                 <div class="layui-inline">
+                                    <label class="layui-form-label">职位名称</label>
+                                    <div class="layui-input-inline">
+                                        <input class="layui-input" name="name__contains" id="filterPosition"
+                                               autocomplete="off">
+                                    </div>
+                                </div>
+
+                                <div class="layui-inline">
                                     <label class="layui-form-label">职位类型</label>
                                     <div class="layui-input-inline">
                                         <select name="type__name">
@@ -40,18 +48,49 @@
                                 </div>
 
                                 <div class="layui-inline">
-                                    <label class="layui-form-label">公司名称</label>
+                                    <label class="layui-form-label">公司全称</label>
                                     <div class="layui-input-inline">
-                                        <input class="layui-input" name="company__name__contains" id="filterCompany"
+                                        <input class="layui-input" name="company__name__contains" id="filterCompanyShortName"
                                                autocomplete="off">
                                     </div>
                                 </div>
 
                                 <div class="layui-inline">
-                                    <label class="layui-form-label">职位名称</label>
+                                    <label class="layui-form-label">公司简称</label>
                                     <div class="layui-input-inline">
-                                        <input class="layui-input" name="name__contains" id="filterPosition"
+                                        <input class="layui-input" name="company__short_name__contains" id="filterCompanyName"
                                                autocomplete="off">
+                                    </div>
+                                </div>
+
+                                <div class="layui-inline">
+                                   <label class="layui-form-label">所在城市</label>
+                                   <div class="layui-input-inline">
+                                       <input type="text" name="position" id="filterLocation" lay-filter="filterLocation" class="layui-input">
+                                   </div>
+                               </div>
+
+                                <div class="layui-inline">
+                                    <label class="layui-form-label">学历要求</label>
+                                    <div class="layui-input-inline">
+                                        <select name="education__name">
+                                            <option value="">请选择学历要求</option>
+                                            {% for education in all_education %}
+                                                <option value="{{ education }}">{{ education }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="layui-inline">
+                                    <label class="layui-form-label">经验要求</label>
+                                    <div class="layui-input-inline">
+                                        <select name="education__name">
+                                            <option value="">请选择经验要求</option>
+                                            {% for experience in all_experience %}
+                                                <option value="{{ experience }}">{{ experience }}</option>
+                                            {% endfor %}
+                                        </select>
                                     </div>
                                 </div>
 
@@ -65,11 +104,11 @@
                                 </div>
 
                                 <div class="layui-inline">
-                                   <label class="layui-form-label">所在城市</label>
-                                   <div class="layui-input-inline">
-                                       <input type="text" name="position" id="filterLocation" lay-filter="filterLocation" class="layui-input">
-                                   </div>
-                               </div>
+                                    <label class="layui-form-label">最后更新</label>
+                                      <div class="layui-input-inline">
+                                        <input type="text" name="update_time" placeholder="yyyy-MM-dd" autocomplete="off" class="layui-input date-range" lay-key="1">
+                                      </div>
+                                </div>
 
                             </div>
 
