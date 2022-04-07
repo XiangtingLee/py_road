@@ -14,7 +14,7 @@ layui.define('form', function (exports) {
                 , saveH: 150
                 , mark: 1 / 1    //选取比例
                 , area: '400px'  //弹窗宽度
-                , url: "/user/info/upload/"  //图片上传接口返回和（layui 的upload 模块）返回的JOSN一样
+                , url: "/user/profile/upload/"  //图片上传接口返回和（layui 的upload 模块）返回的JOSN一样
                 , done: function (url) { //上传完毕回调
                     $("#inputimgurl").val(url);
                     $("#face_img").attr('src', url);
