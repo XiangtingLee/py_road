@@ -2,6 +2,15 @@ layui.define(['jquery', 'admin', 'form', 'supersized'], function (exports) {
     var $ = layui.$
         , admin = layui.admin
         , form = layui.form;
+    
+    document.onkeypress = function(event) {
+        var e = event || window.event;
+        var keyCode = e.keyCode || e.which;
+        if (keyCode === 13) {
+            $('.layui-btn').click();
+        }
+    };
+    
     var obj = {
         bg: function () {
             $.supersized({
