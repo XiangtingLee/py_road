@@ -1,5 +1,5 @@
 from django.db import models
-from public.models import AdministrativeDiv
+from public.models.district.administration import AdministrativeDiv
 
 # Create your models here.
 

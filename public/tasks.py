@@ -1,13 +1,16 @@
-# Create your tasks here
 from __future__ import absolute_import, unicode_literals
 
-from abc import ABC
-
+import os
+import json
+import base64
+import logging
+import datetime
+import subprocess
 from celery import shared_task, Task
 
-from log.models import SpiderRunLog
-from .models import Spider
-import position.views
+from public.models.spider.spider import Spider
+from log.models.spider_run import SpiderRunLog
+from position import views as PositionViews
 
 import os
 import logging
@@ -34,7 +37,7 @@ class MyTask(Task):
 
 class CacheTask(MyTask):
     def on_success(self, retval, task_id, args, kwargs):
-        position.views.update_position_visualization_cache(task_id)
+        PositionViews.update_position_visualization_cache(task_id)
         SpiderRunLog.objects.filter(task_id=task_id).update(status=True, end_time=datetime.datetime.now())
         return super(MyTask, self).on_success(retval, task_id, args, kwargs)
 

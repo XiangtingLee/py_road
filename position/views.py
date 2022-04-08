@@ -1,23 +1,33 @@
+import numpy as np
+import pandas as pd
+from lxml import etree
+from pyecharts import options as opts
+from pyecharts.globals import ThemeType
+from redis.connection import ConnectionError as RedisConnectionError
+from pyecharts.charts import Bar, Line, Pie, WordCloud, Scatter, Funnel, Map
+
 from django.shortcuts import render
-from django.db.models import CharField, Value as V
+from django.core.cache import cache
 from django.db.models.functions import Concat
+from django.db.models import CharField, Value as V
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_http_methods
 
-from .models import *
+from position.models.company.company import Company
+from position.models.company.size import CompanySize
+from position.models.company.regStatus import CompanyRegStatus
+from position.models.company.financing import CompanyFinancing
+from position.models.company.industry import CompanyIndustries
+from position.models.company.label import CompanyLabels
+
+from position.models.position.position import Position
+from position.models.position.type import PositionType
+from position.models.position.education import PositionEducation
+from position.models.position.experience import PositionExperience
+from position.models.position.label import PositionLabels
 from public.tools import *
 # from .tasks import long_time_def
-from django.core.cache import cache
 
-import time
-from redis.connection import ConnectionError as RedisConnectionError
-import datetime
-from lxml import etree
-import pandas as pd
-import numpy as np
-from pyecharts import options as opts
-from pyecharts.globals import ThemeType
-from pyecharts.charts import Bar, Line, Pie, WordCloud, Scatter, Funnel, Map
 
 PYECHARTS_INIT_OPTS = opts.InitOpts(width="100%", height="100%", theme=ThemeType.MACARONS)
 PYECHARTS_MARKPOINT_MIN = opts.MarkPointItem(type_="min", value_index=1)

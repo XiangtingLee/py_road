@@ -1,13 +1,11 @@
 # 外部模块导入
-import django.db
-import requests
-import datetime
-import time
 import os
 import re
 import json
+import time
+import datetime
+import requests
 from uuid import uuid4
-from urllib.parse import quote
 from scrapyd_api import ScrapydAPI
 
 # Django模块导入
@@ -22,10 +20,19 @@ from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 
 # 项目内引用
-from .models import *
+from public.models.district.business_area import CityBusinessArea
+from public.models.district.administration import AdministrativeDiv
+from public.models.proxy_pool.method import ProxyMethod
+from public.models.proxy_pool.type import ProxyPoolType
+from public.models.proxy_pool.proxy_pool import ProxyPool
+from public.models.proxy_pool.protocol import ProxyPoolProtocol
+from public.models.spider.spider import Spider
+from public.models.spider.component import SpiderComponent
+
+
 from .tasks import delay_spider
-from log.models import SpiderRunLog
-from position.models import PositionType
+from log.models.spider_run import SpiderRunLog
+from position.models.position.type import PositionType
 from .tools import MyThread, verify_sign, update_sign, ListProcess, get_opt_kwargs, ResponseStandard
 from django.conf import settings
 
