@@ -2,7 +2,7 @@ import datetime
 
 from django.http import JsonResponse
 
-from .models import *
+from log.models.spider_run import SpiderRunLog
 from public.tools import ListProcess, ResponseStandard, get_opt_kwargs
 
 RESP = ResponseStandard()
