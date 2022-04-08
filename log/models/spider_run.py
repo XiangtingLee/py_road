@@ -1,6 +1,6 @@
 from django.db import models
 
-# Create your models here.
+
 class SpiderRunLog(models.Model):
     spider_name = models.CharField(max_length=255, verbose_name="爬虫名称")
     param = models.CharField(max_length=255, verbose_name="运行参数")
@@ -11,6 +11,7 @@ class SpiderRunLog(models.Model):
     remark = models.TextField(verbose_name="备注")
 
     class Meta:
+        app_label = 'log'
         managed = True
         db_table = 'log_spider'
         verbose_name = 'spider运行日志'
